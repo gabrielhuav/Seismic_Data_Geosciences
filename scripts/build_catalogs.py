@@ -286,6 +286,12 @@ def update_registry(north):
         if entry["id"] != "nrcan-ca-historical" or entry["provider"] != "nrcan":
             raise ValueError("Unexpected optional Canada catalogue identity")
         retained = [item for item in retained if item["id"] != entry["id"]] + [entry]
+    ssn_entry = ROOT / "research-data/catalogs/ssn-mx/catalog_entry.json"
+    if ssn_entry.exists():
+        entry = json.loads(ssn_entry.read_text(encoding="utf-8"))
+        if entry["id"] != "ssn-mx-historical" or entry["provider"] != "ssn":
+            raise ValueError("Unexpected native SSN catalogue identity")
+        retained = [item for item in retained if item["id"] != entry["id"]] + [entry]
     north_manifest_bytes = (TARGET / "manifest.json").read_bytes()
     entries = [
         {"id": "usgs-na-2020-2025", "provider": "usgs", "provider_name": "USGS ComCat",
@@ -317,7 +323,8 @@ def update_registry(north):
             raise ValueError("Optional catalogue manifest does not describe its packaged bytes")
     providers = {item["id"]: item for item in existing.get("providers", []) if item["id"] != "usgs"}
     for entry in retained:
-        providers.setdefault(entry["provider"], {"id": entry["provider"], "name": entry["provider_name"]})
+        providers.setdefault(entry["provider"], {"id": entry["provider"], "name": entry["provider_name"],
+                                               **({"url": entry["provider_url"]} if entry.get("provider_url") else {})})
     registry = {"schema_version": 1, "default_catalog_id": "usgs-na-2020-2025",
                 "legacy_catalog_id": "usgs-mx-historical",
                 "providers": [{"id": "usgs", "name": "USGS ComCat", "url": "https://earthquake.usgs.gov/data/comcat/", "event_url_template": EVENT_URL_TEMPLATE}] + list(providers.values()),
@@ -333,14 +340,18 @@ def verify_registry():
     catalogues = registry["catalogs"]
     ids = [item["id"] for item in catalogues]
     required = {"usgs-na-2020-2025", "usgs-mx-historical", "nrcan-ca-historical"}
+    if (ROOT / "research-data/catalogs/ssn-mx/catalog_entry.json").exists():
+        required.add("ssn-mx-historical")
     if len(ids) != len(set(ids)) or not required.issubset(ids):
-        raise ValueError("Final explorer registry must retain all three named catalogues")
+        raise ValueError("Final explorer registry must retain all prepared named catalogues")
     if (registry["default_catalog_id"] != "usgs-na-2020-2025"
             or registry["legacy_catalog_id"] != "usgs-mx-historical"):
         raise ValueError("Default or legacy shared-view catalogue changed")
     provider_ids = [item["id"] for item in registry["providers"]]
     if len(provider_ids) != len(set(provider_ids)) or not {"usgs", "nrcan"}.issubset(provider_ids):
         raise ValueError("Final explorer must expose USGS and NRCan providers")
+    if "ssn-mx-historical" in ids and "ssn" not in provider_ids:
+        raise ValueError("Native SSN catalogue must retain its separate distributor")
     summary = []
     for item in catalogues:
         if item["provider"] not in provider_ids:
@@ -355,10 +366,14 @@ def verify_registry():
             raw = target.read_bytes()
             if sha(raw) != item[hash_key]:
                 raise ValueError(f"Registered catalogue hash mismatch: {item['id']} {path_key}")
+            if path_key == "events_url" and "events_bytes" in item and len(raw) != item["events_bytes"]:
+                raise ValueError(f"Registered catalogue byte count mismatch: {item['id']}")
             assets[path_key] = json.loads(raw)
         data, manifest = assets["events_url"], assets["manifest_url"]
         if manifest["derived_asset_sha256"] != item["sha256"]:
             raise ValueError(f"Manifest does not identify its event bytes: {item['id']}")
+        if manifest.get("derived_asset_bytes") is not None and manifest["derived_asset_bytes"] != item.get("events_bytes"):
+            raise ValueError(f"Manifest and registry byte counts differ: {item['id']}")
         fields = data["fields"]
         if len(fields) != len(set(fields)) or not set(FIELDS[:17]).issubset(fields):
             raise ValueError(f"Missing or repeated common catalogue fields: {item['id']}")
@@ -380,7 +395,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--download", action="store_true", help="Download missing files at the pinned commit; never refresh to live catalogues")
-    mode.add_argument("--verify-only", action="store_true", help="Verify all three packaged catalogues offline; do not rebuild or download")
+    mode.add_argument("--verify-only", action="store_true", help="Verify all registered packaged catalogues offline; do not rebuild or download")
     args = parser.parse_args()
     if args.verify_only:
         print(json.dumps(verify_registry()))

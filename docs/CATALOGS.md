@@ -35,6 +35,17 @@ independent earthquakes.
   event-type field is supplied, so individual non-earthquake exclusions cannot
   be determined from this resource. Coverage includes surrounding and offshore
   areas; it is not a territorial assignment to Canada.
+- **Mexico, direct SSN download — 1900–6 November 2026.** The native
+  [SSN catalogue](http://www2.ssn.unam.mx:8080/catalogo/) (DOI
+  `10.21766/SSNMX/EC/MX`) is a separate distribution, identified by provider
+  `ssn` and catalogue `ssn-mx-historical`. Its unchanged CSV contains 402,082
+  source records, all magnitudes and depths. The map package selects all
+  242,288 records with reported numeric magnitude at least 3.5 and valid native
+  UTC/coordinates, without a further temporal cut. It excludes 142,145 records
+  below 3.5 and 17,649 with the literal magnitude `no calculable`; those records
+  remain in the full raw CSV. The 71,317,664-byte map JSON loads on demand.
+  The selected observed bounds are latitude 10.271–38.0923 and longitude
+  −120.595–−85.5467. These coordinates do not establish national membership.
 
 Each packaged catalogue has its own event bytes, manifest, SHA-256 values,
 provider, coverage and field limitations in `system/dist/data/catalogs.json`.
@@ -50,12 +61,69 @@ identifiable and are not claimed to represent independent physical events.
 Depth values whose units cannot be documented remain raw values outside the
 common kilometre field, rather than being silently converted or labelled.
 
+## Direct SSN source, provenance and reproducibility
+
+The preserved source is
+`research-data/catalogs/ssn-mx/ssn_19000101_20261106.csv`: 45,950,120 unchanged
+bytes, SHA-256
+`0601c65544bc95ef865d3440e5e6d84249acdebd8edfb379669597096543f993`.
+The package includes its manifest, catalogue entry, README and observed SSN
+legal-page text in `TERMS.txt`. Rebuild it offline with
+`python scripts/build_ssn_catalog.py`, then run
+`python scripts/build_catalogs.py` to refresh the registry while retaining the
+other catalogues. Validate every registered event and manifest hash with
+`python scripts/build_catalogs.py --verify-only`; the registry contains four
+catalogues from three distributors, with North America still the default and
+the original Mexico snapshot still the version-1 shared-link target.
+
+The native CSV labels its first date/time pair UTC; the adapter combines those
+columns into ISO 8601 with `Z` and preserves all four original UTC/local strings.
+It does not infer an offset from local time. The source explicitly documents
+depth in kilometres, and observed zero depths remain zero. Magnitude type,
+event type, original event identifier, solution authors, uncertainties and
+update timestamp are not supplied and remain null. No magnitude-scale
+conversion is applied. `place` is the unchanged locality reference, which the
+source explicitly says is only a reference to a nearby populous locality;
+it does not assign a state, country or tectonic zone. The literal `verificado`
+and `revisado` statuses are preserved, without treating them as an archive of
+revisions or an update time.
+
+The 27-field package also retains a one-based `source_record` and seven
+`raw_*` fields. Each URL-safe `ssn-local-…` key is derived from the SHA-256 of
+all ten original cells and the exact-row occurrence number in raw source
+order, before selection. Prefix collisions are checked, and repeated rows
+would be retained with separate keys; this input has no exact repeated rows.
+These keys identify source records rather than original SSN events.
+
+The four source-header lines and seven footer notes are retained in the
+manifest. The header reports generation on 6 November 2026 at 13:57:07 in
+centre-Mexico local time. One preserved record reports a later native local
+origin time, 14:31:07 (20:31:07 UTC). The download-file last-write observation
+is separately labelled filesystem metadata. This discrepancy is flagged;
+neither time is repaired or claimed to establish a trusted publication clock
+or atomic snapshot. The 2026 year is partial. Sixteen calendar years already
+have no source records; they are not physical zero-event years or gaps caused
+by the M≥3.5 filter. This download does not establish a completeness year,
+independence from ComCat, revision history, earthquake prediction, ground-motion
+hazard or damage.
+
+The original CSV nonprofit reproduction notice is preserved together with the
+data-specific **USO DE DATOS SÍSMICOS / TÉRMINOS DE LIBRE USO** observed on the
+[SSN legal page](http://www.ssn.unam.mx/aviso-legal/). Those specific terms state
+any-purpose use with source credit, preservation of meaning, no institutional
+endorsement and separate third-party rights. Both notices remain visible in
+the preserved source/terms and manifest; no Creative Commons or SPDX licence
+is invented. The repository's software MIT licence does not relicense SSN
+observations. The terms' request for a paper copy after publication does not
+send an email automatically. No SSN/UNAM logo or endorsement is claimed.
+
 ## SSN/UNAM attribution within USGS ComCat
 
 **SSN/UNAM · via USGS ComCat** is a visible source shortcut to a filtered view
 of the fixed Mexico-region catalogue. Its technical distributor remains USGS
-and its catalogue identifier remains `usgs-mx-historical`; no fourth catalogue,
-third distributor or independent SSN download is introduced. The
+and its catalogue identifier remains `usgs-mx-historical`. That shortcut itself
+does not create a new catalogue or distributor; the separate direct SSN
+download described above has its own provider and provenance. The
 [USGS contributor directory](https://earthquake.usgs.gov/data/comcat/contributor/)
 identifies UNM as Instituto de Geofísica, UNAM. The primary
 [EMSC contributor directory](https://emsc-csem.org/Earthquake_data/contributors.php)
@@ -77,8 +145,8 @@ not SSN network activity or national completeness.
 The view uses the existing ComCat event identifiers and provenance. It does
 not recover original SSN identifiers or revision history. No historical SSN
 SQL is republished or imported; reuse terms for that separate historical
-resource remain unresolved. Registry, packaged event bytes, reported values,
-coordinates and source manifests are unchanged. The URL and JSON query
+resource remain unresolved. This attribution predicate leaves the original
+three catalogue event/manifest pairs unchanged. The URL and JSON query
 identify the attribution predicate separately from the actual distributor.
 
 ## Map backgrounds
@@ -96,6 +164,13 @@ identify the attribution predicate separately from the actual distributor.
   attribution: [USGS Topo MapServer](https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer).
   See [USGS terms](https://www.usgs.gov/faqs/what-are-terms-uselicensing-map-services-and-data-national-map)
   and the [official service directory](https://apps.nationalmap.gov/services/).
+- **OSM Humanitarian** uses OSM France's public service for moderate, non-profit
+  use with visible attribution; its [usage terms](https://www.openstreetmap.fr/usage/)
+  remain applicable. Tiles load only for the chosen visible map.
+- **NASA Blue Marble** is the static August 2004 MODIS composite with relief and
+  bathymetry from [NASA GIBS](https://nasa-gibs.github.io/gibs-api-docs/), not current
+  imagery or seismic evidence. The public time-independent Web Mercator layer
+  has native zoom through level 8. NASA GIBS/ESDIS credits remain visible.
 
 Remote backgrounds can fail independently of the dataset. The local background
 remains available; a tile error must not be reported as an absence of earthquakes.

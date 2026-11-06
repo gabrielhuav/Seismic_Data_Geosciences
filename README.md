@@ -40,7 +40,7 @@ python -m http.server 8787 --bind 127.0.0.1 --directory system/dist
 ```
 
 Open http://127.0.0.1:8787/ for the local explorer. The packaged application is
-ready to serve; rebuilding all three catalogues and the local cartography is described in the
+ready to serve; rebuilding all four catalogues and the local cartography is described in the
 [reproduction guide](docs/REPRODUCIBILITY.md). Original pilot responses, the
 acquisition manifest and their checksums are in the
 [bounded evidence package](research-data/README.md). Figures and editable Word

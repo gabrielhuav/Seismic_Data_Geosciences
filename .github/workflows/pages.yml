@@ -32,6 +32,7 @@ jobs:
           node tests/test_system_labels.cjs
           node tests/test_catalog_frontend.cjs
           node tests/test_preferences.cjs
+          node tests/test_map_basemaps.cjs
       - name: Reproduce the independent retained-product validation
         run: python -m scripts.validate_evidence
       - name: Check static references, privacy and pinned asset bytes

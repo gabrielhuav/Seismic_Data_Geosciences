@@ -2,7 +2,7 @@
 const $ = id => document.getElementById(id);
 const I = window.SeismicI18n, V = window.SeismicViewState;
 const t = (key, values) => I.t(key, values);
-const state = {events: [], filtered: [], manifest: null, registry: null, catalog: null, page: 0, size: 40, revisions: null,
+const state = {events: [], fields: [], filtered: [], manifest: null, registry: null, catalog: null, page: 0, size: 40, revisions: null,
   applied: {...V.defaults}, tab: 'catalog', selectedEvent: '', ready: false, restoring: false,
   formValid: true, invalidLink: [], hashes: {}, action: '', loadError: null, request: 0, cache: new Map(), baseStatus: 'baseLocalNote', highlightedEvent:'', expanded:false};
 const fmt = n => new Intl.NumberFormat(I.language).format(n);
@@ -12,9 +12,12 @@ const date = s => s ? s.replace('T', ' ').replace(/Z$/, ' UTC') : t('notReported
 const unm = V.isUnmAttributed;
 const controls = Object.keys(V.defaults);
 const catalogLabel = c => c.label?.[I.language] || c.label?.en || c.id;
+const loadingText = c => c ? t('loadingCatalog', {label:catalogLabel(c)})
+  + (Number.isFinite(c.events_bytes) && c.events_bytes > 0 ? ' ' + t('loadingSize', {size:value(c.events_bytes/1000000,1)}) : '') : t('loading');
 const snapshot = () => String(state.manifest?.snapshot_commit || state.catalog?.snapshot || '');
 const derivedKey = () => state.catalog?.identifier_kind === 'derived_row_key' || state.manifest?.identifier_kind === 'derived_row_key';
-const depthKnown = () => state.catalog?.depth_unit_status !== 'not_documented_in_source' && state.manifest?.depth_unit_status !== 'not_documented_in_source';
+const depthKnown = () => state.catalog?.depth_unit_status !== 'not_documented_in_source' && state.manifest?.depth_unit_status !== 'not_documented_in_source'
+  && (state.catalog?.depth_unit === 'km' || state.manifest?.depth_unit === 'km' || state.catalog?.provider === 'usgs');
 const safeURL = raw => {if (!raw) return '';try {const u = new URL(raw, location.href);return ['http:', 'https:'].includes(u.protocol) ? u.href : '';} catch (_) {return '';}};
 const color = (name, fallback) => window.getComputedStyle?.(document.documentElement).getPropertyValue(name).trim() || fallback;
 let debounce;
@@ -64,6 +67,16 @@ function localizeFilterOptions() {
   }
   const missing=$('magType').querySelector('option[value="__missing__"]');if(missing)missing.textContent=t('notReported');
 }
+function describeSsn(catalog) {
+  $('ssnNotice').hidden = catalog.provider !== 'ssn';if (catalog.provider !== 'ssn') return;
+  let text = t('ssnHelp', {min:value(catalog.minimum_magnitude,1)});
+  if (state.ready && state.manifest && state.catalog?.id === catalog.id) {
+    if (Number.isInteger(state.manifest.raw_rows) && Number.isInteger(state.manifest.selection?.excluded_rows?.missing_or_invalid_magnitude))
+      text += ' ' + t('ssnRawScope', {raw:fmt(state.manifest.raw_rows),missing:fmt(state.manifest.selection.excluded_rows.missing_or_invalid_magnitude)});
+    text += ' ' + t('ssnLatest', {latest:date(state.latestUTC)});
+  }
+  $('ssnNotice').textContent = text;
+}
 function populateCatalogControls() {
   if (!state.registry) return;
   const selected = state.catalog || state.registry.catalogs.find(c => c.id === V.catalogFromURL(location.href, choices())) || state.registry.catalogs[0];
@@ -75,6 +88,7 @@ function populateCatalogControls() {
   for (const c of state.registry.catalogs.filter(c => ssnActive ? c.id === V.legacyCatalog : c.provider === selected.provider)) append('catalogSelect', c.id, catalogLabel(c));
   $('catalogSelect').value = selected.id;$('providerSelect').disabled = false;$('catalogSelect').disabled = false;
   $('unmNotice').hidden = !ssnActive;
+  describeSsn(selected);
 }
 function actionStatus(key) {state.action = key;$('actionStatus').textContent = key ? t(key) : '';}
 function showWarnings() {
@@ -100,7 +114,7 @@ function applyFilters(persist = true) {
 }
 function render() {
   const rows = state.filtered;
-  $('eventCount').textContent = fmt(rows.length);$('unmCount').textContent = fmt(rows.filter(unm).length);
+  $('eventCount').textContent = fmt(rows.length);$('unmCount').textContent = state.catalog.provider === 'ssn' ? t('notReported') : fmt(rows.filter(unm).length);
   $('missingCount').textContent = fmt(rows.filter(e => e.horizontalError === null).length);
   $('typeCount').textContent = fmt(new Set(rows.map(e => e.magType).filter(Boolean)).size);
   $('filterSummary').textContent = t('filterSummary', {n: fmt(rows.length), total: fmt(state.events.length), from: state.applied.yearFrom, to: state.applied.yearTo, min: value(state.applied.magMin,1)});
@@ -176,12 +190,20 @@ function detail(id, persist = true) {
   const e = state.events.find(e => e.id === id);if (!e) return;
   const spec = state.manifest.files.find(f => f.path === e.file);state.selectedEvent = id;$('detailTitle').textContent = e.place;
   state.highlightedEvent=id;state.map?.highlight?.(id);renderTable();
-  const fields = [[derivedKey() ? 'localRecordKey' : 'eventId',e.id],['dataProvider',state.catalog.provider_name],['dataCatalog',catalogLabel(state.catalog)],['originTime',date(e.time)],['reportedMagnitude',value(e.mag,2) + ' ' + (e.magType || t('unknownType'))],['eventType',e.event_type || (state.catalog.provider === 'usgs' ? 'earthquake' : t('notReported'))],['latLon',value(e.latitude,4) + ' / ' + value(e.longitude,4)],[depthKnown() ? 'depthKm' : 'reportedDepth',depthKnown() ? value(e.depth,3) : e.raw_depth],['network',e.net],['originAuthor',e.locationSource],['magAuthor',e.magSource],['horizontalError',value(e.horizontalError)],['depthError',value(e.depthError)],['magnitudeError',value(e.magError)],['reviewStatus',e.status],['summaryUpdated',date(e.updated)],['sourceFile',e.file],['rawHash',spec?.sha256 || t('notReported')]];
+  const nativeSsn = state.catalog.provider === 'ssn';
+  const fields = [[derivedKey() ? 'localRecordKey' : 'eventId',e.id],['dataProvider',state.catalog.provider_name],['dataCatalog',catalogLabel(state.catalog)],['originTime',date(e.time)],['reportedMagnitude',value(e.mag,2) + ' ' + (e.magType || t('unknownType'))],['eventType',e.event_type || (state.catalog.provider === 'usgs' ? 'earthquake' : t('notReported'))],['latLon',value(e.latitude,4) + ' / ' + value(e.longitude,4)],[depthKnown() ? 'depthKm' : 'reportedDepth',depthKnown() ? value(e.depth,3) : e.raw_depth],['network',e.net],['originAuthor',e.locationSource],['magAuthor',e.magSource],['horizontalError',value(e.horizontalError)],['depthError',value(e.depthError)],['magnitudeError',value(e.magError)],[nativeSsn ? 'sourceStatus' : 'reviewStatus',e.status],['summaryUpdated',date(e.updated)],...(e.source_record !== undefined ? [['sourceRow',e.source_record]] : []),['sourceFile',e.file],['rawHash',spec?.sha256 || t('notReported')]];
   const eventURL = safeURL(e.event_url || (state.catalog.provider === 'usgs' ? 'https://earthquake.usgs.gov/earthquakes/eventpage/' + encodeURIComponent(e.id) : ''));
-  const rawURL = safeURL(spec?.url);
-  const links = [eventURL ? `<a target="_blank" rel="noopener" href="${esc(eventURL)}">${esc(t(derivedKey() ? 'sourcePage' : 'currentEvent'))}</a>` : '', rawURL ? `<a target="_blank" rel="noopener" href="${esc(rawURL)}">${esc(t('rawCsv'))}</a>` : ''].filter(Boolean).join(' · ');
+  const rawURL = safeURL(spec?.url), sourceURL = nativeSsn ? safeURL(state.catalog.provider_url || state.manifest.official_catalogue?.url) : '';
+  const doi = state.manifest.official_catalogue?.doi || '', doiURL = nativeSsn ? safeURL(/^10\.\d{4,9}\/\S+$/.test(doi) ? 'https://doi.org/'+doi : /^https?:\/\//.test(doi) ? doi : '') : '';
+  const publicCopy = nativeSsn && /^research-data\/catalogs\/ssn-mx\/[A-Za-z0-9_.-]+\.csv$/.test(spec?.public_copy_path || '') ? spec.public_copy_path : '';
+  const publicRawURL = publicCopy ? 'https://github.com/gabrielhuav/Seismic_Data_Geosciences/blob/main/'+publicCopy.split('/').map(encodeURIComponent).join('/') : '';
+  const rawDirect = rawURL && spec?.url_kind !== 'catalogue_landing';
+  const links = [eventURL ? `<a target="_blank" rel="noopener" href="${esc(eventURL)}">${esc(t(derivedKey() ? 'sourcePage' : 'currentEvent'))}</a>` : '', sourceURL ? `<a target="_blank" rel="noopener" href="${esc(sourceURL)}">${esc(t('ssnCatalogue'))}</a>` : '', doiURL ? `<a target="_blank" rel="noopener" href="${esc(doiURL)}">${esc(t('sourceDoi'))}</a>` : '', publicRawURL ? `<a target="_blank" rel="noopener" href="${esc(publicRawURL)}">${esc(t('preservedCsv'))}</a>` : '', rawDirect ? `<a target="_blank" rel="noopener" href="${esc(rawURL)}">${esc(t('rawCsv'))}</a>` : '', `<a href="${esc(safeURL(state.catalog.manifest_url))}" download>${esc(t('recordManifest'))}</a>`].filter(Boolean).join(' · ');
+  const rawNames = {raw_utc_date:'rawUtcDate',raw_utc_time:'rawUtcTime',raw_local_date:'rawLocalDate',raw_local_time:'rawLocalTime',raw_magnitude:'rawMagnitude',raw_depth:'rawDepth',raw_status:'rawStatus'};
+  const rawFields = nativeSsn ? Object.entries(e).filter(([key])=>key.startsWith('raw_')) : [];
+  const rawDetails = rawFields.length ? `<details><summary>${esc(t('sourceRawFields'))}</summary><dl>${rawFields.map(([key,v])=>`<dt>${esc(rawNames[key] ? t(rawNames[key]) : key)} <small>(${esc(key)})</small></dt><dd>${esc(v ?? t('notReported'))}</dd>`).join('')}</dl></details>` : '';
   const included=state.filtered.some(row=>row.id===id);
-  $('detailContent').innerHTML = '<dl>' + fields.map(([k,v]) => `<dt>${esc(t(k))}</dt><dd class="${k === 'rawHash' ? 'hash' : ''}">${esc(v || t('notReported'))}</dd>`).join('') + '</dl>' + `<p class="detail-actions"><button data-locate-event="${esc(id)}" ${included ? '' : 'disabled'}>${esc(t('seeOnMap'))}</button>${links}</p>` + (!included ? `<p class="small">${esc(t('outsideFilters'))}</p>` : '') + `<p class="small">${esc(t(derivedKey() ? 'derivedKeyNote' : 'detailNote'))}</p>`;
+  $('detailContent').innerHTML = '<dl>' + fields.map(([k,v]) => `<dt>${esc(t(k))}</dt><dd class="${k === 'rawHash' ? 'hash' : ''}">${esc(v || t('notReported'))}</dd>`).join('') + '</dl>' + rawDetails + `<p class="detail-actions"><button data-locate-event="${esc(id)}" ${included ? '' : 'disabled'}>${esc(t('seeOnMap'))}</button>${links}</p>` + (!included ? `<p class="small">${esc(t('outsideFilters'))}</p>` : '') + `<p class="small">${esc(t(derivedKey() ? 'derivedKeyNote' : 'detailNote'))}</p>` + (nativeSsn ? `<p class="small">${esc(t('ssnStatusNote'))}</p>` : '');
   if (!$('detail').open) $('detail').showModal();if (persist) syncURL();
 }
 function download(blob, name) {
@@ -190,14 +212,14 @@ function download(blob, name) {
 }
 function exportCsv() {
   if (!state.ready || !state.formValid) return;
-  const columns = Object.keys(state.events[0] || {}).filter(k => k !== 'year');
+  const columns = state.fields;
   const csv = [columns.join(','), ...state.filtered.map(e => columns.map(k => '"' + String(e[k] ?? '').replace(/"/g, '""') + '"').join(','))].join('\r\n');
   download(new Blob(['\uFEFF' + csv], {type:'text/csv;charset=utf-8'}), state.catalog.id + '_filtered_snapshot.csv');
 }
 function exportQuery() {
   if (!state.ready || !state.formValid) return;
   try {
-    const view = currentView(), query = V.queryDocument({view, catalog: state.catalog, manifest: state.manifest, assetHashes: state.hashes,
+    const view = currentView(), query = V.queryDocument({view, catalog: state.catalog, manifest: state.manifest, assetHashes: state.hashes, fields:state.fields,
       rows: state.filtered, pageURL: V.serialize(view, location.href), createdUTC: new Date().toISOString()});
     download(new Blob([JSON.stringify(query, null, 2) + '\n'], {type:'application/json;charset=utf-8'}), state.catalog.id + '_local_query.json');actionStatus('querySaved');
   } catch (error) {actionStatus('queryFailed');}
@@ -232,6 +254,7 @@ function describeDataset() {
   if (!state.ready) return;
   $('loadStatus').textContent = t('loaded', {n: fmt(state.events.length), commit: snapshot().slice(0,12)});
   $('datasetDescription').textContent = t('datasetText', {n: fmt(state.events.length), files: fmt(state.manifest.files.length), latest: state.latest}) + ' ' + $('catalogCoverage').textContent;
+  describeSsn(c);
   $('manifestLink').href = c.manifest_url;
   $('depthMax').disabled = !depthKnown();$('depthNotice').hidden = depthKnown();$('depthLegend').hidden = !depthKnown();
   $('depthHeader').textContent = t(depthKnown() ? 'depthKm' : 'reportedDepthShort');
@@ -239,7 +262,7 @@ function describeDataset() {
 }
 function changeLanguage(lang, persist = true) {
   I.apply(lang);expandedLabel();populateCatalogControls();localizeFilterOptions();$('baseStatus').textContent = t(state.baseStatus);state.map?.languageChanged();
-  if (!state.ready) {describeDataset();if (state.loadError) $('loadStatus').textContent = t('loadFailed') + ' ' + state.loadError;return;}
+  if (!state.ready) {describeDataset();$('loadStatus').textContent = state.loadError ? t('loadFailed') + ' ' + state.loadError : loadingText(state.catalog);return;}
   describeDataset();showWarnings();render();renderRevision();state.map?.languageChanged();
   if (state.selectedEvent && $('detail').open) detail(state.selectedEvent, false);
   $('filterError').textContent = state.formValid ? '' : t('invalidFilters');
@@ -318,11 +341,11 @@ async function loadCatalog(id, restore = false, preset = {}) {
   if (c.id !== V.legacyCatalog) initial.unmOnly = false;
   state.pendingFilters = {...initial};
   state.applied = restore ? V.parseURL(location.href, {catalogs:state.registry.catalogs,defaultCatalog:state.registry.default_catalog_id,catalog:c}).view.filters : {...initial};
-  state.selectedEvent = '';state.highlightedEvent='';if ($('detail').open) $('detail').close();state.events = [];state.filtered = [];state.manifest = null;
+  state.selectedEvent = '';state.highlightedEvent='';if ($('detail').open) $('detail').close();state.events = [];state.fields = [];state.filtered = [];state.manifest = null;
   $('activeFilters').replaceChildren();$('activeFilters').hidden=true;
   state.map?.setRecords([]);$('records').replaceChildren();$('histogram').replaceChildren();
   for (const id of ['eventCount','unmCount','missingCount','typeCount']) $(id).textContent = '—';
-  $('mapStatus').textContent = '';$('filterSummary').textContent = '';$('loadStatus').textContent = t('loading');$('retry').hidden = true;
+  $('mapStatus').textContent = '';$('filterSummary').textContent = '';$('loadStatus').textContent = loadingText(c);$('retry').hidden = true;
   buttons();populateCatalogControls();describeDataset();
   try {
     let pack = state.cache.get(c.id);
@@ -332,11 +355,11 @@ async function loadCatalog(id, restore = false, preset = {}) {
       if (!Array.isArray(events.data.fields) || !Array.isArray(events.data.rows)) throw Error(t('invalidPackage'));
       const rows = events.data.rows.map(row => {const e = Object.fromEntries(events.data.fields.map((key,i) => [key,row[i]]));e.year = Number(e.time.slice(0,4));return e;});
       if (rows.some(e => !Number.isFinite(e.latitude) || !Number.isFinite(e.longitude) || !Number.isFinite(e.mag) || !Number.isInteger(e.year))) throw Error(t('invalidPackage'));
-      pack = {events: rows, manifest: manifest.data, hashes: {events: events.hash, manifest: manifest.hash}};state.cache.set(c.id, pack);
+      pack = {events: rows, fields:events.data.fields, manifest: manifest.data, hashes: {events: events.hash, manifest: manifest.hash}};state.cache.set(c.id, pack);
     }
     if (request !== state.request) return;
-    state.events = pack.events;state.manifest = pack.manifest;state.hashes = {...pack.hashes, registry: state.registryHash};
-    state.latest = state.events.reduce((latest,e) => e.time > latest ? e.time : latest, '').slice(0,10);
+    state.events = pack.events;state.fields = pack.fields;state.manifest = pack.manifest;state.hashes = {...pack.hashes, registry: state.registryHash};
+    state.latestUTC = state.events.reduce((latest,e) => e.time > latest ? e.time : latest, '');state.latest = state.latestUTC.slice(0,10);
     populateFilters();state.ready = true;state.formValid = true;state.invalidLink = [];state.restoring = false;
     if (restore) restoreFromURL();else {
       state.restoring = true;writeFilters(initial);$('sort').value = 'recent';state.page = 0;

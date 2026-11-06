@@ -1,5 +1,19 @@
 'use strict';
 
+// Cartographic services are independent of the earthquake catalogue providers.
+window.SeismicBasemaps = Object.freeze({
+  local: {labelKey:'baseLocal',statusKey:'baseLocalNote'},
+  osm: {labelKey:'baseOsm',statusKey:'baseOsmNote',url:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'},
+  'osm-hot': {labelKey:'baseOsmHot',statusKey:'baseOsmHotNote',url:'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',subdomains:'abc',
+    attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a> / ODbL · <a href="https://www.hotosm.org/">Humanitarian OpenStreetMap Team</a> · <a href="https://www.openstreetmap.fr/usage/">OpenStreetMap France</a>'},
+  'usgs-topo': {labelKey:'baseUsgs',statusKey:'baseUsgsNote',url:'https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}',
+    attribution:'<a href="https://www.usgs.gov/programs/national-geospatial-program/national-map">U.S. Geological Survey, National Geospatial Program</a> · USGS The National Map; USGS Global Ecosystems; U.S. Census Bureau; USFS; Natural Earth; U.S. Department of State HIU; NOAA NCEI'},
+  'nasa-blue-marble': {labelKey:'baseNasa',statusKey:'baseNasaNote',maxNativeZoom:8,
+    url:'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/wmts.cgi?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=BlueMarble_ShadedRelief_Bathymetry&STYLE=default&TILEMATRIXSET=GoogleMapsCompatible_Level8&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=image%2Fjpeg',
+    attribution:'Imagery provided by <a href="https://nasa-gibs.github.io/gibs-api-docs/">NASA Global Imagery Browse Services (GIBS), NASA ESDIS</a> · Blue Marble, August 2004'}
+});
+
 // Pure display transforms never replace the source coordinates used by exports.
 window.SeismicMapGeometry = (function () {
   const displayLongitude = longitude => longitude > 0 ? longitude - 360 : longitude;
@@ -24,7 +38,8 @@ window.SeismicMapGeometry = (function () {
 
 // Local cartography and one canvas keep geographic context independent of tile APIs.
 window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = () => {}, onViewChange = () => {}, onBaseChange = () => {}, onBaseStatus = () => {}, translate = key => key, formatNumber = String}) {
-  let region = L.latLngBounds([[14, -190], [84, -50]]), activeBase = 'local', tiles = null, tileErrors = 0, selectedId = '';
+  let region = L.latLngBounds([[14, -190], [84, -50]]), activeBase = 'local', tiles = null, tileErrors = 0, selectedId = '', baseSelect = null, baseLabel = null;
+  const baseSpecs=window.SeismicBasemaps;
   const color = (name, fallback) => window.getComputedStyle?.(document.documentElement).getPropertyValue(name).trim() || fallback;
   const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)');
   const {displayLongitude, displayPolygon} = window.SeismicMapGeometry;
@@ -66,29 +81,47 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
     return {properties: p, minZoom: major ? 1.5 : 5, marker: L.marker([p.LABEL_Y, displayLongitude(p.LABEL_X)], {pane: 'countryLabels', interactive: false, keyboard: false, icon: countryIcon(p)})};
   });
   function labels() {labelLayer.clearLayers();if (activeBase !== 'local') return;for (const spec of labelSpecs) if (map.getZoom() >= spec.minZoom) {spec.marker.setIcon(countryIcon(spec.properties));labelLayer.addLayer(spec.marker);}}
+  function basePickerLabels() {
+    if(!baseSelect)return;
+    baseLabel.textContent=translate('mapBase');baseSelect.setAttribute('aria-label',translate('mapBase'));
+    for(const option of baseSelect.options)option.textContent=translate(baseSpecs[option.value].labelKey);
+    baseSelect.value=activeBase;
+  }
   function setBase(id, persist = true) {
-    if (!['local', 'osm', 'usgs-topo'].includes(id)) id = 'local';
-    if (tiles) {tiles.off();map.removeLayer(tiles);tiles = null;}
+    if (!Object.hasOwn(baseSpecs,id)) id = 'local';
+    // Preserve Leaflet's remove observer, which clears the retired attribution.
+    if (tiles) {tiles.off('tileerror');map.removeLayer(tiles);tiles = null;}
     activeBase = id;tileErrors = 0;
     if (id === 'local') {
       if (!map.hasLayer(countries)) countries.addTo(map);
       map.attributionControl.addAttribution(naturalAttribution);onBaseStatus('baseLocalNote');
     } else {
       map.removeLayer(countries);map.attributionControl.removeAttribution(naturalAttribution);
-      const source = id === 'osm' ? {url:'https://tile.openstreetmap.org/{z}/{x}/{y}.png', attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'}
-        : {url:'https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}', attribution:'<a href="https://www.usgs.gov/programs/national-geospatial-program/national-map">U.S. Geological Survey, National Geospatial Program</a> · USGS The National Map; USGS Global Ecosystems; U.S. Census Bureau; USFS; Natural Earth; U.S. Department of State HIU; NOAA NCEI'};
+      const source=baseSpecs[id];
       // Only tiles in the user's current viewport are requested. No probes,
       // prefetch, offline downloads or periodic retries are performed.
       tiles = L.tileLayer(source.url, {attribution: source.attribution, maxZoom: 12,
-        maxNativeZoom: 12, updateWhenIdle: true, keepBuffer: 0}).addTo(map);
+        maxNativeZoom: source.maxNativeZoom ?? 12, ...(source.subdomains ? {subdomains:source.subdomains} : {}), updateWhenIdle: true, keepBuffer: 0}).addTo(map);
       tiles.on('tileerror', () => {
         tileErrors++;
         if (tileErrors >= 3 && activeBase === id) {setBase('local', false);onBaseStatus('baseFallback');onBaseChange('local');}
       });
-      onBaseStatus(id === 'osm' ? 'baseOsmNote' : 'baseUsgsNote');
+      onBaseStatus(source.statusKey);
     }
-    labels();if (persist) onBaseChange(id);
+    labels();basePickerLabels();if (persist) onBaseChange(id);
   }
+  const baseControl=L.control({position:'topright'});
+  baseControl.onAdd=()=>{
+    const container=L.DomUtil.create('div','map-base-control'),label=document.createElement('label');
+    baseLabel=document.createElement('span');baseSelect=document.createElement('select');baseSelect.id='mapBaseExpanded';
+    for(const id of Object.keys(baseSpecs)){const option=document.createElement('option');option.value=id;baseSelect.append(option);}
+    label.append(baseLabel,baseSelect);container.append(label);basePickerLabels();
+    baseSelect.addEventListener('change',()=>setBase(baseSelect.value));
+    baseSelect.addEventListener('keydown',event=>{if(!['Escape','Tab'].includes(event.key))event.stopPropagation();});
+    L.DomEvent.disableClickPropagation(container);L.DomEvent.disableScrollPropagation(container);
+    return container;
+  };
+  baseControl.addTo(map);
 
   const EventsLayer = L.Layer.extend({
     onAdd(m) {
@@ -157,7 +190,7 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
   reset();
   map.on('moveend', onViewChange);
   function languageChanged() {
-    map.closePopup();labels();events.redraw();
+    map.closePopup();labels();basePickerLabels();events.redraw();
     for (const [selector, key] of [['.leaflet-control-zoom-in', 'zoomIn'], ['.leaflet-control-zoom-out', 'zoomOut']]) {
       const button = element.querySelector(selector);if (button) {button.title = translate(key);button.setAttribute('aria-label', translate(key));}
     }

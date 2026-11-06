@@ -87,6 +87,11 @@ def collect_links(scope):
             elif ENCODED_URL_SUFFIX.match(text, match.end()):
                 templates.append({"source": name, "prefix": url,
                                   "status": "URL prefix concatenated with an encoded identifier; typed packaged event routes inventoried separately, prefix is not a literal navigation target"})
+            elif (name == "system/dist/app.js" and
+                  url == "https://github.com/gabrielhuav/Seismic_Data_Geosciences/blob/main/" and
+                  re.match(r"['\"]\s*\+\s*publicCopy\.split\(", text[match.end():])):
+                templates.append({"source": name, "prefix": url,
+                                  "status": "Manifest-defined native SSN copy; the complete destination is inventoried below, not this non-navigable prefix."})
             else:
                 external[url].add(name)
         refs = []
@@ -114,6 +119,19 @@ def collect_links(scope):
                 parser.feed(resolved.read_text(encoding="utf-8"))
                 ok = unquote(target.fragment) in parser.ids
             local.append({"source": name, "link": link, "ok": ok, "reason": "exists" if ok else "missing target/fragment or escapes repository"})
+    # The native SSN inspector constructs this provenance link from a verified
+    # manifest path. Inventory its actual candidate destination, rather than
+    # certifying only the repository URL prefix before the first publication.
+    registry_path = DIST / "data/catalogs.json"
+    if registry_path.exists():
+        for catalog in json.loads(registry_path.read_text(encoding="utf-8"))["catalogs"]:
+            if catalog["provider"] != "ssn":
+                continue
+            manifest_path = DIST / catalog["manifest_url"]
+            for spec in json.loads(manifest_path.read_text(encoding="utf-8"))["files"]:
+                copy = spec.get("public_copy_path", "")
+                if re.fullmatch(r"research-data/catalogs/ssn-mx/[A-Za-z0-9_.-]+\.csv", copy):
+                    external["https://github.com/gabrielhuav/Seismic_Data_Geosciences/blob/main/" + copy].add(manifest_path.relative_to(ROOT).as_posix())
     return external, local, templates, sources, non_navigation
 
 
@@ -194,7 +212,12 @@ def event_routes(mode):
         data = json.loads((DIST / catalog["events_url"]).read_text(encoding="utf-8"))
         records = [dict(zip(data["fields"], row)) for row in data["rows"]]
         manifest = json.loads((DIST / catalog["manifest_url"]).read_text(encoding="utf-8"))
-        mapped_files = {spec["path"] for spec in manifest["files"] if urlsplit(spec.get("url", "")).scheme == "https"}
+        mapped_files = {spec["path"] for spec in manifest["files"]
+                        if urlsplit(spec.get("url", "")).scheme == "https" or
+                        (catalog["provider"] == "ssn" and
+                         catalog.get("identifier_kind") == "derived_row_key" and
+                         spec.get("url_kind") == "catalogue_landing" and
+                         spec.get("url") == "http://www2.ssn.unam.mx:8080/catalogo/")}
         local_ids = [row["id"] for row in records]
         ids.extend(catalog["id"] + ":" + eid for eid in local_ids)
         malformed.extend(catalog["id"] + ":" + str(eid) for eid in local_ids if not isinstance(eid, str) or not EVENT_ID.fullmatch(eid))

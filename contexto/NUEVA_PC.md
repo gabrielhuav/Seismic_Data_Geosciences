@@ -1,5 +1,26 @@
 # Continuar desde otra PC
 
+## Candidato local terminado, publicación pendiente
+
+La consulta oficial SSN ya se descargó por Gabriel y se auditó:402082 filas,CSV45.95MB;
+paquete cartográficoM>=3.5 completo242288filas/27 campos,71.32MB. Copia y términos
+en research-data/catalogs/ssn-mx/. Regeneración offline: build_ssn_catalog.py y
+build_catalogs.py; ocho hashes válidos, cuatro catálogos / tres distribuidores.
+USGS NA permanece default; la atribución SSN/UNAM vía USGS no es SSN nativo.
+
+Paper final privado: outputs/paper/ sóloWord+PDF26p,7 figuras integradas/4 tablas,
+captura 204 SSN 2026 parcial corregida. QA completa y hashes en memoria y
+outputs/ssn_recent_2026-11-06/final_document_qa.json. Conservar fuente, plantilla,
+capturas y figuras en respaldo privado: no viajan con el clon. La tesis privada
+no se ejecuta ni publica; no transferir sus cifras como resultados del artículo.
+
+UI local5bases y retorno/Escape/foco desktop/móvil verificados.51 Python/45 JS y
+4720 SQL / 24 sintéticos pasan. El remoto actual 5efc795 NOcontieneSSN nativo ni esta
+actualización: autorización 5 pendiente para33rutas,UNcommit,UNpush,UNdespliegue
+manual. Plan outputs/publication/native_ssn_update_plan.md; gate553/547/6 con
+4HTTP 403,timeoutAZCATL,copiaSSNAPI 404antes del push y muestra339/36872,sinexcepciones
+aceptadas. No heredar permisos. PC ENCENDIDA; no pagos/envíos/correos/release.
+
 ## Estado inicial
 
 Este proyecto se preparó localmente el 5 nov 2026. Después Gabriel autorizó crear y
@@ -24,17 +45,23 @@ workflow 42269837342 success; 26 assets coinciden y tres exclusiones HTTP404, Ed
 público revisado. La tercera autorización específica y las anteriores ya se
 consumieron; no repetir commit/push/despliegue. Plan privado
 outputs/publication/presentation_update_plan.md y gate nuevo de 540 destinos,
-536 verificados/cuatro HTTP403, muestra 339/36,872 aceptados para ese push únicamente.
+536 verificados/cuatro HTTP 403, muestra 339/36,872 aceptados para ese push únicamente.
 Recibo: outputs/publication/presentation_update_execution.json. Continuidad posterior
 sólo local; un clon conserva la versión de continuidad anterior al resultado observado.
 
-Revisión NUEVA sólo LOCAL: acceso SSN/UNAM vía USGS, 9,858 registros de 1990–2017,
+Revisión NUEVA PUBLICADA: acceso SSN/UNAM vía USGS, 9,858 registros de 1990–2017,
 chip y URL v3/JSON3 con soporte v1/v2. Tres catálogos y dos distribuidores intactos.
 Paper centrado en el sistema, 25 páginas/cuatro tablas/seis figuras integradas,
 revisadas individualmente; 41 Python y 32 grupos Node pasan, 131 etiquetas/76 IDs.
-Falta autorización del plan outputs/publication/ssn_inline_update_plan.md para
-UN nuevo commit de 14 archivos, push y despliegue con las excepciones de ESTE push
-(cuatro HTTP403 y muestra 339/36,872). El sitio remoto sigue en 53dba7b hasta esa acción.
+Gabriel autorizó el plan outputs/publication/ssn_inline_update_plan.md: UN cuarto
+commit humano de 14 archivos, su push y despliegue, con cuatro HTTP 403 y muestra
+339/36,872 para ESE push. Ejecutados una vez: commit
+5efc7953abc44f96350ca06f4b9a5f1cb6ec60f5, workflow 42282909895 success.
+Los 26 assets coinciden y tres rutas excluidas dan HTTP404; Edge público
+comprobó SSN, URL v3/recarga y chip, sin errores/avisos. Recibo privado:
+outputs/publication/ssn_inline_update_execution.json. Cuarta autorización CONSUMIDA.
+Continuidad posterior sólo LOCAL, sin quinto commit. Preview propio cerrado,
+PC encendida. No repetir acciones ni excepciones sin autorización nueva.
 Conservar fuente, plantilla, capturas y figuras privadas: un clon no las contiene.
 
 Ahora también existen código, crudos, figuras y un manuscrito revisable locales.

@@ -5,7 +5,81 @@ Leer AGENTS.md completo. Los resultados de antecedentes no son verificaciones nu
 
 ## Estado actual
 
-- REVISIÓN NUEVA TERMINADA LOCALMENTE, aún sin cuarto commit/push/despliegue.
+- ACTUALIZACIÓN NATIVA SSN TERMINADA LOCALMENTE. Gabriel resolvió personalmente
+  el CAPTCHA y descargó el CSV oficial; el 6 nov reautorizó control de PC tras Escape.
+  No hay quinto commit, push ni despliegue autorizados. main y remoto siguen
+  5efc7953abc44f96350ca06f4b9a5f1cb6ec60f5; el sitio público conserva la versión anterior.
+- CSV oficial SSN nacional, consulta 1900-01-01 a 2026-11-06 UTC/todas: 402,082
+  registros, 45,950,120 bytes, SHA256
+  0601c65544bc95ef865d3440e5e6d84249acdebd8edfb379669597096543f993.
+  Copia preservada en research-data/catalogs/ssn-mx/ y data/raw/catalogs/ssn-mx/.
+  Paquete M>=3.5: 242,288 registros, 27 campos, 71,317,664 bytes. Último origen
+  reportado 2026-11-06T20:31:07Z; 2026 es parcial. 17,649 magnitudes no calculables
+  quedan fuera de la selección cartográfica; el CSV íntegro se conserva.
+- Cuatro catálogos / tres distribuidores: USGS NA 14,041 por defecto, USGS México
+  24,994, NRCan 6,613 y SSN nativo 242,288 bajo demanda. El atajo SSN/UNAM vía USGS
+  conserva 9,858 filas de 1990–2017; es atribución, no otro distribuidor ni catálogo
+  directo reciente. No sumar ni fusionar las observaciones como independientes.
+  Los seis hashes anteriores de eventos/manifiestos permanecen idénticos.
+- SSN conserva UTC/local, profundidad km documentada, estatus literal y ordinales;
+  IDs son claves locales derivadas. Tipos de magnitud/evento, autores, errores,
+  update y revisiones ausentes quedan null. Ocho pares UTC/local atípicos no se
+  corrigen; la etiqueta de generación y último origen discrepan 34 min nominales.
+  No atribuir completitud, Mw, captura atómica ni historia de revisión a ese archivo.
+- Auditoría independiente: 16 huecos anuales ya están en el CSV, no los introduce
+  M>=5 a nivel nacional. 110 años cerrados con filas y máximos; 118 filas alcanzan
+  esos máximos por ocho empates. 1,901 filas M>=5 incluyendo 2026 parcial. No
+  convertir huecos en ceros físicos ni empates en máximos anuales independientes.
+  Revisión de tesis privada completa y su código sólo como texto; jamás ejecutado
+  ni publicado. Sólo se aplican descriptivos defendibles recalculados con SSN oficial.
+  El antecedente público de 1988/Md4.3 es específico de 1988–1998, no corte universal.
+- Interfaz Edge comprobada, incluidas carga completa242,288, selección204 de2026
+  M>=4.5, ficha/CSV27campos/JSON3 y móvil390x844 sin desborde. Retorno visible
+  «Volver al sistema (Esc)», foco y selector dentro del mapa ampliado. Cinco bases:
+  Natural Earth, OSM, OSM Humanitario, USGS Topo, NASA Blue Marble estático ago2004.
+  Atribuciones correctas; HOT/NASA27/27 teselas observadas. Esri no incorporado
+  sin acreditar condiciones de uso sin cuenta/costo para este despliegue Leaflet.
+  Recibos privados native_ssn_browser_qa.json y map_browser_qa.json. Dos errores de
+  extensión Zotero observados no se atribuyen al sistema; no error de app observado.
+- Word y PDF definitivos privados en outputs/paper/, sólo esos dos entregables:
+  26 páginas verificadas, siete figuras integradas y cuatro tablas editables;
+  resumen275 y cuerpo5,492 palabras. Captura principal SSN 204 limpia en p3,
+  arquitectura p8, Canadá p9, resultados p16/17/19 y cobertura SSN p21.
+  Fuente SHA256 fc33f4766416fe4ef18ce285fe6589b50d9cd9dd56b6205b4db9ac9d1239a770.
+  DOCX SHA256 6b4566dd1719e8af83d5b74efa7070d71ea9e6489842084fac849f6f8d6fe55f.
+  PDF SHA256 dbd4bfc7bd4ecc3d78ec41698d51d220ac821ba776c01c6bd217484bce730060.
+  Word nativo+Poppler:25 páginas idénticas a las individualmente inspeccionadas,
+  p14 revisada tras último cambio. QA: outputs/ssn_recent_2026-11-06/final_document_qa.json.
+  Generador actualizado: defaults usan capturas nuevas; exige frames revisados,
+  no vuelve silenciosamente a la captura antigua346. Autores/declaraciones intactos.
+- 51 pruebas Python y45 grupos JS más135 etiquetas/77 IDs pasan; reconstrucción
+  SSN offline idéntica, ocho hashes válidos. SQLite4,720 comparaciones y24 casos
+  sintéticos sin discrepancias; no son validación de catálogos públicos pasados.
+- Gate final NUEVO:553 destinos,547 verificados por HTTP/conector/Edge y6 pendientes:
+  cuatroHTTP 403 editoriales, timeoutAZCATL y copiaCSV nativa aún no publicada
+  (clienteTLS falló; GitHub API 404 confirma ausencia antes del push). Dos licencias Canadá
+  y portada Canadá vistas frescas en Edge; diez rutasGitHub por conector, sin
+  inventarHTTP 200 ni desactivarTLS. Muestra339/36,872 rutas USGS;36,533 sin visitar.
+  Cero fallos locales/privacidad/hashes;28 assets web. No excepción aceptada aún.
+  Plan concreto: outputs/publication/native_ssn_update_plan.md; hashes exactos en
+  outputs/publication/candidate_manifest.json. Pedir autorización para UN commit
+  humano de33rutas, UN push y UN despliegue manual con excepciones de ESTE push.
+- La PC queda ENCENDIDA. No pagos, correos, envío editorial, releases ni cambios
+  a servicios/históricos. Paper listo para revisión humana; no presumir aprobación
+  coautoral ni aceptación C&G. Publicar web/código tras autorización y revalidar
+  disponibilidad real; tarifas/guía se revalidan antes de cualquier envío autorizado.
+
+- REVISIÓN SSN Y FIGURAS PUBLICADA Y VERIFICADA. Gabriel autorizó expresamente
+  el cuarto commit humano, su push y un despliegue manual, con las excepciones
+  nuevas de este push. Ejecutados una vez: commit
+  5efc7953abc44f96350ca06f4b9a5f1cb6ec60f5, workflow 42282909895 success.
+  Los 26 archivos web coinciden por SHA/tamaño; tres rutas excluidas HTTP404.
+  Edge público verificó SSN 9,858, mapa, URL v3 y recarga; quitar chip restaura
+  USGS México 24,994. Sin errores ni avisos de consola. Prueba privada:
+  outputs/inline_2026-11-06/captures/ssn_published.jpg. Autor/committer Gabriel
+  Hurtado, sin firma ni trailers. Cuarta autorización CONSUMIDA. Continuidad
+  posterior sólo LOCAL, sin quinto commit/amend/push. Preview propio cerrado;
+  PC encendida, sin pagos, release ni envío editorial.
   A petición de Gabriel, el sistema ofrece «SSN/UNAM · vía USGS ComCat» como
   filtro de atribución sobre México, no como tercer distribuidor independiente.
   OR exacto en locationSource/magSource de unm o us_unm: 9,858 registros de
@@ -25,16 +99,17 @@ Leer AGENTS.md completo. Los resultados de antecedentes no son verificaciones nu
   permiten imágenes en posición; los originales separados siguen conservados.
   Word/PDF de 25 páginas revisadas individualmente, cuatro tablas, resumen 270
   y cuerpo aproximado 5,352. Mantiene resultados y límites científicos.
-- Gate nuevo para ESTA propuesta: 542 destinos actuales, 538 verificados y
-  cuatro HTTP403 editoriales pendientes; muestra 339/36,872, no exhaustiva.
+- Gate de ESTA publicación: 542 destinos actuales, 538 verificados y
+  cuatro HTTP 403 editoriales aceptados expresamente sólo para este push;
+  muestra 339/36,872 aceptada, no exhaustiva.
   Evidencia HTTP/conector/Edge fresca, sin excepciones heredadas. El DOI de
   AZCATL queda como identificador textual; el enlace apunta a la landing primaria
-  verificada HTTP200, conservando el fallo de la ruta DOI en los recibos. Canadá
-  verificado por contenido Edge, sin afirmar HTTP200. Cero fallos locales.
-  Plan: outputs/publication/ssn_inline_update_plan.md. Necesita autorización
-  expresa NUEVA para un commit de 14 archivos, push y despliegue manual, y
-  excepciones/muestreo de ESTE push. Las tres anteriores se consumieron.
-- Versión actualmente PUBLICADA Y VERIFICADA (sin el nuevo acceso SSN): commit humano
+  verificada HTTP 200, conservando el fallo de la ruta DOI en los recibos. Canadá
+  verificado por contenido Edge, sin afirmar HTTP 200. Cero fallos locales.
+  Plan: outputs/publication/ssn_inline_update_plan.md. Autorización de los 14
+  archivos, commit/push/despliegue y excepciones YA CONSUMIDA. Recibo:
+  outputs/publication/ssn_inline_update_execution.json. No permite repetir acciones.
+- Publicación ANTERIOR, sustituida por la revisión SSN de arriba: commit humano
   53dba7b569bbeaa5d8d07edcb2bd8367e145bc9e, push origin/main y workflow manual
   42269837342 success. Los 26 archivos web coinciden con ese commit; contexto,
   paper y research-data devuelven404 en Pages. Edge público comprobó temas,
@@ -42,7 +117,7 @@ Leer AGENTS.md completo. Los resultados de antecedentes no son verificaciones nu
   expandido/Escape/foco correcto, consola sin errores ni avisos. Captura privada
   outputs/revision_2026-11-06/captures/published_map_expanded.jpg.
   Autorización específica de tercer commit/push/despliegue YA CONSUMIDA.
-  Anotaciones posteriores de continuidad sólo LOCALES, sin cuarto commit.
+  Sus anotaciones posteriores de continuidad fueron sólo LOCALES.
   Sistema ampliado con paletas verde/azul/guinda, modo sistema/claro/oscuro
   persistente, filtros removibles, foco de registros y mapa expandido accesible.
   Edge real comprobó temas, persistencia, cambios ES/EN, fichas NRCan y móvil.
@@ -58,10 +133,10 @@ Leer AGENTS.md completo. Los resultados de antecedentes no son verificaciones nu
   tras la última exportación. Política Elsevier IA de junio de 2026 comprobada;
   asistencia en código/diagramas declarada sin inventar aprobación humana.
 - Gate de la presentación anterior ya consumido: 540 destinos (201 literales +339 rutas), 536
-  verificados mediante evidencia HTTP/conector/Edge fresca; cuatro HTTP403
+  verificados mediante evidencia HTTP/conector/Edge fresca; cuatro HTTP 403
   editoriales exceptuados expresamente por Gabriel para ESTE push ya ejecutado.
   Muestreo 339/36,872 autorizado para ese push; no certifica 36,533 rutas restantes.
-  Canadá se verificó por contenido visible de Edge, sin afirmar HTTP200.
+  Canadá se verificó por contenido visible de Edge, sin afirmar HTTP 200.
   Cero fallos locales, privacidad o hashes. Plan concreto:
   outputs/publication/presentation_update_plan.md; ejecución y recibos en
   outputs/publication/presentation_update_execution.json. La autorización nueva
@@ -80,7 +155,7 @@ Leer AGENTS.md completo. Los resultados de antecedentes no son verificaciones nu
   Esta actualización posterior de continuidad es LOCAL, sin otro commit.
 - Gabriel AUTORIZÓ expresamente el 6 nov un nuevo commit humano, su push a
   origin/main y el despliegue manual Pages de esta ampliación, aceptando para
-  ESTE push los cuatro HTTP403 y el muestreo de 339/36,872 rutas USGS únicas.
+  ESTE push los cuatro HTTP 403 y el muestreo de 339/36,872 rutas USGS únicas.
   Acciones ejecutadas una sola vez y comprobadas como consta arriba.
   La PC debe quedar encendida. No autoriza acciones posteriores adicionales.
 - Ampliación terminada y pública. Tres catálogos: USGS Norteamérica 2020–2025
@@ -109,7 +184,7 @@ Leer AGENTS.md completo. Los resultados de antecedentes no son verificaciones nu
 - Ampliación: 41 pruebas Python, 16 casos JS, 119 etiquetas y 68 IDs; tres catálogos,
   dos proveedores y seis hashes válidos. Reconstrucción aislada de 25 assets
   idénticos; México y documentos intactos. Gate nuevo: 538 destinos, 534 verificados
-  y cuatro HTTP403 editoriales; 339/36,872 rutas USGS únicas muestreadas. Diez fallos
+  y cuatro HTTP 403 editoriales; 339/36,872 rutas USGS únicas muestreadas. Diez fallos
   TLS GitHub resueltos con contenido fresco del conector; AZCATL pasó reintento.
   Cero fallos locales/privacidad/hashes. Plan privado concreto:
   outputs/publication/catalog_update_plan.md. Excepciones y muestreo requieren
@@ -137,7 +212,7 @@ Leer AGENTS.md completo. Los resultados de antecedentes no son verificaciones nu
   DOCX SHA-256 9d31b0672c69864b03fc4a71bf5defd05dd7819951b0991ebcaca62e65a65f93;
   PDF SHA-256 89e6a59459acd51514afd18a38e8d68e73511000f6a6f91d8f873557c5142535.
   Resumen 270 palabras, cuerpo aproximado 5,352. Disponibilidad fija DATOS en 7009,
-  sin inventar DOI; SSN/UNAM y nuevo flujo de figuras pendientes de publicación autorizada.
+  sin inventar DOI; SSN/UNAM y nuevo flujo de figuras publicados en 5efc795.
   Pie opcional izquierdo vacío, PAGE y créditos de portada conservados. Plantilla
   original sin modificar y 17 componentes originales preservados por el generador.
   Versiones anteriores de 15/17/18/23/26 páginas son obsoletas; no entregar PDF anterior.
@@ -288,31 +363,67 @@ fuera de muestra. No agregar ML ni modelos geotécnicos sin necesidad científic
 
 ## Siguiente paso
 
-1. Entregar Word/PDF de 25 páginas y pedir autorización concreta del plan
-   outputs/publication/ssn_inline_update_plan.md para UN nuevo commit humano,
-   push y despliegue manual con cuatro HTTP403 y muestra 339/36,872 para ESTE push.
-   No ejecutar esas acciones sin autorización nueva. Después verificar 26 assets
-   y acceso SSN en producción. Mantener PC encendida; cerrar sólo preview propio.
-2. Gabriel y José Manuel deben revisar y aprobar el texto antes de un envío
-   editorial expresamente autorizado. Revalidar guía/costo cero, depósito y
-   declaraciones de disponibilidad en el momento del envío; no convertir el
-   registro de GitHub en un DOI que no existe.
-3. Conservar copia privada del paper, fuente, plantilla y figuras: un clon sólo
-   recupera código y paquete público. Comprobar estado real de Git al retomar.
+1. Solicitar autorización expresa para UN quinto commit humano de las33rutas del
+   plan native_ssn_update_plan.md, su push a origin/main y UN workflow manual Pages;
+   aceptar explícitamente las seis excepciones del gate actual y muestra339/36,872
+   para ESE push. Las cuatro autorizaciones anteriores ya se consumieron.
+2. Tras autorización: verificar identidad humana y candidato exacto, ejecutar una
+   vez cada acción, seguir workflow hasta éxito y comprobar28assets públicos por
+   hash, exclusiones de paper/contexto/research-data y enlace de CSV preservado.
+   Revisar SSN nativo y cinco bases en Edge público, sin inferir éxito antes.
+3. Gabriel y José Manuel revisan el manuscrito. Cualquier envío editorial, correo,
+   release o pago requiere autorización propia; revalidar guía, costo cero por
+   suscripción y declaraciones. No convertir GitHub o DOI del catálogo mutable
+   en un DOI de archivo que no existe. Mantener PC encendida.
+4. Conservar respaldo privado completo de fuente, plantilla, figuras y outputs;
+   un clon del remoto actual 5efc no contiene la nueva revisión local ni el paper.
 
 ## Bitácora
+
+- 2026-11-06, cierre local SSN nativo y PDF: CSV descargado personalmente por Gabriel
+  auditado e integrado comocuarto catálogo / tercer distribuidor;402082raw y 242288M>=3.5,
+  íntegro y términos preservados. Lectura privada no ejecutada ni publicada;
+  descriptivos anuales propios sin pronósticos ni corte universal. Word/PDF26p,
+  siete figuras en texto, captura corregida, todos los contenidos revisados y
+  hashes finales arriba.51 Python/45 JS,8 hashes,4720 SQL / 24 sintéticos pasan.
+  Gate553/547/6 pendientes, muestra339/36872; plan33rutas cerrado y aprobación5
+  pendiente. Sin commit/push/despliegue nuevo, pagos o envío. PC encendida.
+
+- 2026-11-06, revisión nueva SSN/metodología/mapas: consulta privada completa mediante
+  Edge y descargas individuales normales; ZIP bloqueado por Edge, sin elusión.
+  Tesis/código privados sólo locales y sin ejecución. Diagnóstico científico completo
+  guardado en outputs/ssn_recent_2026-11-06/, con fuentes públicas primarias separadas.
+  Portal oficial SSN y términos específicos vistos; consulta nacional completa UTC/CSV
+  preparada hasta 6 nov 2026. CAPTCHA requiere confirmación en ese momento; pregunta
+  enviada y sin respuesta aún, no resuelto ni búsqueda enviada. Sin CSV reciente ni
+  cambios a datos/paper. UX local terminada: retorno explícito, selector ampliado,
+  HOT/NASA reales y atribución corregida; 40 Node pasan, móvil/teclado/foco revisados.
+  Sin quinto commit, push, publicación, pago, correo o envío editorial; PC encendida.
+
+- 2026-11-06, publicación SSN y figuras integradas: Gabriel respondió «Sí,
+  autorizo ese commit, push, despliegue y esas excepciones» a la pregunta del
+  plan de 14 archivos. Un commit humano 5efc7953abc44f96350ca06f4b9a5f1cb6ec60f5,
+  un push y workflow 42282909895 success; sin amend, firma ni trailers.
+  Verificación HTTPS normal: 26/26 assets exactos y tres exclusiones HTTP404.
+  Edge público mostró 9,858 epicentros SSN/UNAM vía USGS; URL v3/recarga y chip
+  comprobados, consola vacía. Se aceptaron sólo para ESTE push cuatro HTTP 403
+  y muestra 339/36,872; 36,533 rutas no certificadas. Word/PDF privados de 25
+  páginas y seis figuras integradas, hashes intactos. Recibos en
+  outputs/publication/ssn_inline_update_execution.json y ssn_inline_pages_verification.json.
+  Preview propio 18301 cerrado, PC encendida. Sin pagos, release ni envío.
+  Esta anotación posterior queda local; no autoriza otro commit/push/despliegue.
 
 - 2026-11-06, SSN y figuras integradas: acceso SSN/UNAM vía USGS con 9,858
   registros recalculados; v3/JSON3, chip, legado v1/v2 y 32 grupos Node pasan.
   CSV/JSON reales concuerdan en todos los IDs ordenados; móvil sin desborde.
   Paper centrado en el sistema, seis figuras en el texto y 25 páginas revisadas
   individualmente; 17 partes de plantilla preservadas y resultados intactos.
-  Guía oficial permite figuras integradas. Nuevo gate 542/538/cuatro HTTP403,
+  Guía oficial permite figuras integradas. Nuevo gate 542/538/cuatro HTTP 403,
   muestra 339/36,872 sin excepción aplicada. Sin cuarto commit/push/despliegue,
   pagos, release, envío ni apagado. Autoría y declaración académica IA conservadas.
 
 - 2026-11-06, publicación de presentación: recibida autorización expresa para
-  un tercer commit humano, push y despliegue, con cuatro HTTP403 y muestreo 339/36,872.
+  un tercer commit humano, push y despliegue, con cuatro HTTP 403 y muestreo 339/36,872.
   Ejecutados una sola vez: 53dba7b569bbeaa5d8d07edcb2bd8367e145bc9e y workflow
   42269837342 success. Autor/committer Gabriel Hurtado; sin firmas ni trailers.
   Los 26 archivos publicados idénticos al commit y tres rutas excluidas HTTP404.
@@ -325,7 +436,7 @@ fuera de muestra. No agregar ML ni modelos geotécnicos sin necesidad científic
   en Edge. Paper sincronizado con USGS/NRCan, cinco figuras/cuatro tablas,
   23 páginas finales inspeccionadas individualmente; Word/PDF coincidentes.
   41 Python y 27 Node pasan. Nueva política IA comprobada y declaración veraz
-  integrada. Gate 540/536/cuatro HTTP403, muestra 339/36,872; Canadá visible en Edge.
+  integrada. Gate 540/536/cuatro HTTP 403, muestra 339/36,872; Canadá visible en Edge.
   Sin tercer commit/push/despliegue, pagos, release ni envío. PC encendida.
 
 - 2026-11-06, cierre: commit humano 7009d7de8c4addcf71dbe968deab18ea935c0c8e,
@@ -342,7 +453,7 @@ fuera de muestra. No agregar ML ni modelos geotécnicos sin necesidad científic
   Sin segundo commit, push ni despliegue. Tras cambios de instrucción, la ÚLTIMA
   orden de Gabriel es NO apagar la PC.
 - 2026-11-06: recibida aprobación específica para un nuevo commit humano, push
-  y despliegue manual, con cuatro HTTP403 y muestreo339/36872 aceptados para este
+  y despliegue manual, con cuatro HTTP 403 y muestreo339/36872 aceptados para este
   push. Acciones pendientes al guardar esta continuidad; no afirmar publicación
   sin verificar el resultado real. Sin autorización de release ni envío editorial.
 
@@ -368,7 +479,7 @@ fuera de muestra. No agregar ML ni modelos geotécnicos sin necesidad científic
   27 polígonos de contexto; fuente NE fijada a ca96624a56bd078437bca8184e78163e5039ad19;
   licencias y hashes preservados. Revisión estática independiente sin bloqueantes,
   JS válido, cuatro hashes correctos, verificador local con cero fallos y seis
-  rutas del servidor HTTP200. La UI nueva quedó pendiente de revisión visual por
+  rutas del servidor HTTP 200. La UI nueva quedó pendiente de revisión visual por
   «Computer Use app approval timed out»; no se eludió el control de la aplicación.
   Se solicitó abrir la URL local en panel mediante open_in_codex (estado queued).
   Sin commit, push, publicación ni apagado; históricos intactos.
@@ -406,7 +517,7 @@ fuera de muestra. No agregar ML ni modelos geotécnicos sin necesidad científic
   que había pasado en la primera ejecución. No se considera enlace caído ni se
   concede excepción. report_local.json se reserva para assets locales; un chequeo
   local no sobrescribirá el informe de red. Servidor local reiniciado oculto y
-  comprobado HTTP200 en / y /data/revisions.json; PID propio31004. DOCX/PDF vigentes
+  comprobado HTTP 200 en / y /data/revisions.json; PID propio31004. DOCX/PDF vigentes
   preservan hashes de outputs/delivery_manifest.json. PC sigue encendida.
 - 2026-11-05: Gabriel autorizó crear el remoto público Seismic_Data_Geosciences y
   conectarlo a la carpeta local. Repo vacío, identidad humana; sin commit ni push.

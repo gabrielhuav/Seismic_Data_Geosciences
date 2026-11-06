@@ -1,8 +1,9 @@
 # Seismic Data Observatory
 
-Buildless, browser-local explorer with three individually selectable catalogues
-from two providers: USGS North America (2020–2025, the default), the frozen USGS
-Mexico paper snapshot, and NRCan Canada and surroundings (1985–2019). Text
+Buildless, browser-local explorer with four individually selectable catalogues
+from three providers: USGS North America (2020–2025, the default), the frozen USGS
+Mexico paper snapshot, NRCan Canada and surroundings (1985–2019), and the
+native SSN download (1900–6 November 2026, partial year; M≥3.5). Text
 search, provider/catalogue selectors and scientific filters operate on the
 selected catalogue. Records are not merged across providers or counted as
 independent physical earthquakes. Retained origin-product revisions remain a
@@ -28,7 +29,8 @@ For a complete data rebuild follow the ordered commands in the
 [reproduction guide](../docs/REPRODUCIBILITY.md). The existing
 `scripts/build_system.py` packages Mexico and the separate revision pilot;
 `build_canada_catalog.py` packages the preserved Canadian CSV;
-`build_catalogs.py` packages North America and assembles the three-catalogue
+`build_ssn_catalog.py` packages the preserved official SSN CSV;
+`build_catalogs.py` packages North America and assembles the four-catalogue
 registry. These data builders preserve the frontend and other catalogue files.
 
 The geographic map supports pan, zoom, fitting filtered records and selecting an epicenter to inspect its source record. The table provides the same record inspection through keyboard-accessible buttons. Filters apply to both the map and the table; panning only changes the visible map area, not the filtered count or CSV export.
@@ -41,7 +43,8 @@ context; they do not classify earthquake nationality. Run
 `python scripts/fetch_map_assets.py` to reproduce these pinned local assets.
 Exact source URLs, transformations and hashes are in `dist/data/map_assets.json`.
 
-OpenStreetMap and USGS Topo are optional remote backgrounds with visible
+OpenStreetMap, humanitarian OSM, USGS Topo and NASA Blue Marble (static
+August 2004 composite) are optional remote backgrounds with visible
 attribution. They load after selection and can fail independently of the data;
 the local background remains available. USGS Topo's detailed coverage concerns
 the United States. See [coverage and service terms](../docs/CATALOGS.md).

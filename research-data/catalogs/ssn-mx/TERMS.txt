@@ -1,0 +1,196 @@
+INICIO
+ACERCA DE
+SISMICIDAD
+SISMOGRAMAS
+CATÁLOGO DE SISMOS
+DIVULGACIÓN
+AVISO LEGAL, USO DE DATOS Y PRIVACIDAD
+ Descargar PDF
+UNIVERSIDAD NACIONAL AUTÓNOMA DE MÉXICO
+INSTITUTO DE GEOFÍSICA
+SERVICIO SISMOLÓGICO NACIONAL
+AVISO LEGAL
+
+La información de la página web, portal o sitio electrónico del Servicio Sismológico Nacional (SSN) del Instituto de Geofísica de la Universidad Nacional Autónoma de México (UNAM), está disponible para ser consultada, utilizada, difundida o reproducida con fines no lucrativos, siempre y cuando no se mutile o tergiverse su sentido original, se cite la fuente completa y su dirección electrónica. De otra forma, se requiere permiso previo por escrito de la institución.
+
+Para citar el contenido del portal, utilice el siguiente formato general:
+
+SSN (año actual): Universidad Nacional Autónoma de México, Instituto de Geofísica, Servicio Sismológico Nacional, México. Dirección electrónica: http://www.ssn.unam.mx
+
+Puede ingresar la fecha exacta, el título del contenido y/o la dirección electrónica específicas, según el caso. Por ejemplo:
+
+SSN, últimos sismos: Universidad Nacional Autónoma de México, Instituto de Geofísica, Servicio Sismológico Nacional, México. Extraído el 10 de enero de 2017 desde http://www.ssn.unam.mx/sismicidad/ultimos
+
+USO DE DATOS SÍSMICOS
+
+Al consultar y utilizar los datos generados por el SSN, a través de su portal electrónico o cualquier otro medio, acepta expresamente los siguientes:
+
+TÉRMINOS DE LIBRE USO
+
+Los presentes Términos de Libre Uso promueven la consulta de colecciones digitales universitarias, en pleno respeto a la legislación aplicable incluida aquella en materia de propiedad intelectual.
+
+Usted como USUARIO reconoce que los Datos contenidos en el presente son:
+Accesibles: Los datos están disponibles para la gama más amplia de usuarios, para cualquier propósito;
+De libre uso: Citan la fuente de origen como único requerimiento para ser utilizados libremente;
+Gratuitos: Se obtienen sin entregar a cambio contraprestación alguna;
+Integrales: Contienen el tema que describe a detalle y con los metadatos necesarios;
+Legibles por máquinas: Deberán estar estructurados, total o parcialmente, para ser procesados e interpretados por equipos electrónicos de manera automática;
+No discriminatorios: Los datos están disponibles para cualquier persona sin necesidad de registro;
+Oportunos: Son actualizados periódicamente, conforme se generen;
+Permanentes: Se conservan en el tiempo, para lo cual, las versiones históricas relevantes para uso público, se mantendrán disponibles a través de los identificadores institucionales adecuados para tal efecto;
+Primarios: Provienen de la fuente de origen con el máximo nivel de desagregación posible.
+Cada “USUARIO” se obliga a no utilizar la información con objeto de engañar o confundir al público variando el sentido original de la misma y su veracidad.
+El USUARIO reconoce que la UNAM se inspira en los principios de libertad de cátedra e investigación, acogiendo en su seno, con propósitos exclusivos de docencia e investigación, todas las corrientes del pensamiento y las tendencias de carácter científico y social. Por lo que por ningún motivo deberá aparentar que el uso que haga de la información, representa una postura oficial de la UNAM o que el mismo está avalado, integrado, patrocinado o apoyado por la fuente de origen.
+
+El USUARIO se obliga a otorgar los créditos correspondientes a la UNAM en su carácter de institución generadora y mencionar que el Servicio Sismológico Nacional del Instituto de Geofísica ha coadyuvado en la generación de la información, en alguna de las siguientes maneras:
+
+Para citas:
+
+SSN (año): Universidad Nacional Autónoma de México, Instituto de Geofísica, Servicio Sismológico Nacional, México. Dirección electrónica: http://www.ssn.unam.mx
+
+Para agradecimientos:
+
+“Los datos sismológicos fueron obtenidos por el Servicio Sismológico Nacional (México). Agradecemos a todo el personal del mismo por el mantenimiento de las estaciones, la adquisición y distribución de los datos".
+
+En el caso de publicaciones, se debe enviar el trabajo publicado con información y/o datos del SSN por correo electrónico a SSNdata@sismologico.unam.mx con el asunto "Publicación con uso de datos del SSN" o “Publicación con uso de información del SSN”.
+
+Cada USUARIO reconoce la eventual inclusión de información y/o contenidos propiedad de terceros, dentro de los conjuntos de datos que se encuentran en acceso abierto por este medio, por lo que, en caso de que requiera utilizar dicha información y/o contenidos, deberá buscar forzosamente la autorización directamente con el titular de los derechos correspondientes de conformidad con la Ley Federal de Derechos de Autor y cualquier otro ordenamiento en materia de propiedad intelectual aplicable.
+
+SALVEDADES
+
+La UNAM no es, ni será responsable por la interpretación y aplicación que el USUARIO haga de la información, por lo que cualquier decisión basada en su interpretación excluye a la UNAM de responsabilidad alguna. Asimismo, la UNAM no es, ni será responsable de las diferencias obtenidas por precisiones, redondeos o truncamientos numéricos, así como por cambios técnicos o tecnológicos que puedan incidir en tales resultados. Para efectos legales, será necesario contactar al titular responsable del SSN, de manera que la institución pueda emitir un dictamen especializado.
+El Servicio Sismológico Nacional del Instituto de Geofísica de la UNAM, así como todas las reservas, nombres de dominio, logos y marcas universitarias son titularidad de la UNAM y su utilización le corresponde en exclusiva a la misma. Por consiguiente, queda prohibida su utilización por parte de cualquier tercero que carezca de autorización expresa.
+La UNAM es titular de las bases de datos que se encuentran disponibles por este medio, las cuales gozan de la protección que conceden las leyes nacionales, así como de los convenios y acuerdos internacionales en materia de Propiedad Intelectual y, de igual manera, en aquellas bases de datos generadas por el Servicio Sismológico Nacional que constituyen creaciones por la selección o disposición de sus contenidos.
+El uso no autorizado en contravención con estos Términos de Libre Uso podrá ser sancionado de acuerdo con la Legislación Universitaria y demás aplicable.
+La UNAM se reserva el derecho a modificar en cualquier momento los presentes Términos de Libre Uso.
+Los presentes se rigen por las leyes mexicanas, por lo que cualquier disputa en relación a la interpretación y cumplimiento de las presentes disposiciones, así como, para lo no previsto en las mismas, será sustanciadas ante la jurisdicción mexicana, sometiéndose a la jurisdicción de los Tribunales Federales de la Ciudad de México, y a las disposiciones contenidas en la Ley Federal del Derecho de Autor, en el Código Civil Federal vigente y demás aplicables al caso, renunciando el USUARIO expresamente al fuero que por razón de su domicilio presente o futuro pudiera corresponderle.
+AVISO DE PRIVACIDAD INTEGRAL
+
+INSTITUTO DE GEOFÍSICA DE LA
+
+UNIVERSIDAD NACIONAL AUTÓNOMA DE MÉXICO
+
+
+
+El Instituto de Geofísica de la Universidad Nacional Autónoma de México (UNAM), con domicilio en Circuito de la Investigación Científica s/n Ciudad Universitaria, Alcaldía Coyoacán, Ciudad de México, Código Postal 04510, recaba sus datos personales y es responsable del tratamiento que se les dé
+
+Si es alumno, docente, personal de la entidad académica, conferencista o invitado externo a la Universidad (nacional o extranjero), visitante, proveedor o cliente de servicios universitarios, los datos personales que recabamos de usted serán utilizados para las siguientes finalidades:
+
+Ofrecer la difusión de conocimientos científico, tecnológico y profesional.
+Informar de los asuntos escolares y administrativos.
+Inscripción a eventos, concursos y/o competiciones en los que participe en representación de la entidad académica (actividades estudiantiles, culturales, artísticas, desarrollo social, deportivas, etc.) o cualquier servicio o actividad que contribuya a la formación integral.
+Actualizar la base de datos de alumnos, estudiantes, docentes y empleados, así como sus respectivos contactos en caso de emergencia.
+Prestar los servicios y realizar actividades que resulten necesarias para el desarrollo o formación académica, profesional y extracurricular.
+Realizar reportes académicos, escolares o artísticos periódicamente, ya sea semanal, mensual o anual.
+Evaluar el desempeño académico y extracurricular.
+Difundir conocimientos científicos, culturales, tecnológicos y profesionales.
+Otorgar becas o apoyos económicos en caso de cumplir con los requisitos establecidos.
+Informar sobre asuntos escolares y administrativos.
+Inscribir en programas de vinculación, incluidos los de internacionalización, con instituciones o programas educativos/académicos, nacionales y extranjeros, cuando así lo solicite y cumpla con los requisitos.
+Crear un correo electrónico institucional para alumnos, estudiantes, académicos, investigadores, técnicos académicos o para cualquiera otro cuando así lo determine el área universitaria.
+Identificar a los alumnos cuando le sean aplicados exámenes de cualquier tipo.
+Asignar y/o seleccionar residencia profesional, en los casos que aplique.
+Registrar estancias escolares.
+Contactar a familiares o terceros, en casos de una emergencia.
+Registrar la acreditación del servicio social y/o prácticas profesionales.
+Atender a la comunidad universitaria a través de programas de prevención de accidentes, de nutrición, de ayuda psicológica y la aplicación y/o revisión de exámenes médicos, cuando lo solicite.
+Administrar el acceso físico y/o electrónico a las instalaciones, en el caso de Centros e Institutos de Investigación.
+Contratar y/o cancelar diversos tipos de pólizas de seguro.
+Elaborar credenciales (de estudiante, académico, investigador, empleado y de usuario de la biblioteca).
+Inscribir a eventos y/o actividades extracurriculares en las que participe.
+Realizar invitaciones a exposiciones, conferencias, seminarios, pláticas, tertulias y análogas, en caso de conferencistas y homenajeados.
+Prestar toda clase de servicios especializados, administrativos o no, que le sean requeridos.
+Elaborar y evaluar proyectos, planes y programas educativos.
+Proporcionar asesoría y servicios de acuerdo con los fines de área universitaria.
+Administración de talento estudiantil.
+Administración de la nómina.
+Realizar procedimientos de investigación administrativa, procesos legales o de cualquier otra naturaleza.
+Proveer de productos, servicios o información productos necesarios o requeridos por la entidad académica.
+Cumplir con las obligaciones contraídas con proveedores, clientes o prospectos.
+Prestar servicios especializados.
+Atender las solicitudes de compra y procesar pagos.
+
+Recabamos sus datos personales al usar los mecanismos remotos de comunicación electrónica consistentes en la página web y correo electrónico institucional, así como la plataforma virtual de educación a distancia institucional; o bien, al aplicar a una beca, concurso, solicitud un beneficio, llenar un formato, registrar una convocatoria, curso, diplomado, seminario, simposio, taller, mesa redonda, conferencia o análogo; o la participación bajo cualquier formato en procedimientos de adjudicación directa de productos o servicios; medios a través de los cuales se recaban los siguientes datos personales:
+
+Identificativos: Nombre(s) y apellidos, fecha de nacimiento, género, estado civil, número de hijos, teléfonos (casa, celular y trabajo), correo electrónico, fotografía.
+Familiares: Nombre(s) y apellidos de sus padres, nivel de estudios y ocupación de su esposo(a), de su madre y padre y Universidad donde cursaron los estudios profesionales sus progenitores.
+Laborales: De empleado: Nombre(s) y apellidos, número de empleos, nombre y sector de la empresa o institución donde trabaja, estado de la República donde se ubica aquella, puesto y condición laboral en esa empresa o institución, relación laboral con su actual profesión, grado de satisfacción laboral y salarial, monto de ingresos mensuales, factores que se consideraron para su contratación, razones y valoraciones de su inserción al campo laboral, actualizaciones profesionales (cursos, diplomados, seminarios, idiomas) y organización en la(s) que lo(s) ha tomado. Si es autoempleado o si está desempleado: motivos por lo que no trabaja, tiempo que ha permanecido sin laborar.
+Académicos: Nombre(s) y apellidos, cada uno de sus grados de estudios, institución donde los cursó, motivos por los cuales los realizó, valoración de la experiencia adquirida relativa a su formación, al plan de estudios y a la calidad de enseñanza y a la carga académica. Tiempo que tardo en titularse, si realizó servicio social y dónde. Si se tituló. Dominio del idioma inglés u otro. Tipo de habilidades desarrolladas durante su formación profesional y necesarias para su trabajo. Años de inicio y término de sus estudios, país de ubicación de la escuela, nombre de la institución donde cursó bachillerato, plantel, clave y domicilio del centro de trabajo y elección de ingreso (área, carrera, sistema y plantel escolar).
+Sociales: Si es miembro de una organización o asociación, denominación o razón social de ésta, si hay interés por participar en programas de beneficio social.
+Datos personales sensibles: modo de vida, práctica de deporte o ejercicio, temporalidad, cuidado de su salud, frecuencia con que practica o asiste a eventos de arte y/o deporte, datos concernientes a su estado de salud física, psico-emocional, adicciones (existencia y tipo), problemas y situación familiar, manifestación de estado de vulnerabilidad o discapacidad.
+Datos de contacto de emergencia: Nombre(s) y apellido de contacto de emergencia, teléfono (fijo y móvil), dirección y relación con el empleado.
+Proveedores y clientes: Nombre(s) y apellidos, denominación o razón social (personas morales), domicilio, Clave única de Registro de Población (CURP), Registro Federal de Contribuyentes (RFC), direcciones de correo electrónico, teléfonos, identificación oficial con fotografía de representante legal o de persona física (pasaporte, credencial de elector, cédula profesional), información confidencial que obre en el acta constitutiva de una persona moral, domicilio, nacionalidad, número y datos de cuenta bancaria, información fiscal y financiera.
+Procedimientos de investigación administrativa, asuntos jurídicos o de cualquier otra naturaleza: Nombre(s) y apellidos, sexo, edad actual, señas particulares (estatura, tez de piel, tipo de ojos y de cabello, color de ojos y de cabello), fecha de nacimiento, lugar, fecha y hora de determinados hechos vinculados con la persona e información adicional que suministren de manera voluntaria
+
+Cuando se recaben datos personales sensibles se le solicitará su consentimiento expreso y por escrito para su tratamiento, a través de su firma autógrafa, firma electrónica o cualquier mecanismo de autenticación que al efecto se establezca, salvo en los casos previstos en el artículo 22 de esta Ley. Para cumplir las finalidades necesarias anteriormente descritas u otras aquellas exigidas legalmente o por las autoridades competentes podrá transferir sus datos personales
+
+FUNDAMENTO PARA EL TRATAMIENTO DE DATOS PERSONALES
+
+Los artículos 6º, Base A, fracciones II y III, y 16, segundo párrafo, de la Constitución Política de los Estados Unidos Mexicanos; el 3º, fracción XXXIII, 16, 17, 18, 20, 21, 22, 23, 26, 27 y 28 de la Ley General de Protección de Datos Personales en Posesión de Sujetos Obligados, así como los numerales del 5 al 19 de los Lineamientos para la Protección de Datos Personales en Posesión de la Universidad Nacional Autónoma de México, publicados en la Gaceta UNAM el 25 de febrero de 2019
+
+COOKIES Y WEB BEACONS
+
+La página web utiliza cookies y web beacons a través de los cuales es posible generar información estadística.
+
+Las cookies son archivos de texto que son descargados automáticamente y almacenados en el disco duro del equipo de cómputo del usuario al navegar en una página de Internet específica, que permiten recordar al servidor de Internet algunos datos sobre este usuario, entre ellos, sus preferencias para la visualización de las páginas en ese servidor, nombre y contraseña. Asimismo, el sitio web contiene anuncios publicitarios que pueden enviar cookies de nuestros usuarios.
+
+Las web beacons son imágenes insertadas en una página de Internet o correo electrónico, que puede ser utilizado para monitorear el comportamiento de un visitante, como almacenar información sobre la dirección IP del usuario, duración del tiempo de interacción en dicha página y el tipo de navegador utilizado, entre otros. Dicha información se almacena en las bitácoras de nuestro servidor y es la siguiente:
+
+Tipo de navegador y sistema operativo.
+Si cuenta o no con software como java script o flash.
+Sitio que visitó antes de entrar al nuestro.
+Vínculos web que sigue en Internet.
+Su dirección IP (Internet Protocol)
+
+Estas cookies y otras tecnologías pueden ser deshabilitadas. Para conocer cómo hacerlo, consulte los siguientes vínculos
+
+Microsoft Edge
+Mozilla Firefox
+Google Chrome
+Apple Safari
+
+En el caso de empleo de cookies, el botón de "ayuda" que se encuentra en la barra de herramientas de la mayoría de los navegadores, le dirá cómo evitar aceptar nuevas cookies, cómo hacer que el navegador le notifique cuando recibe una nueva cookie o cómo deshabilitar todas las cookies.
+
+EJERCICIO DE DERECHOS ARCO (ACCESO, RECTIFICACIÓN, CANCELACIÓN U OPOSICIÓN AL USO DE SUS DATOS PERSONALES)
+
+Tiene derecho a conocer qué datos personales tenemos de usted, para qué los utilizamos y las condiciones del uso que les damos (Acceso). Asimismo, es su derecho a solicitar la corrección de su información personal en caso de que esté desactualizada, sea inexacta o incompleta (Rectificación); que la eliminemos de nuestros registros bases de datos cuando considere que la misma no está siendo utilizada adecuadamente (Cancelación); así como oponerse al uso de sus datos personales para fines específicos (Oposición). Estos derechos se conocen como derechos ARCO.
+
+Para ejercer sus derechos de acceso, rectificación, cancelación y oposición puede acudir a la Unidad de Transparencia de la Universidad Nacional Autónoma de México, con domicilio en lado Norponiente del Circuito Estadio Olímpico sin número, a un costado del Anexo de la Facultad de Filosofía y Letras, Ciudad Universitaria, Alcaldía Coyoacán, C.P. 04510, Ciudad de México, o bien por medio de la Plataforma Nacional de Transparencia (http://www.plataformadetransparencia.org.mx).
+
+La determinación adoptada, se le comunicará en un plazo máximo de veinte días hábiles contados desde la fecha en que se recibió la solicitud, a efecto de que, si resulta procedente, haga efectiva la misma dentro de los quince días hábiles siguientes a que se comunique la respuesta.
+
+Puede revocar el consentimiento que, en su caso, nos haya otorgado para el tratamiento de sus datos personales. Sin embargo, es importante que tenga en cuenta que no en todos los casos podremos atender su solicitud o concluir el uso de forma inmediata, ya que es posible que por alguna obligación legal requiramos seguir tratando sus datos personales. Asimismo, usted deberá considerar que, para ciertos fines, la revocación de su consentimiento implicará que no le podamos seguir prestando el servicio del sistema en línea que nos solicitó, o la conclusión de su relación con nosotros.
+
+MODIFICACIONES AL AVISO DE PRIVACIDAD
+
+El presente aviso de privacidad puede sufrir modificaciones o actualizaciones. Dichas actualizaciones o modificaciones estarán disponibles al público, por lo que podrá consultarlas en el sitio web http://www.geofisica.unam.mx, en la sección Aviso de Privacidad. Se recomienda y requiere consultar el Aviso de Privacidad, por lo menos semestralmente para estar actualizado de las condiciones y términos de este
+
+Actualizado el 02 de agosto de 2019
+
+Sismotel @SismologicoMX Correo electrónico SismologicoMX sismologicomx RSS
+CRÉDITOS
+MAPA DE SITIO
+UBICACIÓN
+CONTACTO
+OTROS SITIOS DE INTERÉS
+ENGLISH VERSION
+ 
+
+
+
+Al consultar y utilizar datos o recursos proporcionados por el portal electrónico del Servicio Sismológico Nacional, aceptas expresamente los términos de libre uso .
+
+Si requieres datos o información sobre sismicidad en México no contenidos en cualquiera de las secciones de este portal, deberás solicitarlos a través de un oficio dirigido al
+Dr. José Luis Macías Vázquez, Director del Instituto de Geofísica de la UNAM.
+
+Servicio Sismológico Nacional, adscrito al Instituto de Geofísica de la Universidad Nacional Autónoma de México.
+
+Circuito de la Investigación Científica s/n, Ciudad Universitaria, Alcaldía Coyoacán, C. P. 04510, Ciudad de México.
+
+Comentarios o sugerencias sobre la página web:  contacto@sismologico.unam.mx
+
+Para quejas relacionadas con el Sistema de Gestión de la Calidad del Servicio Sismológico Nacional, favor de llenar este formulario.
+
+Aviso de privacidad
+
+Derechos Reservados © 1998-2026, UNAM.

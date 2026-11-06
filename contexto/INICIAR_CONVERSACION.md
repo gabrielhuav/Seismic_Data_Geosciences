@@ -1,45 +1,30 @@
 # Mensaje para iniciar el chat
 
-Hola. Continuaremos el artículo de sismos para Computers & Geosciences en este repositorio
-independiente Seismic_Data_Geosciences. La vía elegida es suscripción sin cargo al autor;
-mi condición es no pagar por publicar.
+Continuaremos el artículo y sistema Seismic_Data_Geosciences para Computers &
+Geosciences, vía suscripción sin cargo al autor. Habla español y sé breve.
+Lee completos AGENTS.md, MEMORIA_COMPARTIDA.md y NUEVA_PC.md antes de actuar.
 
-Lee completos AGENTS.md, contexto/MEMORIA_COMPARTIDA.md y contexto/NUEVA_PC.md. Comprueba
-Git, remoto e identidad en lectura. Autores: José Manuel Villa Vargas primero; Gabriel
-Hurtado Avilés segundo y de correspondencia. Conserva los históricos de sismos, agua y obras.
+La actualización SSN nativa está TERMINADA LOCALMENTE: CSV oficial descargado por
+Gabriel tras resolver CAPTCHA,402082 filas; catálogoM>=3.5 de242288filas/27 campos.
+Cuatro catálogos / tres distribuidores; USGS NA y Canadá siguen disponibles, sin
+mezclas automáticas. AtajoSSN/UNAM vía USGS9858/1990–2017 permanece separado.
+Cinco fondos, temas/modos y regreso visible/Escape probados en Edge desktop/móvil.
+Paper privado final Word+PDF de26p,7 figuras integradas/4 tablas; capturaSSN 204 limpia,
+resumen275/cuerpo5492. Todas las páginas verificadas; QA y hashes finales en memoria.
+Tesis privada leída completa, código no ejecutado; no publicar material privado.
 
-La carpeta y el repo local están creados. Verifica Git y el despliegue real: Gabriel
-autorizó un commit inicial y un push con las excepciones concretas de enlaces de
-MEMORIA_COMPARTIDA.md; esa autorización puede haberse consumido. Hay sistema
-bilingüe publicado en GitHub Pages y un piloto de revisiones. La revisión local
-actual del paper tiene 25 páginas, seis figuras integradas/cuatro tablas y documenta los
-tres catálogos y dos proveedores. Todas sus páginas se inspeccionaron tras el
-último render. Temas verde/azul/guinda y modo sistema/claro/oscuro, filtros
-removibles y mapa expandido ya se publicaron con autorización específica:
-commit humano 53dba7b569bbeaa5d8d07edcb2bd8367e145bc9e, workflow 42269837342
-success; 26 assets idénticos y tres exclusiones HTTP404. Edge público comprobado.
-Esa tercera autorización de commit/push/despliegue y excepciones ya se consumió.
-La revisión NUEVA SSN/UNAM vía USGS está terminada sólo LOCAL: 9,858 registros,
-URL v3/JSON3 compatibles con vistas v1/v2, 32 grupos Node y 41 Python pasan.
-Paper presenta primero el sistema y sus capturas, sin cambiar resultados.
-Para publicar estos 14 archivos falta autorización nueva del plan privado
-outputs/publication/ssn_inline_update_plan.md, con cuatro HTTP403 y muestra 339/36,872
-para ESTE push. No usar las autorizaciones consumidas.
-La ampliación anterior del 6 nov con
-tres catálogos, dos proveedores y tres bases se publicó en el commit humano
-7009d7de8c4addcf71dbe968deab18ea935c0c8e, workflow 42252874583 success;
-25 archivos y mapa público comprobados. Las autorizaciones se consumieron;
-no permiten otro commit/push/despliegue. Plan y recibo de la nueva presentación:
-outputs/publication/presentation_update_plan.md y presentation_update_execution.json;
-los cuatro HTTP403 y muestra 339/36,872 se aceptaron sólo para ese push.
-No repetir acciones ni excepciones. outputs/paper/
-contiene sólo Word final y PDF; auxiliares archivados fuera. Mantén la PC encendida:
-la última instrucción de Gabriel revocó el apagado. No reconstruir como verdad un catálogo histórico
-desde versiones retenidas. La validación SQL comprueba proyecciones retenidas;
-no demuestra precisión histórica ni garantiza aceptación editorial por C&G.
-Cada commit, incluido amend, push y publicación requiere mi autorización expresa para
-esa acción. Identidad Git humana, sin asistentes como autores, committers, coautores,
-trailers ni firmas; conservar créditos humanos y declaración académica veraz de IA.
+PUBLICACIÓN NUEVA PENDIENTE: main/remoto siguen 5efc7953abc44f96350ca06f4b9a5f1cb6ec60f5.
+No hay autorización para quinto commit/push/despliegue. Plan concreto local:
+outputs/publication/native_ssn_update_plan.md y candidate_manifest.json,33 rutas.
+Gate553destinos,547 verificados,6 pendientes:4HTTP 403editoriales,timeoutAZCATL y
+CSV nuevoAPI 404antes del push(clienteTLSfalló). Muestra339/36872rutas USGS,noexhaustiva.
+No heredar excepciones previas. Solicitar aprobación expresa para UN commit humano,
+UN push y UN despliegue manual con esas excepciones para ESE push. Después verificar
+workflow,28 assets públicos y la copiaCSV. Paper/contexto no se sirven en Pages.
 
-Háblame en español y sé breve. No hagas nuevos commits, pushes, publicaciones,
-pagos ni envío editorial sin la autorización expresa aplicable a cada acción.
+Autores: José Manuel Villa Vargas primero; Gabriel Hurtado Avilés segundo y de
+correspondencia. IdentidadGit Gabriel Hurtado <gabrielhurtadoaviles@gmail.com>,
+sin IA/autores/coautores/trailers/firmas en Git; declaración académica IA conservada.
+PC ENCENDIDA. No nuevos commits, pushes, despliegues, releases, correos, pagos o
+envío editorial sin autorización expresa propia. Proteger históricos de los tres
+proyectos. El paper requiere revisión final humana; no prometer aceptación C&G.

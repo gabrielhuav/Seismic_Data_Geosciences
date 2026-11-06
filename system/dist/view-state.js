@@ -11,7 +11,7 @@
   const tabs = ['catalog', 'revisions', 'methods'];
   const sorts = ['recent', 'oldest', 'mag'];
   const defaultCatalog = 'usgs-na-2020-2025', legacyCatalog = 'usgs-mx-historical';
-  const bases = ['local', 'osm', 'usgs-topo'];
+  const bases = ['local', 'osm', 'osm-hot', 'usgs-topo', 'nasa-blue-marble'];
   const unmSourceCodes = Object.freeze(['unm', 'us_unm']);
   const isUnmAttributed = event => unmSourceCodes.includes(event.locationSource) || unmSourceCodes.includes(event.magSource);
   const urlKeys = {search: 'q', yearFrom: 'from', yearTo: 'to', magMin: 'min', magMax: 'max',
@@ -131,21 +131,28 @@
     return rows;
   }
 
-  function queryDocument({view, catalog, manifest, assetHashes, rows, pageURL, createdUTC}) {
+  function queryDocument({view, catalog, manifest, assetHashes, fields, rows, pageURL, createdUTC}) {
+    // Preserve source-declared clocks and transformations without inventing a
+    // server acquisition time or interpreting the provider's status vocabulary.
+    const sourceEvidence = Object.fromEntries(['official_catalogue','source_header','source_footer','query','time_basis','source_timing','raw_rows','packaged_records','selection','transformations','field_availability','field_semantics','identifier_derivation']
+      .filter(key => Object.hasOwn(manifest,key)).map(key => [key,manifest[key]]));
     return {
       schema: 'seismic-local-query/3', created_utc: createdUTC,
       engine: 'Seismic Data Observatory browser-local filter, version 3',
       catalog: {id: catalog?.id || view.catalog || legacyCatalog, provider: catalog?.provider || 'usgs',
         provider_name: catalog?.provider_name || 'U.S. Geological Survey', role: catalog?.role,
         bounds: catalog?.bounds, years: catalog?.years, minimum_magnitude: catalog?.minimum_magnitude,
-        snapshot: catalog?.snapshot},
+        snapshot: catalog?.snapshot, provider_url: catalog?.provider_url},
       input: {events_path: catalog?.events_url || 'data/events.json', events_sha256: assetHashes.events,
         manifest_path: catalog?.manifest_url || 'data/manifest.json', manifest_sha256: assetHashes.manifest,
         registry_path: 'data/catalogs.json', registry_sha256: assetHashes.registry,
         snapshot_repository: manifest.snapshot_repository, snapshot_commit: manifest.snapshot_commit,
         source_files: manifest.files, packaged_event_type: catalog && catalog.provider !== 'usgs' ? null : 'earthquake',
         identifier_kind: catalog?.identifier_kind || manifest.identifier_kind || 'source_event_id',
-        depth_unit: catalog?.depth_unit_status === 'not_documented_in_source' ? null : 'km',
+        depth_unit: catalog?.depth_unit_status === 'not_documented_in_source' || manifest.depth_unit_status === 'not_documented_in_source' ? null
+          : catalog?.depth_unit ?? manifest.depth_unit ?? (!catalog || catalog.provider === 'usgs' ? 'km' : null),
+        raw_fields: (fields || Object.keys(rows[0] || {})).filter(key => key.startsWith('raw_')),
+        ...sourceEvidence,
         coordinates: 'Original reported coordinates. Any antimeridian shift is display-only.'},
       selection: {...view.filters}, sort: view.sort,
       predicate_rules: {
@@ -164,14 +171,21 @@
       result: {row_count: rows.length, ordered_event_ids: rows.map(e => e.id)},
       view_url: pageURL,
       limits: [
-        'This describes a local query over the identified packaged bytes, not an equivalent live ComCat request.',
+        catalog && catalog.provider !== 'usgs'
+          ? 'This describes a local query over the identified packaged bytes, not an equivalent remote catalogue request.'
+          : 'This describes a local query over the identified packaged bytes, not an equivalent live ComCat request.',
         'Only one catalog is selected. Different provider catalogs can share observations; their counts are not additive or independent validation.',
         'UNM attribution uses only the reported unm and us_unm field values; it does not import the historical SSN SQL, restore original SSN identifiers or provide the complete current SSN catalogue.',
         'A live ComCat response can change and cannot replace this snapshot when reproducing the result.',
         'The regional rectangle includes offshore and neighbouring areas; no event nationality is inferred.',
         'Reported magnitude types are not interchangeable; missing uncertainties remain unknown.',
         'Counts and epicenters do not estimate earthquake probability, shaking or damage.',
-        'The separate retained-revision pilot does not reconstruct complete past catalogue states.'
+        'The separate USGS retained-revision pilot does not reconstruct complete past catalogue states or native SSN revision histories.',
+        ...(catalog?.provider === 'ssn' ? [
+          'SSN status values are source-reported literals; verified is not converted to ComCat reviewed, and no status transition or revision date is inferred.',
+          'The SSN CSV supplies native UTC and local-time columns, not original event IDs, magnitude types, event types, uncertainty estimates or author fields. Absent fields remain unknown.',
+          'A requested time window, the latest observed record, source header generation time and filesystem modification time are distinct. Coverage does not establish completeness; no local-time offset is imputed.'
+        ] : [])
       ]
     };
   }

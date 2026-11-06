@@ -1,0 +1,9 @@
+# Direct SSN catalogue snapshot
+
+Source: **Servicio Sismológico Nacional / Instituto de Geofísica, UNAM**. [Official catalogue](http://www2.ssn.unam.mx:8080/catalogo/) · DOI `10.21766/SSNMX/EC/MX` · [SSN terms](http://www.ssn.unam.mx/aviso-legal/).
+
+The original CSV contains 402,082 records and 45,950,120 unchanged bytes, SHA-256 `0601c65544bc95ef865d3440e5e6d84249acdebd8edfb379669597096543f993`. The explorer selects 242,288 records with reported M >=3.5 and valid UTC/coordinates; the full raw CSV remains preserved here. This file was downloaded by a human through the official UI; no original HTTP response was captured. The header's local generation label, native UTC/local times, filesystem download metadata and their timing discrepancy are separately retained in the manifest.
+
+The UTC columns are native, not inferred from local time. Depth is explicitly in kilometres. Magnitude types, original event IDs, solution authors, event types, uncertainties and update timestamps are not supplied. Derived local row keys and source-row ordinals do not establish unique physical events. Status strings are not revision histories. No state or country is assigned from the reference locality, and no magnitude-scale conversion or completeness claim is made.
+
+Preserve the original CSV nonprofit reproduction notice and the separate SSN data-specific Términos de Libre Uso ([observed text](TERMS.txt)) together. The latter states any-purpose use with source credit, preservation of meaning, no institutional endorsement and separate third-party rights. No SPDX/Creative Commons licence is invented; the software MIT licence does not relicense the data. This is an academic exploration, not an official SSN/UNAM service or an earthquake prediction. Any requested post-publication notification is a separately authorized human action.

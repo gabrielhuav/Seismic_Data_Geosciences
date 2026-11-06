@@ -80,6 +80,27 @@ class CatalogueLinkTests(unittest.TestCase):
         _, routes = check_links.event_routes("all")
         self.assertEqual(routes, ["https://earthquake.usgs.gov/earthquakes/eventpage/us-fixture-1"])
 
+    def test_native_ssn_observed_http_landing_is_provenance_not_an_event_route(self):
+        ssn = self.catalog("ssn-fixture", "ssn", ["ssn-local-0123456789abcdef01234567-1"], derived=True)
+        path = self.dist / ssn["manifest_url"]
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+        manifest["files"][0].update(url="http://www2.ssn.unam.mx:8080/catalogo/", url_kind="catalogue_landing")
+        manifest["files"][0]["public_copy_path"] = "research-data/catalogs/ssn-mx/input.csv"
+        self.write_json(path, manifest); self.registry()
+        self.app.write_text("const publicRawURL = publicCopy ? 'https://github.com/gabrielhuav/Seismic_Data_Geosciences/blob/main/'+publicCopy.split('/').map(encodeURIComponent).join('/') : '';", encoding="utf-8")
+        external, *_ = check_links.collect_links("artifact")
+        self.assertNotIn("https://github.com/gabrielhuav/Seismic_Data_Geosciences/blob/main/", external)
+        self.assertIn("https://github.com/gabrielhuav/Seismic_Data_Geosciences/blob/main/research-data/catalogs/ssn-mx/input.csv", external)
+        inventory, routes = check_links.event_routes("all")
+        self.assertEqual(inventory["unmapped_raw_csv_files"], [])
+        self.assertFalse(any("ssn-local" in route for route in routes))
+        # Other HTTP URLs or missing identity/landing classifications are not
+        # accepted by this narrow source-specific provenance rule.
+        manifest["files"][0]["url"] = "http://example.test/unverified.csv"
+        self.write_json(path, manifest)
+        inventory, _ = check_links.event_routes("all")
+        self.assertIn("ssn-fixture:input.csv", inventory["unmapped_raw_csv_files"])
+
     def test_manifest_derived_identity_also_blocks_routes_without_registry_flag(self):
         self.canada["provider"] = "usgs"
         del self.canada["identifier_kind"]

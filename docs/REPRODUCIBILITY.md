@@ -28,8 +28,8 @@ The frozen CSV input is versioned in `data/source_manifest.json`; `--download` o
 ## Rebuilding the complete explorer
 
 The committed `system/dist` artifact is ready to serve. The offline
-`build_catalogs.py --verify-only` command requires all three named catalogues,
-their two providers, the default and legacy selections, six asset hashes,
+`build_catalogs.py --verify-only` command requires all four named catalogues,
+their three providers, the default and legacy selections, eight asset hashes,
 manifest/event-byte agreement, row counts, record keys and source-file mappings.
 It does not download or rewrite data. The deployment workflow uploads this
 committed directory after validation; it does not regenerate or clear it.
@@ -42,6 +42,7 @@ this order:
 python scripts/audit_sources.py --download --skip-ssn
 python scripts/build_system.py
 python scripts/build_canada_catalog.py
+python scripts/build_ssn_catalog.py
 python scripts/build_catalogs.py --download
 python scripts/fetch_map_assets.py
 python scripts/build_catalogs.py --verify-only
@@ -65,14 +66,15 @@ receipt is required for this preserved public-input path.
 inputs, verifying the upstream Git blob, size and SHA-256; it does not execute
 upstream code. The 12 CSVs produce 14,041 earthquake records from 2020–2025.
 With raw caches present, omit `--download` for an offline rebuild. The original
-24,994-record Mexico snapshot remains separate. The final registry has three
-catalogues and two providers; exploratory data do not change the paper's frozen
+24,994-record Mexico snapshot remains separate. The final registry has four
+catalogues and three providers; exploratory data do not change the paper's frozen
 diagnostic or its revision-pilot claims.
 
 `fetch_map_assets.py` verifies Leaflet and Natural Earth source bytes and
 reproduces the extended local background. It preserves original coordinates;
 positive Aleutian longitudes are unwrapped only by the map client. Optional
-OpenStreetMap and USGS Topo backgrounds are runtime services selected by the
+OpenStreetMap, humanitarian OSM, USGS Topo and static NASA Blue Marble
+backgrounds are runtime services selected by the
 reader; builds do not fetch their tiles. Their coverage and attribution are
 documented in [CATALOGS.md](CATALOGS.md).
 
@@ -101,7 +103,7 @@ libcomcat, Timeline or the INGV service.
 
 ## Figures and manuscript
 
-The expanded manuscript distinguishes three source catalogues from the original
+The expanded manuscript distinguishes four source catalogues from the original
 36-event revision pilot. Its catalogue table is recalculated from the packaged
 sources; adding a catalogue does not expand the revision-validation cohort.
 The final interface includes three palettes and system/light/dark appearance,
@@ -117,8 +119,9 @@ additional workflow diagram from actual catalogue and audit counts. A genuine
 browser capture is required for the interface figure. The full command accepts
 `--capture-receipt <path>`; the receipt identifies the immutable image, shared
 query URL, visible result, display preferences and exact application/data hashes.
-The maintained capture uses North America, origin year 2025, reported magnitude
-at least 4.5 and 346 matching records. It is an illustration, not a usability
+The maintained overview capture uses the native SSN catalogue, origin year 2026
+through 6 November (partial year), reported magnitude at least 4.5 and 204
+matching records. It is an illustration, not a usability
 experiment, source-accuracy evaluation or reconstruction of past public states.
 
 Each interface figure uses one genuine capture, rather than combining independent
@@ -128,8 +131,8 @@ The overview records the active source, filters and map;
 the second capture records source-specific inspection. The generator verifies
 the capture hash and rejects an unsuitable tall layout. Native capture dimensions
 are retained in its receipt; PNG packaging at 300dpi does not add native detail.
-`paper/figures/system_figures_manifest.json` records the two captures and diagram;
-`paper/figures/manuscript_figures.json` fixes the six-image document order and
+`paper/figures/system_figures_manifest.json` records the two captures, diagram and
+SSN descriptive coverage plot; `paper/figures/manuscript_figures.json` fixes the seven-image document order and
 SHA-256 values. The three original scientific figures and their audited data
 are preserved. The DOCX builder requires one correctly numbered caption per
 verified image and preserves 17 unrelated template package parts byte for byte.
@@ -139,6 +142,15 @@ mandatory page break before each figure. The builder rejects missing, repeated
 or out-of-order anchors and excludes them from the word count.
 Captures, figure assets and private manuscript source stay in the authoring
 copy, outside the website and public code checkout.
+
+The SSN coverage plot is recomputed directly from the hash-verified preserved
+CSV by `scripts.make_system_figures`, independently of the adapter's selection.
+Its annual bins distinguish all downloaded rows, numeric reported magnitudes,
+the M≥3.5 cartographic selection and M≥5. Sixteen years have no source rows and
+are plotted as gaps; this is not an assertion of zero physical seismicity.
+2026 is partial. Annual maxima are one statistic per observed year, with tied
+source rows retained separately. No fitted return-period distribution,
+homogenized magnitude scale or completeness threshold is inferred.
 
 AI assistance in implementation and plotting code is declared in the manuscript
 Methods and general declaration; the explanatory diagram caption also identifies
