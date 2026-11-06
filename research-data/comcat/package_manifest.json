@@ -1,0 +1,215 @@
+{
+  "schema": "seismic-comcat-evidence/1",
+  "acquisition_manifest_sha256": "c5baf7d9dd447fc2b8f5aa2a677bef7386c9c382373b3ef7c88d440fa5b1ecc0",
+  "response_count": 40,
+  "response_bytes": 35641601,
+  "files": [
+    {
+      "path": "cohort_2017_01c4e675059f123e9d5185b9fd999863de50fe0876895cfc6d5a4c63e30c8abb.geojson",
+      "bytes": 17891,
+      "sha256": "01c4e675059f123e9d5185b9fd999863de50fe0876895cfc6d5a4c63e30c8abb"
+    },
+    {
+      "path": "cohort_2017_count_187de7947ba3b8e6dbdfd6a3e123d1ea5fe66db1ac5c5128b5b0e6444be132ae.geojson",
+      "bytes": 31,
+      "sha256": "187de7947ba3b8e6dbdfd6a3e123d1ea5fe66db1ac5c5128b5b0e6444be132ae"
+    },
+    {
+      "path": "cohort_2022_8e5ba42b4802e72b4b3c30824ccdeb2e5293dc57b78a96dffef4446c74dc6007.geojson",
+      "bytes": 12261,
+      "sha256": "8e5ba42b4802e72b4b3c30824ccdeb2e5293dc57b78a96dffef4446c74dc6007"
+    },
+    {
+      "path": "cohort_2022_count_bca7d93d87affce1a067849e058d881485b734dfbc931fdba8e0169d1fbbf651.geojson",
+      "bytes": 31,
+      "sha256": "bca7d93d87affce1a067849e058d881485b734dfbc931fdba8e0169d1fbbf651"
+    },
+    {
+      "path": "events/us10008tqj_5326d48331f4f0441972f4d77391ef9f4d90a26c22a1d55ebb504266edcaf6f6.geojson",
+      "bytes": 176844,
+      "sha256": "5326d48331f4f0441972f4d77391ef9f4d90a26c22a1d55ebb504266edcaf6f6"
+    },
+    {
+      "path": "events/us10008tuw_3be58806233e08d9d478c6ebde488e131f24cc94b9eb30f35a0ddf1808f06fcf.geojson",
+      "bytes": 492240,
+      "sha256": "3be58806233e08d9d478c6ebde488e131f24cc94b9eb30f35a0ddf1808f06fcf"
+    },
+    {
+      "path": "events/us1000arzf_df973d7b24e75e596ab078c5e50fb1b58b0b3443d193df43ff75590d70b2a076.geojson",
+      "bytes": 379638,
+      "sha256": "df973d7b24e75e596ab078c5e50fb1b58b0b3443d193df43ff75590d70b2a076"
+    },
+    {
+      "path": "events/us20008vll_c4d9c8d7794815dcc05e33da15bce787d4504215c6e7ac3a7d58d40fd480f9e6.geojson",
+      "bytes": 300394,
+      "sha256": "c4d9c8d7794815dcc05e33da15bce787d4504215c6e7ac3a7d58d40fd480f9e6"
+    },
+    {
+      "path": "events/us20009lsg_27256cc27c10c777c7864cfeb918e1a5d79f7d3b1c4cd6fc71bd5a7d677f7d93.geojson",
+      "bytes": 179001,
+      "sha256": "27256cc27c10c777c7864cfeb918e1a5d79f7d3b1c4cd6fc71bd5a7d677f7d93"
+    },
+    {
+      "path": "events/us20009mbf_6a8ffc7810340b2b6a3dbd668ea71e39f85869ac8c03ac64ebc59153efd45733.geojson",
+      "bytes": 136370,
+      "sha256": "6a8ffc7810340b2b6a3dbd668ea71e39f85869ac8c03ac64ebc59153efd45733"
+    },
+    {
+      "path": "events/us20009mbt_46d92bb41651198fc13cd599504036a45a63069237c390ca61c4d65722ac55f2.geojson",
+      "bytes": 1350060,
+      "sha256": "46d92bb41651198fc13cd599504036a45a63069237c390ca61c4d65722ac55f2"
+    },
+    {
+      "path": "events/us20009mji_48d980af8cbe995a4d34c2d001ab7af486ed0265ea081c6995ff851b895e0d6b.geojson",
+      "bytes": 202210,
+      "sha256": "48d980af8cbe995a4d34c2d001ab7af486ed0265ea081c6995ff851b895e0d6b"
+    },
+    {
+      "path": "events/us2000ahv0_f743036b6ca652ae69ec17ece802127b37d8923072ca6028896945b68a91ddd0.geojson",
+      "bytes": 5537065,
+      "sha256": "f743036b6ca652ae69ec17ece802127b37d8923072ca6028896945b68a91ddd0"
+    },
+    {
+      "path": "events/us2000ahv7_e7fd6d83445035d94d70611cad912330bffacbdf064cec63c76688660357c19b.geojson",
+      "bytes": 278581,
+      "sha256": "e7fd6d83445035d94d70611cad912330bffacbdf064cec63c76688660357c19b"
+    },
+    {
+      "path": "events/us2000ailq_5e17dc66183be4ba614ca56cc1ce70b911bcbd31b0699672589b9dd009466f21.geojson",
+      "bytes": 123355,
+      "sha256": "5e17dc66183be4ba614ca56cc1ce70b911bcbd31b0699672589b9dd009466f21"
+    },
+    {
+      "path": "events/us2000aj51_3768993ebd496a2472a8c8c359d11ed05139b7e26a2a48290ee83f6c8b819611.geojson",
+      "bytes": 191557,
+      "sha256": "3768993ebd496a2472a8c8c359d11ed05139b7e26a2a48290ee83f6c8b819611"
+    },
+    {
+      "path": "events/us2000akcq_32c6ed85e60b189498536b380d6d36cb2be6938969b0369c626655df09ec0766.geojson",
+      "bytes": 160385,
+      "sha256": "32c6ed85e60b189498536b380d6d36cb2be6938969b0369c626655df09ec0766"
+    },
+    {
+      "path": "events/us2000ap3b_079f149050ecee402c5aa187dc11d0c8b352c36a0a9fbe5870d9988787cf81f9.geojson",
+      "bytes": 91237,
+      "sha256": "079f149050ecee402c5aa187dc11d0c8b352c36a0a9fbe5870d9988787cf81f9"
+    },
+    {
+      "path": "events/us2000apx5_e0df3783f8e284f5ad4127062360d8cdd65a417dd6017ba4a9720a01128c4103.geojson",
+      "bytes": 181262,
+      "sha256": "e0df3783f8e284f5ad4127062360d8cdd65a417dd6017ba4a9720a01128c4103"
+    },
+    {
+      "path": "events/us2000aqji_69a4622e39aaf684f7f3ae6a220783eda45c855bfbf0a070c78d77b563fa889c.geojson",
+      "bytes": 147351,
+      "sha256": "69a4622e39aaf684f7f3ae6a220783eda45c855bfbf0a070c78d77b563fa889c"
+    },
+    {
+      "path": "events/us2000ar20_c6f80a91a5643e3754c468b6e79bc84e69e9b4fbd76cb55ee138c03e85a3ba4d.geojson",
+      "bytes": 10724457,
+      "sha256": "c6f80a91a5643e3754c468b6e79bc84e69e9b4fbd76cb55ee138c03e85a3ba4d"
+    },
+    {
+      "path": "events/us2000at0m_a56743c755775b7cb7adcff1125cc604ca7908d889a9ed37c63df359f6c40407.geojson",
+      "bytes": 379200,
+      "sha256": "a56743c755775b7cb7adcff1125cc604ca7908d889a9ed37c63df359f6c40407"
+    },
+    {
+      "path": "events/us2000atis_9f467bc40c74a5c76671e2c1bc34a4949fdf7bf9ae2487cb6d01dae29c329600.geojson",
+      "bytes": 301715,
+      "sha256": "9f467bc40c74a5c76671e2c1bc34a4949fdf7bf9ae2487cb6d01dae29c329600"
+    },
+    {
+      "path": "events/us2000atjv_1eefe5eaa5f6de80b4d769a12fff1241a980c6ec9d57d4f8fbb8139565d08a3e.geojson",
+      "bytes": 972046,
+      "sha256": "1eefe5eaa5f6de80b4d769a12fff1241a980c6ec9d57d4f8fbb8139565d08a3e"
+    },
+    {
+      "path": "events/us2000atwe_38f3fb04b63dcec00da7ca70bcc351ef3f2ab0b9bc31a300758f1d96c6f4da4b.geojson",
+      "bytes": 221185,
+      "sha256": "38f3fb04b63dcec00da7ca70bcc351ef3f2ab0b9bc31a300758f1d96c6f4da4b"
+    },
+    {
+      "path": "events/us2000bhp8_4b4fcefae2dfc1f51c43d04925d7725d372e22e4fb1f02a1246ef5170ad38893.geojson",
+      "bytes": 175593,
+      "sha256": "4b4fcefae2dfc1f51c43d04925d7725d372e22e4fb1f02a1246ef5170ad38893"
+    },
+    {
+      "path": "events/us6000h1qa_b5b059b8ade5ec71690ab79371c2fcaebf662a58f33c67380900621028f816d8.geojson",
+      "bytes": 684602,
+      "sha256": "b5b059b8ade5ec71690ab79371c2fcaebf662a58f33c67380900621028f816d8"
+    },
+    {
+      "path": "events/us6000h2h0_d69826f7d3db4071a41ab77790f87b91374b43c9ca77004efeba0e2bdad2b503.geojson",
+      "bytes": 401115,
+      "sha256": "d69826f7d3db4071a41ab77790f87b91374b43c9ca77004efeba0e2bdad2b503"
+    },
+    {
+      "path": "events/us6000iq0y_997ea5d1971d91213d5c89337e32f31bb31d2d660050585b80ad570ea22fed5e.geojson",
+      "bytes": 261202,
+      "sha256": "997ea5d1971d91213d5c89337e32f31bb31d2d660050585b80ad570ea22fed5e"
+    },
+    {
+      "path": "events/us6000iq9e_d68aa047ce8b5dde3e2e59a2b01681f8ea89b8aba40f6ffd67b0f7ffe181573a.geojson",
+      "bytes": 230329,
+      "sha256": "d68aa047ce8b5dde3e2e59a2b01681f8ea89b8aba40f6ffd67b0f7ffe181573a"
+    },
+    {
+      "path": "events/us6000j8lp_154692cdb4b005c4ede564fbc4ad4934deef11049ecd14680a7825119b2cbc9f.geojson",
+      "bytes": 851684,
+      "sha256": "154692cdb4b005c4ede564fbc4ad4934deef11049ecd14680a7825119b2cbc9f"
+    },
+    {
+      "path": "events/us7000gl8w_8cfdfffa0a9328840f6689c93f8cc4bed0f14dcf3ce194c05fbe7a7c886f5976.geojson",
+      "bytes": 1327400,
+      "sha256": "8cfdfffa0a9328840f6689c93f8cc4bed0f14dcf3ce194c05fbe7a7c886f5976"
+    },
+    {
+      "path": "events/us7000gy5q_329e6d8942a5f765ad2ce93186847422d48ff1101b7cd5dc965e8112b7e428c4.geojson",
+      "bytes": 221687,
+      "sha256": "329e6d8942a5f765ad2ce93186847422d48ff1101b7cd5dc965e8112b7e428c4"
+    },
+    {
+      "path": "events/us7000hcir_64a15326602635a0e29f3ff790989464b977cf7aab9b4fe701d9ec8c1d9a89f4.geojson",
+      "bytes": 433115,
+      "sha256": "64a15326602635a0e29f3ff790989464b977cf7aab9b4fe701d9ec8c1d9a89f4"
+    },
+    {
+      "path": "events/us7000i9bw_b3410d04e6f9fc416ad7699f717e5bc90fd00a94767456b7f6cf72d55b956f85.geojson",
+      "bytes": 2949135,
+      "sha256": "b3410d04e6f9fc416ad7699f717e5bc90fd00a94767456b7f6cf72d55b956f85"
+    },
+    {
+      "path": "events/us7000i9hm_1afe4464a2efa458077f7474a2c5b4b3d0916383be6d561220c03bdef421b3db.geojson",
+      "bytes": 658496,
+      "sha256": "1afe4464a2efa458077f7474a2c5b4b3d0916383be6d561220c03bdef421b3db"
+    },
+    {
+      "path": "events/us7000ia36_9c0b19d33f1b1d157e5f60dddf4cf5812f7d6afa0f26dfa086fa668b2c9e4649.geojson",
+      "bytes": 1574643,
+      "sha256": "9c0b19d33f1b1d157e5f60dddf4cf5812f7d6afa0f26dfa086fa668b2c9e4649"
+    },
+    {
+      "path": "events/us7000imgl_aa8000881ee4c1de073f1a2848e6250db0f5fa3cc5002df46d612519b42234d8.geojson",
+      "bytes": 799741,
+      "sha256": "aa8000881ee4c1de073f1a2848e6250db0f5fa3cc5002df46d612519b42234d8"
+    },
+    {
+      "path": "events/us7000ip7p_202bc1e0035ed2d17a61d223fbb4f2ac0765fab3155cd06530a191bc08f0f787.geojson",
+      "bytes": 721857,
+      "sha256": "202bc1e0035ed2d17a61d223fbb4f2ac0765fab3155cd06530a191bc08f0f787"
+    },
+    {
+      "path": "events/us7000irjd_77dce7302d75c40025227cad9b2cc6460779ccdb2eaf02692eddb2d5c20d91b4.geojson",
+      "bytes": 1794635,
+      "sha256": "77dce7302d75c40025227cad9b2cc6460779ccdb2eaf02692eddb2d5c20d91b4"
+    },
+    {
+      "path": "manifest.json",
+      "bytes": 41742,
+      "sha256": "c5baf7d9dd447fc2b8f5aa2a677bef7386c9c382373b3ef7c88d440fa5b1ecc0"
+    }
+  ],
+  "scope": "Exact official ComCat response bodies from the declared 2017/2022 current-selected acquisition; not a historical public catalogue.",
+  "rights": "Source-specific rights and contributor attribution are retained; the project software licence does not relicense observations or product contents."
+}

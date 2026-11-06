@@ -1,0 +1,12 @@
+* text=auto
+*.docx -text
+*.pdf -text
+data/raw/** -text
+research-data/comcat/** -text
+system/dist/data/** -text
+system/dist/vendor/leaflet/** -text
+
+# Keep continuity out of site archives; these files remain visible in Git if published.
+AGENTS.md export-ignore
+contexto/ export-ignore
+paper/ export-ignore

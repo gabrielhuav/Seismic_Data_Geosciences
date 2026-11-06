@@ -1,0 +1,30 @@
+# Local continuity, drafts and private evidence
+contexto/*
+!contexto/MEMORIA_COMPARTIDA.md
+!contexto/INICIAR_CONVERSACION.md
+!contexto/NUEVA_PC.md
+tmp/
+outputs/
+paper/drafts/
+# Manuscript artifacts stay local; scripts and pinned template provenance are portable.
+paper/figures/
+paper/templates/*.docx
+# Preserve original scientific bytes locally until source-specific release rights
+# and the exact archival deposit have been reviewed.
+data/raw/
+.env
+.env.*
+!.env.example
+credentials*.json
+*.pem
+*.key
+
+# Local runtimes and editor state
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+node_modules/
+.DS_Store
+Thumbs.db
+~$*

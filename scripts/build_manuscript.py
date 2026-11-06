@@ -1,0 +1,204 @@
+"""Create editable author-review documents by patching the retained C&G template.
+
+Template styles, numbering, headers, footers, images and all opaque parts remain
+byte-identical. Only manuscript content, image relationships/content types and
+core metadata change. This script does not render or publish documents.
+"""
+from __future__ import annotations
+from copy import deepcopy
+import hashlib
+import json
+from pathlib import Path
+import re
+import struct
+from zipfile import ZipFile, ZIP_DEFLATED
+from lxml import etree as E
+
+ROOT = Path(__file__).resolve().parents[1]
+TEMPLATE = ROOT / "paper/templates/C&G_WordTemplate.docx"
+SOURCE = ROOT / "paper/drafts/manuscript.md"
+OUT = ROOT / "outputs/paper"
+W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+R = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+NS = {"w": W, "r": R}
+def w(n): return "{"+W+"}"+n
+def node(n, **attrs):
+    el=E.Element(w(n))
+    for k,v in attrs.items(): el.set(w(k),str(v))
+    return el
+def sha(b): return hashlib.sha256(b).hexdigest()
+
+
+def clean(text):
+    text=re.sub(r"\[([^\]]+)\]\(([^)]+)\)",r"\1 (\2)",text)
+    return text.replace("`", "").replace("**", "").replace("−", "-").replace("–", "-").replace("—", "; ")
+
+
+def blocks(text):
+    lines=text.splitlines(); i=0
+    while i<len(lines):
+        s=lines[i].strip()
+        if not s: i+=1; continue
+        if s.startswith("#"):
+            level=len(s)-len(s.lstrip("#")); yield ("h"+str(level),s.lstrip("# ")); i+=1
+        elif s.startswith("|"):
+            rows=[]
+            while i<len(lines) and lines[i].strip().startswith("|"):
+                cells=[clean(x.strip()) for x in lines[i].strip().strip("|").split("|")]
+                if not all(re.fullmatch(r":?-+:?",x.strip()) for x in cells): rows.append(cells)
+                i+=1
+            yield("table",rows)
+        else:
+            para=[]
+            while i<len(lines) and lines[i].strip() and not lines[i].startswith(("#","|")):
+                para.append(lines[i].strip()); i+=1
+            yield("p"," ".join(para))
+
+
+def main():
+    raw=TEMPLATE.read_bytes()
+    expected=json.loads((TEMPLATE.parent/"provenance.json").read_text())["sha256"]
+    if sha(raw)!=expected: raise ValueError("Retained template hash changed")
+    contract=ROOT/"tmp/template-contract/artifact.md"
+    if not contract.exists(): raise FileNotFoundError("Template distillation contract is required")
+    with ZipFile(TEMPLATE) as z: parts={n:z.read(n) for n in z.namelist()}
+    doc=E.fromstring(parts["word/document.xml"]); body=doc.find(w("body")); ps=body.findall(w("p"))
+    patterns={"title":ps[43],"author":ps[44],"abstract":ps[65],"heading":ps[68],"body":ps[69],"caption":ps[98]}
+    final_sect=deepcopy(body.find(w("sectPr")))
+    figure_pattern=next(deepcopy(p) for p in ps if p.find(".//"+w("drawing")) is not None)
+    # Manuscript only; cover letter/highlights are separate artifacts, not sections.
+    for child in list(body): body.remove(child)
+    def paragraph(text,role="body",style=None):
+        p=node("p"); pattern=patterns.get(role,patterns["body"])
+        pr=deepcopy(pattern.find(w("pPr")))
+        if pr is None: pr=node("pPr")
+        for name in ["numPr","sectPr","pageBreakBefore"]:
+            for c in pr.findall(w(name)): pr.remove(c)
+        if role in ["title","heading","caption"]: pr.append(node("keepNext"))
+        if style:
+            for old in pr.findall(w("pStyle")): pr.remove(old)
+            pr.insert(0,node("pStyle",val=style))
+        pr.append(node("widowControl")); p.append(pr)
+        run=node("r"); rp=node("rPr"); rp.append(node("rFonts",ascii="Times New Roman",hAnsi="Times New Roman",cs="Times New Roman")); rp.append(node("color",val="000000")); rp.append(node("sz",val=34 if role=="title" else 22 if role=="heading" else 20));
+        if role in ["title","heading"]: rp.append(node("b"))
+        rp.append(node("lang",val="en-US")); run.append(rp)
+        for j,line in enumerate(clean(text).split("\n")):
+            if j: run.append(node("br"))
+            t=node("t"); t.set("{http://www.w3.org/XML/1998/namespace}space","preserve"); t.text=line; run.append(t)
+        p.append(run); return p
+    def table(rows):
+        t=node("tbl"); prop=node("tblPr");prop.append(node("tblW",w=9360,type="dxa"));prop.append(node("tblLayout",type="fixed"))
+        borders=node("tblBorders")
+        for edge in ["top","left","bottom","right","insideH","insideV"]: borders.append(node(edge,val="single",sz=4,color="D9D9D9"))
+        prop.append(borders); margins=node("tblCellMar")
+        for edge in ["top","bottom"]: margins.append(node(edge,w=70,type="dxa"))
+        for edge in ["left","right"]: margins.append(node(edge,w=100,type="dxa"))
+        prop.append(margins);t.append(prop)
+        widths=[2500,3430,3430] if len(rows[0])==3 else [9360//len(rows[0])]*len(rows[0])
+        grid=node("tblGrid")
+        for width in widths:grid.append(node("gridCol",w=width))
+        t.append(grid)
+        for i,row in enumerate(rows):
+            tr=node("tr");pr=node("trPr");pr.append(node("cantSplit"))
+            if i==0:pr.append(node("tblHeader"))
+            tr.append(pr)
+            for j,cell in enumerate(row):
+                tc=node("tc");cp=node("tcPr");cp.append(node("tcW",w=widths[j],type="dxa"));cp.append(node("vAlign",val="center"));tc.append(cp)
+                if i==0:cp.append(node("shd",fill="F1F3F3"))
+                for func in ["snapshot_observed","retained_projection_conditional","historical_catalog_not_identifiable"]:
+                    cell=cell.replace(func,func.replace("_","_\n"))
+                tc.append(paragraph(cell,"body"));tr.append(tc)
+            t.append(tr)
+        return t
+    parsed=list(blocks(SOURCE.read_text(encoding="utf-8")))
+    captions=[]; in_captions=False
+    for kind,text in parsed:
+        if kind=="h2" and text=="Figure captions":in_captions=True;continue
+        if in_captions:
+            if kind=="p":captions.append(text)
+            continue
+        if kind=="table":body.append(table(text));body.append(paragraph(""));continue
+        if kind=="h1":body.append(paragraph(text,"title","Title"))
+        elif kind in ["h2","h3"]:body.append(paragraph(text,"heading"))
+        else:body.append(paragraph(text,"abstract" if text.startswith("Earthquake catalog services") else "body"))
+    relname="word/_rels/document.xml.rels"; rel=E.fromstring(parts[relname])
+    relns="http://schemas.openxmlformats.org/package/2006/relationships"
+    image_files=["figure_1_depth_location.png","figure_2_magnitude_pairs.png","figure_3_product_timeline.png"]
+    if len(captions)!=3:raise ValueError("Exactly three verified figure captions are required")
+    for i,(filename,caption) in enumerate(zip(image_files,captions),1):
+        image_bytes=(ROOT/"paper/figures"/filename).read_bytes()
+        px_w,px_h=struct.unpack(">II",image_bytes[16:24]); cx=5943600;cy=round(cx*px_h/px_w)
+        fp=deepcopy(figure_pattern)
+        pr=fp.find(w("pPr"))
+        if pr is None:pr=node("pPr");fp.insert(0,pr)
+        pr.append(node("pageBreakBefore"));pr.append(node("keepNext"))
+        for old in fp.findall(".//"+w("t")):old.text=""
+        pic_ns={"a":"http://schemas.openxmlformats.org/drawingml/2006/main","wp":"http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"}
+        for el in fp.findall(".//a:blip",pic_ns):el.set("{"+R+"}embed",f"rIdAuditFigure{i}")
+        for el in fp.findall(".//wp:extent",pic_ns)+fp.findall(".//a:xfrm/a:ext",pic_ns):el.set("cx",str(cx));el.set("cy",str(cy))
+        for el in fp.findall(".//wp:docPr",pic_ns):el.set("id",str(100+i));el.set("name",f"Figure {i}");el.set("descr",clean(caption))
+        parts[f"word/media/audit_figure_{i}.png"]=image_bytes
+        E.SubElement(rel,"{"+relns+"}Relationship",Id=f"rIdAuditFigure{i}",Type=R+"/image",Target=f"media/audit_figure_{i}.png")
+        body.append(fp);body.append(paragraph(caption,"caption"))
+    parts[relname]=E.tostring(rel,xml_declaration=True,encoding="UTF-8",standalone=True)
+    # Preserve source-derived page layout, continuous line numbering and footers.
+    body.append(final_sect)
+    parts["word/document.xml"]=E.tostring(doc,xml_declaration=True,encoding="UTF-8",standalone=True)
+    core=E.fromstring(parts["docProps/core.xml"])
+    core_ns={"dc":"http://purl.org/dc/elements/1.1/","cp":"http://schemas.openxmlformats.org/package/2006/metadata/core-properties"}
+    for tag,value in [("dc:creator","José Manuel Villa Vargas; Gabriel Hurtado Avilés"),("dc:title",parsed[0][1]),("cp:lastModifiedBy","Gabriel Hurtado Avilés")]:
+        el=core.find(tag,core_ns)
+        if el is None:
+            prefix,name=tag.split(":");el=E.SubElement(core,"{"+core_ns[prefix]+"}"+name)
+        el.text=value
+    parts["docProps/core.xml"]=E.tostring(core,xml_declaration=True,encoding="UTF-8",standalone=True)
+    modified={"word/document.xml","docProps/core.xml",relname}
+    for name in list(parts):
+        if name.startswith("word/footer") and name.endswith(".xml"):
+            footer=E.fromstring(parts[name]); changed=False
+            for text_node in footer.findall(".//"+w("t")):
+                if text_node.text and "short author name" in text_node.text:
+                    # Preserve native PAGE fields; leave optional preprint/byline
+                    # text blank consistently. Authorship remains on the title
+                    # page and in core metadata.
+                    text_node.text=""; changed=True
+            if changed:
+                parts[name]=E.tostring(footer,xml_declaration=True,encoding="UTF-8",standalone=True); modified.add(name)
+    OUT.mkdir(parents=True,exist_ok=True)
+    dest=OUT/"Seismic_CG_manuscript.docx"
+    pending=dest.with_suffix(".building.docx")
+    with ZipFile(pending,"w",ZIP_DEFLATED) as z:
+        for name,data in parts.items():z.writestr(name,data)
+    pending.replace(dest)
+    with ZipFile(TEMPLATE) as ref:
+        preserved=[n for n in ref.namelist() if n not in modified]
+        with ZipFile(dest) as final:
+            assert all(ref.read(n)==final.read(n) for n in preserved)
+    # Highlights retain the body pattern and section geometry as a separate file.
+    hdoc=E.fromstring(parts["word/document.xml"]); hb=hdoc.find(w("body"))
+    for c in list(hb):hb.remove(c)
+    hb.append(paragraph("Highlights","title","Title"))
+    for line in (ROOT/"paper/drafts/highlights.txt").read_text(encoding="utf-8").splitlines():
+        if line.strip():
+            if len(line)>85:raise ValueError("Highlight exceeds 85 characters")
+            hb.append(paragraph("• "+line))
+    hb.append(deepcopy(final_sect));hparts=dict(parts);hparts["word/document.xml"]=E.tostring(hdoc,xml_declaration=True,encoding="UTF-8",standalone=True)
+    with ZipFile(OUT/"Seismic_CG_highlights.docx","w",ZIP_DEFLATED) as z:
+        for n,data in hparts.items():z.writestr(n,data)
+    text=SOURCE.read_text(encoding="utf-8");abstract=text.split("## Abstract",1)[1].split("## 1.",1)[0].split("Keywords:")[0]
+    maintext=text.split("## 1.",1)[1].split("## References",1)[0]
+    metadata_path = SOURCE.parent / "author_metadata.json"
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8")) if metadata_path.exists() else {}
+    pending = ["latest generated manuscript/highlights must pass complete visual review",
+               "public code/data availability must match the actual released artifacts",
+               "coauthor review and final submission authorization are not established by building a document"]
+    if not metadata.get("confirmed_for_manuscript"):
+        pending.append("author metadata and declarations unconfirmed")
+    report={"source_sha256":sha(SOURCE.read_bytes()),"template_sha256":sha(raw),"manuscript_sha256":sha(dest.read_bytes()),"author_metadata_sha256":sha(metadata_path.read_bytes()) if metadata_path.exists() else None,"preserved_part_count":len(preserved),"modified_parts":sorted(modified),"abstract_words":len(abstract.split()),"main_words_approximate":len(maintext.split()),"render_status":"not yet rendered; Word-native PDF export required on this Windows host","not_submission_ready":pending,
+            "scientific_scope":"Bounded retained-projection application; independent historical public-state reconstruction accuracy is not claimed.",
+            "editorial_risk":"The journal may judge the executable evidence-contract contribution incremental; software validation alone does not prove an advance over the state of the art."}
+    (OUT/"build_report.json").write_text(json.dumps(report,indent=2),encoding="utf-8")
+    print(json.dumps(report,indent=2))
+
+
+if __name__=="__main__":main()

@@ -1,0 +1,814 @@
+{
+  "schema_version": 1,
+  "acquisition_started_utc": "2026-11-05T19:53:15.316Z",
+  "cohorts": [
+    {
+      "year": 2017,
+      "parameters": {
+        "format": "geojson",
+        "starttime": "2017-01-01T00:00:00.000Z",
+        "endtime": "2017-12-31T23:59:59.999Z",
+        "minlatitude": 14,
+        "maxlatitude": 33,
+        "minlongitude": -118,
+        "maxlongitude": -86,
+        "minmagnitude": 5.5,
+        "eventtype": "earthquake"
+      },
+      "count": {
+        "path": "cohort_2017_count_187de7947ba3b8e6dbdfd6a3e123d1ea5fe66db1ac5c5128b5b0e6444be132ae.geojson",
+        "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/count?format=geojson&starttime=2017-01-01T00%3A00%3A00.000Z&endtime=2017-12-31T23%3A59%3A59.999Z&minlatitude=14&maxlatitude=33&minlongitude=-118&maxlongitude=-86&minmagnitude=5.5&eventtype=earthquake",
+        "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/count?format=geojson&starttime=2017-01-01T00%3A00%3A00.000Z&endtime=2017-12-31T23%3A59%3A59.999Z&minlatitude=14&maxlatitude=33&minlongitude=-118&maxlongitude=-86&minmagnitude=5.5&eventtype=earthquake",
+        "retrieval_started_utc": "2026-11-05T19:53:15.317Z",
+        "retrieved_utc": "2026-11-05T19:53:15.432Z",
+        "http_status": 200,
+        "response_headers": {
+          "Content-Type": "application/json",
+          "Date": "Thu, 05 Nov 2026 19:52:46 GMT",
+          "ETag": null,
+          "Last-Modified": "Thu, 05 Nov 2026 19:52:46 GMT"
+        },
+        "bytes": 31,
+        "sha256": "187de7947ba3b8e6dbdfd6a3e123d1ea5fe66db1ac5c5128b5b0e6444be132ae"
+      },
+      "expected_count": 22,
+      "max_allowed": 20000,
+      "query": {
+        "path": "cohort_2017_01c4e675059f123e9d5185b9fd999863de50fe0876895cfc6d5a4c63e30c8abb.geojson",
+        "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2017-01-01T00%3A00%3A00.000Z&endtime=2017-12-31T23%3A59%3A59.999Z&minlatitude=14&maxlatitude=33&minlongitude=-118&maxlongitude=-86&minmagnitude=5.5&eventtype=earthquake&orderby=time-asc&limit=20000",
+        "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2017-01-01T00%3A00%3A00.000Z&endtime=2017-12-31T23%3A59%3A59.999Z&minlatitude=14&maxlatitude=33&minlongitude=-118&maxlongitude=-86&minmagnitude=5.5&eventtype=earthquake&orderby=time-asc&limit=20000",
+        "retrieval_started_utc": "2026-11-05T19:53:15.546Z",
+        "retrieved_utc": "2026-11-05T19:53:15.651Z",
+        "http_status": 200,
+        "response_headers": {
+          "Content-Type": "application/json; charset=utf-8",
+          "Date": "Thu, 05 Nov 2026 19:52:47 GMT",
+          "ETag": null,
+          "Last-Modified": "Thu, 05 Nov 2026 19:52:47 GMT"
+        },
+        "bytes": 17891,
+        "sha256": "01c4e675059f123e9d5185b9fd999863de50fe0876895cfc6d5a4c63e30c8abb"
+      },
+      "event_ids": [
+        "us20008vll",
+        "us10008tqj",
+        "us10008tuw",
+        "us20009lsg",
+        "us20009mbf",
+        "us20009mbt",
+        "us20009mji",
+        "us2000ahv0",
+        "us2000ahv7",
+        "us2000ailq",
+        "us2000aj51",
+        "us2000akcq",
+        "us2000ap3b",
+        "us2000apx5",
+        "us2000aqji",
+        "us2000ar20",
+        "us2000at0m",
+        "us2000atis",
+        "us2000atjv",
+        "us2000atwe",
+        "us1000arzf",
+        "us2000bhp8"
+      ],
+      "returned_count": 22
+    },
+    {
+      "year": 2022,
+      "parameters": {
+        "format": "geojson",
+        "starttime": "2022-01-01T00:00:00.000Z",
+        "endtime": "2022-12-31T23:59:59.999Z",
+        "minlatitude": 14,
+        "maxlatitude": 33,
+        "minlongitude": -118,
+        "maxlongitude": -86,
+        "minmagnitude": 5.5,
+        "eventtype": "earthquake"
+      },
+      "count": {
+        "path": "cohort_2022_count_bca7d93d87affce1a067849e058d881485b734dfbc931fdba8e0169d1fbbf651.geojson",
+        "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/count?format=geojson&starttime=2022-01-01T00%3A00%3A00.000Z&endtime=2022-12-31T23%3A59%3A59.999Z&minlatitude=14&maxlatitude=33&minlongitude=-118&maxlongitude=-86&minmagnitude=5.5&eventtype=earthquake",
+        "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/count?format=geojson&starttime=2022-01-01T00%3A00%3A00.000Z&endtime=2022-12-31T23%3A59%3A59.999Z&minlatitude=14&maxlatitude=33&minlongitude=-118&maxlongitude=-86&minmagnitude=5.5&eventtype=earthquake",
+        "retrieval_started_utc": "2026-11-05T19:53:15.434Z",
+        "retrieved_utc": "2026-11-05T19:53:15.544Z",
+        "http_status": 200,
+        "response_headers": {
+          "Content-Type": "application/json",
+          "Date": "Thu, 05 Nov 2026 19:52:46 GMT",
+          "ETag": null,
+          "Last-Modified": "Thu, 05 Nov 2026 19:52:46 GMT"
+        },
+        "bytes": 31,
+        "sha256": "bca7d93d87affce1a067849e058d881485b734dfbc931fdba8e0169d1fbbf651"
+      },
+      "expected_count": 14,
+      "max_allowed": 20000,
+      "query": {
+        "path": "cohort_2022_8e5ba42b4802e72b4b3c30824ccdeb2e5293dc57b78a96dffef4446c74dc6007.geojson",
+        "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2022-01-01T00%3A00%3A00.000Z&endtime=2022-12-31T23%3A59%3A59.999Z&minlatitude=14&maxlatitude=33&minlongitude=-118&maxlongitude=-86&minmagnitude=5.5&eventtype=earthquake&orderby=time-asc&limit=20000",
+        "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2022-01-01T00%3A00%3A00.000Z&endtime=2022-12-31T23%3A59%3A59.999Z&minlatitude=14&maxlatitude=33&minlongitude=-118&maxlongitude=-86&minmagnitude=5.5&eventtype=earthquake&orderby=time-asc&limit=20000",
+        "retrieval_started_utc": "2026-11-05T19:53:38.274Z",
+        "retrieved_utc": "2026-11-05T19:53:38.634Z",
+        "http_status": 200,
+        "response_headers": {
+          "Content-Type": "application/json; charset=utf-8",
+          "Date": "Thu, 05 Nov 2026 19:53:38 GMT",
+          "ETag": null,
+          "Last-Modified": "Thu, 05 Nov 2026 19:53:38 GMT"
+        },
+        "bytes": 12261,
+        "sha256": "8e5ba42b4802e72b4b3c30824ccdeb2e5293dc57b78a96dffef4446c74dc6007"
+      },
+      "event_ids": [
+        "us7000gl8w",
+        "us6000h1qa",
+        "us6000h2h0",
+        "us7000gy5q",
+        "us7000hcir",
+        "us7000i9bw",
+        "us7000i9hm",
+        "us7000ia36",
+        "us6000iq0y",
+        "us6000iq9e",
+        "us7000imgl",
+        "us7000ip7p",
+        "us7000irjd",
+        "us6000j8lp"
+      ],
+      "returned_count": 14
+    }
+  ],
+  "events": [
+    {
+      "path": "events/us20008vll_c4d9c8d7794815dcc05e33da15bce787d4504215c6e7ac3a7d58d40fd480f9e6.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us20008vll&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us20008vll&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:15.661Z",
+      "retrieved_utc": "2026-11-05T19:53:16.286Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:16 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:16 GMT"
+      },
+      "bytes": 300394,
+      "sha256": "c4d9c8d7794815dcc05e33da15bce787d4504215c6e7ac3a7d58d40fd480f9e6",
+      "query_event_id": "us20008vll",
+      "cohort_year": 2017
+    },
+    {
+      "path": "events/us10008tqj_5326d48331f4f0441972f4d77391ef9f4d90a26c22a1d55ebb504266edcaf6f6.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us10008tqj&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us10008tqj&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:16.287Z",
+      "retrieved_utc": "2026-11-05T19:53:16.993Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:17 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:16 GMT"
+      },
+      "bytes": 176844,
+      "sha256": "5326d48331f4f0441972f4d77391ef9f4d90a26c22a1d55ebb504266edcaf6f6",
+      "query_event_id": "us10008tqj",
+      "cohort_year": 2017
+    },
+    {
+      "path": "events/us10008tuw_3be58806233e08d9d478c6ebde488e131f24cc94b9eb30f35a0ddf1808f06fcf.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us10008tuw&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us10008tuw&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:16.994Z",
+      "retrieved_utc": "2026-11-05T19:53:17.684Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:17 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:17 GMT"
+      },
+      "bytes": 492240,
+      "sha256": "3be58806233e08d9d478c6ebde488e131f24cc94b9eb30f35a0ddf1808f06fcf",
+      "query_event_id": "us10008tuw",
+      "cohort_year": 2017
+    },
+    {
+      "path": "events/us20009lsg_27256cc27c10c777c7864cfeb918e1a5d79f7d3b1c4cd6fc71bd5a7d677f7d93.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us20009lsg&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us20009lsg&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:17.686Z",
+      "retrieved_utc": "2026-11-05T19:53:18.480Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:18 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:18 GMT"
+      },
+      "bytes": 179001,
+      "sha256": "27256cc27c10c777c7864cfeb918e1a5d79f7d3b1c4cd6fc71bd5a7d677f7d93",
+      "query_event_id": "us20009lsg",
+      "cohort_year": 2017
+    },
+    {
+      "path": "events/us20009mbf_6a8ffc7810340b2b6a3dbd668ea71e39f85869ac8c03ac64ebc59153efd45733.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us20009mbf&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us20009mbf&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:18.482Z",
+      "retrieved_utc": "2026-11-05T19:53:19.189Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:19 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:19 GMT"
+      },
+      "bytes": 136370,
+      "sha256": "6a8ffc7810340b2b6a3dbd668ea71e39f85869ac8c03ac64ebc59153efd45733",
+      "query_event_id": "us20009mbf",
+      "cohort_year": 2017
+    },
+    {
+      "path": "events/us20009mbt_46d92bb41651198fc13cd599504036a45a63069237c390ca61c4d65722ac55f2.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us20009mbt&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us20009mbt&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:19.190Z",
+      "retrieved_utc": "2026-11-05T19:53:20.636Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:20 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:19 GMT"
+      },
+      "bytes": 1350060,
+      "sha256": "46d92bb41651198fc13cd599504036a45a63069237c390ca61c4d65722ac55f2",
+      "query_event_id": "us20009mbt",
+      "cohort_year": 2017
+    },
+    {
+      "path": "events/us20009mji_48d980af8cbe995a4d34c2d001ab7af486ed0265ea081c6995ff851b895e0d6b.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us20009mji&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us20009mji&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:20.638Z",
+      "retrieved_utc": "2026-11-05T19:53:20.976Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:21 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:21 GMT"
+      },
+      "bytes": 202210,
+      "sha256": "48d980af8cbe995a4d34c2d001ab7af486ed0265ea081c6995ff851b895e0d6b",
+      "query_event_id": "us20009mji",
+      "cohort_year": 2017
+    },
+    {
+      "path": "events/us2000ahv0_f743036b6ca652ae69ec17ece802127b37d8923072ca6028896945b68a91ddd0.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000ahv0&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000ahv0&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:20.977Z",
+      "retrieved_utc": "2026-11-05T19:53:23.157Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:22 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:21 GMT"
+      },
+      "bytes": 5537065,
+      "sha256": "f743036b6ca652ae69ec17ece802127b37d8923072ca6028896945b68a91ddd0",
+      "query_event_id": "us2000ahv0",
+      "cohort_year": 2017
+    },
+    {
+      "path": "events/us2000ahv7_e7fd6d83445035d94d70611cad912330bffacbdf064cec63c76688660357c19b.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000ahv7&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000ahv7&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:23.161Z",
+      "retrieved_utc": "2026-11-05T19:53:23.628Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:23 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:23 GMT"
+      },
+      "bytes": 278581,
+      "sha256": "e7fd6d83445035d94d70611cad912330bffacbdf064cec63c76688660357c19b",
+      "query_event_id": "us2000ahv7",
+      "cohort_year": 2017
+    },
+    {
+      "path": "events/us2000ailq_5e17dc66183be4ba614ca56cc1ce70b911bcbd31b0699672589b9dd009466f21.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000ailq&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000ailq&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:23.629Z",
+      "retrieved_utc": "2026-11-05T19:53:24.326Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:24 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:24 GMT"
+      },
+      "bytes": 123355,
+      "sha256": "5e17dc66183be4ba614ca56cc1ce70b911bcbd31b0699672589b9dd009466f21",
+      "query_event_id": "us2000ailq",
+      "cohort_year": 2017
+    },
+    {
+      "path": "events/us2000aj51_3768993ebd496a2472a8c8c359d11ed05139b7e26a2a48290ee83f6c8b819611.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000aj51&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000aj51&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:24.327Z",
+      "retrieved_utc": "2026-11-05T19:53:24.774Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:24 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:24 GMT"
+      },
+      "bytes": 191557,
+      "sha256": "3768993ebd496a2472a8c8c359d11ed05139b7e26a2a48290ee83f6c8b819611",
+      "query_event_id": "us2000aj51",
+      "cohort_year": 2017
+    },
+    {
+      "path": "events/us2000akcq_32c6ed85e60b189498536b380d6d36cb2be6938969b0369c626655df09ec0766.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000akcq&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000akcq&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:24.775Z",
+      "retrieved_utc": "2026-11-05T19:53:25.472Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:25 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:25 GMT"
+      },
+      "bytes": 160385,
+      "sha256": "32c6ed85e60b189498536b380d6d36cb2be6938969b0369c626655df09ec0766",
+      "query_event_id": "us2000akcq",
+      "cohort_year": 2017
+    },
+    {
+      "path": "events/us2000ap3b_079f149050ecee402c5aa187dc11d0c8b352c36a0a9fbe5870d9988787cf81f9.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000ap3b&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000ap3b&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:25.473Z",
+      "retrieved_utc": "2026-11-05T19:53:25.735Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:25 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:25 GMT"
+      },
+      "bytes": 91237,
+      "sha256": "079f149050ecee402c5aa187dc11d0c8b352c36a0a9fbe5870d9988787cf81f9",
+      "query_event_id": "us2000ap3b",
+      "cohort_year": 2017
+    },
+    {
+      "path": "events/us2000apx5_e0df3783f8e284f5ad4127062360d8cdd65a417dd6017ba4a9720a01128c4103.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000apx5&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000apx5&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:25.736Z",
+      "retrieved_utc": "2026-11-05T19:53:26.046Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:26 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:26 GMT"
+      },
+      "bytes": 181262,
+      "sha256": "e0df3783f8e284f5ad4127062360d8cdd65a417dd6017ba4a9720a01128c4103",
+      "query_event_id": "us2000apx5",
+      "cohort_year": 2017
+    },
+    {
+      "path": "events/us2000aqji_69a4622e39aaf684f7f3ae6a220783eda45c855bfbf0a070c78d77b563fa889c.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000aqji&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000aqji&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:26.048Z",
+      "retrieved_utc": "2026-11-05T19:53:26.374Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:26 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:26 GMT"
+      },
+      "bytes": 147351,
+      "sha256": "69a4622e39aaf684f7f3ae6a220783eda45c855bfbf0a070c78d77b563fa889c",
+      "query_event_id": "us2000aqji",
+      "cohort_year": 2017
+    },
+    {
+      "path": "events/us2000ar20_c6f80a91a5643e3754c468b6e79bc84e69e9b4fbd76cb55ee138c03e85a3ba4d.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000ar20&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000ar20&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:26.375Z",
+      "retrieved_utc": "2026-11-05T19:53:33.330Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:32 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:29 GMT"
+      },
+      "bytes": 10724457,
+      "sha256": "c6f80a91a5643e3754c468b6e79bc84e69e9b4fbd76cb55ee138c03e85a3ba4d",
+      "query_event_id": "us2000ar20",
+      "cohort_year": 2017
+    },
+    {
+      "path": "events/us2000at0m_a56743c755775b7cb7adcff1125cc604ca7908d889a9ed37c63df359f6c40407.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000at0m&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000at0m&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:33.336Z",
+      "retrieved_utc": "2026-11-05T19:53:34.167Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:34 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:33 GMT"
+      },
+      "bytes": 379200,
+      "sha256": "a56743c755775b7cb7adcff1125cc604ca7908d889a9ed37c63df359f6c40407",
+      "query_event_id": "us2000at0m",
+      "cohort_year": 2017
+    },
+    {
+      "path": "events/us2000atis_9f467bc40c74a5c76671e2c1bc34a4949fdf7bf9ae2487cb6d01dae29c329600.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000atis&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000atis&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:34.168Z",
+      "retrieved_utc": "2026-11-05T19:53:35.014Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:34 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:34 GMT"
+      },
+      "bytes": 301715,
+      "sha256": "9f467bc40c74a5c76671e2c1bc34a4949fdf7bf9ae2487cb6d01dae29c329600",
+      "query_event_id": "us2000atis",
+      "cohort_year": 2017
+    },
+    {
+      "path": "events/us2000atjv_1eefe5eaa5f6de80b4d769a12fff1241a980c6ec9d57d4f8fbb8139565d08a3e.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000atjv&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000atjv&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:35.015Z",
+      "retrieved_utc": "2026-11-05T19:53:36.326Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:36 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:35 GMT"
+      },
+      "bytes": 972046,
+      "sha256": "1eefe5eaa5f6de80b4d769a12fff1241a980c6ec9d57d4f8fbb8139565d08a3e",
+      "query_event_id": "us2000atjv",
+      "cohort_year": 2017
+    },
+    {
+      "path": "events/us2000atwe_38f3fb04b63dcec00da7ca70bcc351ef3f2ab0b9bc31a300758f1d96c6f4da4b.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000atwe&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000atwe&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:36.328Z",
+      "retrieved_utc": "2026-11-05T19:53:36.649Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:36 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:36 GMT"
+      },
+      "bytes": 221185,
+      "sha256": "38f3fb04b63dcec00da7ca70bcc351ef3f2ab0b9bc31a300758f1d96c6f4da4b",
+      "query_event_id": "us2000atwe",
+      "cohort_year": 2017
+    },
+    {
+      "path": "events/us1000arzf_df973d7b24e75e596ab078c5e50fb1b58b0b3443d193df43ff75590d70b2a076.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us1000arzf&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us1000arzf&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:36.651Z",
+      "retrieved_utc": "2026-11-05T19:53:37.518Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:37 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:37 GMT"
+      },
+      "bytes": 379638,
+      "sha256": "df973d7b24e75e596ab078c5e50fb1b58b0b3443d193df43ff75590d70b2a076",
+      "query_event_id": "us1000arzf",
+      "cohort_year": 2017
+    },
+    {
+      "path": "events/us2000bhp8_4b4fcefae2dfc1f51c43d04925d7725d372e22e4fb1f02a1246ef5170ad38893.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000bhp8&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us2000bhp8&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:37.520Z",
+      "retrieved_utc": "2026-11-05T19:53:38.272Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:38 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:38 GMT"
+      },
+      "bytes": 175593,
+      "sha256": "4b4fcefae2dfc1f51c43d04925d7725d372e22e4fb1f02a1246ef5170ad38893",
+      "query_event_id": "us2000bhp8",
+      "cohort_year": 2017
+    },
+    {
+      "path": "events/us7000gl8w_8cfdfffa0a9328840f6689c93f8cc4bed0f14dcf3ce194c05fbe7a7c886f5976.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us7000gl8w&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us7000gl8w&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:38.645Z",
+      "retrieved_utc": "2026-11-05T19:53:39.895Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:39 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:39 GMT"
+      },
+      "bytes": 1327400,
+      "sha256": "8cfdfffa0a9328840f6689c93f8cc4bed0f14dcf3ce194c05fbe7a7c886f5976",
+      "query_event_id": "us7000gl8w",
+      "cohort_year": 2022
+    },
+    {
+      "path": "events/us6000h1qa_b5b059b8ade5ec71690ab79371c2fcaebf662a58f33c67380900621028f816d8.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us6000h1qa&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us6000h1qa&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:39.897Z",
+      "retrieved_utc": "2026-11-05T19:53:41.035Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:40 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:40 GMT"
+      },
+      "bytes": 684602,
+      "sha256": "b5b059b8ade5ec71690ab79371c2fcaebf662a58f33c67380900621028f816d8",
+      "query_event_id": "us6000h1qa",
+      "cohort_year": 2022
+    },
+    {
+      "path": "events/us6000h2h0_d69826f7d3db4071a41ab77790f87b91374b43c9ca77004efeba0e2bdad2b503.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us6000h2h0&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us6000h2h0&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:41.037Z",
+      "retrieved_utc": "2026-11-05T19:53:41.916Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:41 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:41 GMT"
+      },
+      "bytes": 401115,
+      "sha256": "d69826f7d3db4071a41ab77790f87b91374b43c9ca77004efeba0e2bdad2b503",
+      "query_event_id": "us6000h2h0",
+      "cohort_year": 2022
+    },
+    {
+      "path": "events/us7000gy5q_329e6d8942a5f765ad2ce93186847422d48ff1101b7cd5dc965e8112b7e428c4.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us7000gy5q&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us7000gy5q&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:41.917Z",
+      "retrieved_utc": "2026-11-05T19:53:42.244Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:42 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:42 GMT"
+      },
+      "bytes": 221687,
+      "sha256": "329e6d8942a5f765ad2ce93186847422d48ff1101b7cd5dc965e8112b7e428c4",
+      "query_event_id": "us7000gy5q",
+      "cohort_year": 2022
+    },
+    {
+      "path": "events/us7000hcir_64a15326602635a0e29f3ff790989464b977cf7aab9b4fe701d9ec8c1d9a89f4.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us7000hcir&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us7000hcir&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:42.246Z",
+      "retrieved_utc": "2026-11-05T19:53:42.946Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:42 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:42 GMT"
+      },
+      "bytes": 433115,
+      "sha256": "64a15326602635a0e29f3ff790989464b977cf7aab9b4fe701d9ec8c1d9a89f4",
+      "query_event_id": "us7000hcir",
+      "cohort_year": 2022
+    },
+    {
+      "path": "events/us7000i9bw_b3410d04e6f9fc416ad7699f717e5bc90fd00a94767456b7f6cf72d55b956f85.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us7000i9bw&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us7000i9bw&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:42.948Z",
+      "retrieved_utc": "2026-11-05T19:53:46.606Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:43 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:43 GMT"
+      },
+      "bytes": 2949135,
+      "sha256": "b3410d04e6f9fc416ad7699f717e5bc90fd00a94767456b7f6cf72d55b956f85",
+      "query_event_id": "us7000i9bw",
+      "cohort_year": 2022
+    },
+    {
+      "path": "events/us7000i9hm_1afe4464a2efa458077f7474a2c5b4b3d0916383be6d561220c03bdef421b3db.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us7000i9hm&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us7000i9hm&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:46.609Z",
+      "retrieved_utc": "2026-11-05T19:53:47.702Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:47 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:47 GMT"
+      },
+      "bytes": 658496,
+      "sha256": "1afe4464a2efa458077f7474a2c5b4b3d0916383be6d561220c03bdef421b3db",
+      "query_event_id": "us7000i9hm",
+      "cohort_year": 2022
+    },
+    {
+      "path": "events/us7000ia36_9c0b19d33f1b1d157e5f60dddf4cf5812f7d6afa0f26dfa086fa668b2c9e4649.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us7000ia36&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us7000ia36&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:47.704Z",
+      "retrieved_utc": "2026-11-05T19:53:49.429Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:49 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:48 GMT"
+      },
+      "bytes": 1574643,
+      "sha256": "9c0b19d33f1b1d157e5f60dddf4cf5812f7d6afa0f26dfa086fa668b2c9e4649",
+      "query_event_id": "us7000ia36",
+      "cohort_year": 2022
+    },
+    {
+      "path": "events/us6000iq0y_997ea5d1971d91213d5c89337e32f31bb31d2d660050585b80ad570ea22fed5e.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us6000iq0y&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us6000iq0y&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:49.431Z",
+      "retrieved_utc": "2026-11-05T19:53:50.336Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:50 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:50 GMT"
+      },
+      "bytes": 261202,
+      "sha256": "997ea5d1971d91213d5c89337e32f31bb31d2d660050585b80ad570ea22fed5e",
+      "query_event_id": "us6000iq0y",
+      "cohort_year": 2022
+    },
+    {
+      "path": "events/us6000iq9e_d68aa047ce8b5dde3e2e59a2b01681f8ea89b8aba40f6ffd67b0f7ffe181573a.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us6000iq9e&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us6000iq9e&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:50.338Z",
+      "retrieved_utc": "2026-11-05T19:53:50.801Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:50 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:50 GMT"
+      },
+      "bytes": 230329,
+      "sha256": "d68aa047ce8b5dde3e2e59a2b01681f8ea89b8aba40f6ffd67b0f7ffe181573a",
+      "query_event_id": "us6000iq9e",
+      "cohort_year": 2022
+    },
+    {
+      "path": "events/us7000imgl_aa8000881ee4c1de073f1a2848e6250db0f5fa3cc5002df46d612519b42234d8.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us7000imgl&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us7000imgl&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:50.803Z",
+      "retrieved_utc": "2026-11-05T19:53:51.536Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:51 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:51 GMT"
+      },
+      "bytes": 799741,
+      "sha256": "aa8000881ee4c1de073f1a2848e6250db0f5fa3cc5002df46d612519b42234d8",
+      "query_event_id": "us7000imgl",
+      "cohort_year": 2022
+    },
+    {
+      "path": "events/us7000ip7p_202bc1e0035ed2d17a61d223fbb4f2ac0765fab3155cd06530a191bc08f0f787.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us7000ip7p&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us7000ip7p&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:51.538Z",
+      "retrieved_utc": "2026-11-05T19:53:52.205Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:52 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:51 GMT"
+      },
+      "bytes": 721857,
+      "sha256": "202bc1e0035ed2d17a61d223fbb4f2ac0765fab3155cd06530a191bc08f0f787",
+      "query_event_id": "us7000ip7p",
+      "cohort_year": 2022
+    },
+    {
+      "path": "events/us7000irjd_77dce7302d75c40025227cad9b2cc6460779ccdb2eaf02692eddb2d5c20d91b4.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us7000irjd&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us7000irjd&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:52.207Z",
+      "retrieved_utc": "2026-11-05T19:53:53.504Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:53 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:52 GMT"
+      },
+      "bytes": 1794635,
+      "sha256": "77dce7302d75c40025227cad9b2cc6460779ccdb2eaf02692eddb2d5c20d91b4",
+      "query_event_id": "us7000irjd",
+      "cohort_year": 2022
+    },
+    {
+      "path": "events/us6000j8lp_154692cdb4b005c4ede564fbc4ad4934deef11049ecd14680a7825119b2cbc9f.geojson",
+      "request_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us6000j8lp&includesuperseded=true",
+      "response_url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us6000j8lp&includesuperseded=true",
+      "retrieval_started_utc": "2026-11-05T19:53:53.507Z",
+      "retrieved_utc": "2026-11-05T19:53:54.606Z",
+      "http_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Date": "Thu, 05 Nov 2026 19:53:54 GMT",
+        "ETag": null,
+        "Last-Modified": "Thu, 05 Nov 2026 19:53:54 GMT"
+      },
+      "bytes": 851684,
+      "sha256": "154692cdb4b005c4ede564fbc4ad4934deef11049ecd14680a7825119b2cbc9f",
+      "query_event_id": "us6000j8lp",
+      "cohort_year": 2022
+    }
+  ],
+  "documents": {
+    "query_api": "https://earthquake.usgs.gov/fdsnws/event/1/",
+    "product_versions": "https://earthquake.usgs.gov/data/comcat/products.php",
+    "geojson_detail": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson_detail.php",
+    "unm_contributor": "https://earthquake.usgs.gov/data/comcat/contributor/unm/"
+  },
+  "limitations": [
+    "Current-cohort selection: the query uses current preferred time, location and magnitude.",
+    "The rectangle includes offshore areas and parts of neighbouring countries; it is not a country assignment.",
+    "Only retained products observed at retrieval are audited; archive completeness is unknown.",
+    "Earliest retained active origin is not necessarily the first issued origin.",
+    "No historical preferred-product sequence or complete as-of catalogue is reconstructed.",
+    "Product updateTime, indexTime, event origin time and retrieval time are different clocks.",
+    "Event properties.updated can change when a non-origin product changes.",
+    "The most recently retained active US origin is not an independently validated ground truth.",
+    "Magnitude differences are compared only within an unchanged magnitude type; no scale conversion is performed.",
+    "Public origin, internal-origin and phase-data products remain separate.",
+    "No earthquake prediction, observed damage or population-at-risk estimate is produced."
+  ],
+  "acquisition_finished_utc": "2026-11-05T19:53:54.609Z"
+}
