@@ -12,16 +12,27 @@ La carpeta y el repo local están creados. Verifica Git y el despliegue real: Ga
 autorizó un commit inicial y un push con las excepciones concretas de enlaces de
 MEMORIA_COMPARTIDA.md; esa autorización puede haberse consumido. Hay sistema
 bilingüe publicado en GitHub Pages y un piloto de revisiones. La revisión local
-actual del paper tiene 23 páginas, cinco figuras/cuatro tablas y documenta los
+actual del paper tiene 25 páginas, seis figuras integradas/cuatro tablas y documenta los
 tres catálogos y dos proveedores. Todas sus páginas se inspeccionaron tras el
 último render. Temas verde/azul/guinda y modo sistema/claro/oscuro, filtros
-removibles y mapa expandido están terminados LOCALMENTE. La ampliación del 6 nov con
+removibles y mapa expandido ya se publicaron con autorización específica:
+commit humano 53dba7b569bbeaa5d8d07edcb2bd8367e145bc9e, workflow 42269837342
+success; 26 assets idénticos y tres exclusiones HTTP404. Edge público comprobado.
+Esa tercera autorización de commit/push/despliegue y excepciones ya se consumió.
+La revisión NUEVA SSN/UNAM vía USGS está terminada sólo LOCAL: 9,858 registros,
+URL v3/JSON3 compatibles con vistas v1/v2, 32 grupos Node y 41 Python pasan.
+Paper presenta primero el sistema y sus capturas, sin cambiar resultados.
+Para publicar estos 14 archivos falta autorización nueva del plan privado
+outputs/publication/ssn_inline_update_plan.md, con cuatro HTTP403 y muestra 339/36,872
+para ESTE push. No usar las autorizaciones consumidas.
+La ampliación anterior del 6 nov con
 tres catálogos, dos proveedores y tres bases se publicó en el commit humano
 7009d7de8c4addcf71dbe968deab18ea935c0c8e, workflow 42252874583 success;
 25 archivos y mapa público comprobados. Las autorizaciones se consumieron;
-no permiten otro commit/push/despliegue. Para publicar la nueva presentación,
-consultar outputs/publication/presentation_update_plan.md y obtener autorización
-propia, con los cuatro HTTP403 y muestra 339/36,872 de ESTE push. outputs/paper/
+no permiten otro commit/push/despliegue. Plan y recibo de la nueva presentación:
+outputs/publication/presentation_update_plan.md y presentation_update_execution.json;
+los cuatro HTTP403 y muestra 339/36,872 se aceptaron sólo para ese push.
+No repetir acciones ni excepciones. outputs/paper/
 contiene sólo Word final y PDF; auxiliares archivados fuera. Mantén la PC encendida:
 la última instrucción de Gabriel revocó el apagado. No reconstruir como verdad un catálogo histórico
 desde versiones retenidas. La validación SQL comprueba proyecciones retenidas;

@@ -16,13 +16,26 @@ workflow 42252874583 success; 25 assets coinciden. No repetir autorizaciones con
 outputs/paper/ sólo conserva Word final y PDF; auxiliares en outputs/archive/.
 La última instrucción es mantener la PC encendida; no programar apagado.
 
-Revisión posterior terminada sólo LOCAL: tres paletas y modo sistema/claro/oscuro,
+Revisión posterior PUBLICADA: tres paletas y modo sistema/claro/oscuro,
 filtros removibles, foco coordinado y mapa expandido. Paper actualizado con
-USGS/NRCan, cuatro tablas y cinco figuras; Word/PDF de 23 páginas revisadas una a una.
-41 pruebas Python y 27 checks Node pasan. El remoto sigue en 7009 hasta nueva
-autorización específica; las dos anteriores ya se consumieron. Plan privado
+USGS/NRCan; su paper de 23 páginas fue sustituido por la revisión local indicada abajo.
+41 pruebas Python y 27 checks Node pasan. Remoto en 53dba7b569bbeaa5d8d07edcb2bd8367e145bc9e,
+workflow 42269837342 success; 26 assets coinciden y tres exclusiones HTTP404, Edge
+público revisado. La tercera autorización específica y las anteriores ya se
+consumieron; no repetir commit/push/despliegue. Plan privado
 outputs/publication/presentation_update_plan.md y gate nuevo de 540 destinos,
-536 verificados/cuatro HTTP403, muestra 339/36,872. No inferir despliegue del candidato.
+536 verificados/cuatro HTTP403, muestra 339/36,872 aceptados para ese push únicamente.
+Recibo: outputs/publication/presentation_update_execution.json. Continuidad posterior
+sólo local; un clon conserva la versión de continuidad anterior al resultado observado.
+
+Revisión NUEVA sólo LOCAL: acceso SSN/UNAM vía USGS, 9,858 registros de 1990–2017,
+chip y URL v3/JSON3 con soporte v1/v2. Tres catálogos y dos distribuidores intactos.
+Paper centrado en el sistema, 25 páginas/cuatro tablas/seis figuras integradas,
+revisadas individualmente; 41 Python y 32 grupos Node pasan, 131 etiquetas/76 IDs.
+Falta autorización del plan outputs/publication/ssn_inline_update_plan.md para
+UN nuevo commit de 14 archivos, push y despliegue con las excepciones de ESTE push
+(cuatro HTTP403 y muestra 339/36,872). El sitio remoto sigue en 53dba7b hasta esa acción.
+Conservar fuente, plantilla, capturas y figuras privadas: un clon no las contiene.
 
 Ahora también existen código, crudos, figuras y un manuscrito revisable locales.
 La fuente del paper, figuras, plantilla y otros archivos ignorados no viajan con Git.

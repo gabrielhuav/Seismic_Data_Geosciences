@@ -22,6 +22,8 @@ SUPPORT = ROOT / "outputs/paper-support"
 W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 R = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
 NS = {"w": W, "r": R}
+FIGURE_ANCHOR = re.compile(r"<!--\s*figure:\s*([1-9]\d*)\s*-->")
+FIGURE_MARKER = re.compile(r"<!--\s*figure\b", re.IGNORECASE)
 def w(n): return "{"+W+"}"+n
 def node(n, **attrs):
     el=E.Element(w(n))
@@ -40,7 +42,12 @@ def blocks(text):
     while i<len(lines):
         s=lines[i].strip()
         if not s: i+=1; continue
-        if s.startswith("#"):
+        anchor=FIGURE_ANCHOR.fullmatch(s)
+        if anchor:
+            yield ("figure",int(anchor.group(1))); i+=1
+        elif FIGURE_MARKER.search(s):
+            raise ValueError("Figure anchors must be standalone <!-- figure:N --> lines")
+        elif s.startswith("#"):
             level=len(s)-len(s.lstrip("#")); yield ("h"+str(level),s.lstrip("# ")); i+=1
         elif s.startswith("|"):
             rows=[]
@@ -52,11 +59,49 @@ def blocks(text):
         else:
             para=[]
             while i<len(lines) and lines[i].strip() and not lines[i].startswith(("#","|")):
+                if FIGURE_MARKER.search(lines[i]): break
                 para.append(lines[i].strip()); i+=1
             yield("p"," ".join(para))
 
 
+def figure_placement_plan(parsed, figure_specs):
+    """Validate the complete caption/anchor contract before changing any package."""
+    content=[]; captions=[]; in_captions=False
+    for kind,text in parsed:
+        if kind=="h2" and text=="Figure captions":
+            if in_captions: raise ValueError("Duplicate Figure captions section")
+            in_captions=True; continue
+        if in_captions:
+            if kind!="p": raise ValueError("Figure captions may contain only caption paragraphs")
+            captions.append(text)
+        else:
+            content.append((kind,text))
+    if not in_captions: raise ValueError("Figure captions section is required")
+    if not figure_specs or len(captions)!=len(figure_specs):
+        raise ValueError("Each ordered and hash-verified figure requires one caption")
+    expected=list(range(1,len(figure_specs)+1))
+    for number,caption in zip(expected,captions):
+        if not caption.startswith(f"Figure {number}."):
+            raise ValueError("Figure captions must follow the declared document order")
+    anchors=[text for kind,text in content if kind=="figure"]
+    if len(anchors)!=len(set(anchors)): raise ValueError("Duplicate figure anchor")
+    if set(anchors)-set(expected): raise ValueError("Figure anchor outside declared figure range")
+    if set(expected)-set(anchors): raise ValueError("Missing figure anchor")
+    if anchors!=expected: raise ValueError("Figure anchors must follow the declared document order")
+    return content,captions
+
+
+def without_figure_anchors(text):
+    return "\n".join(line for line in text.splitlines() if not FIGURE_ANCHOR.fullmatch(line.strip()))
+
+
 def main():
+    source_bytes=SOURCE.read_bytes()
+    source_text=source_bytes.decode("utf-8")
+    parsed=list(blocks(source_text))
+    figure_order_path=ROOT/"paper/figures/manuscript_figures.json"
+    figure_specs=json.loads(figure_order_path.read_text(encoding="utf-8"))["ordered_figures"]
+    content,captions=figure_placement_plan(parsed,figure_specs)
     raw=TEMPLATE.read_bytes()
     expected=json.loads((TEMPLATE.parent/"provenance.json").read_text())["sha256"]
     if sha(raw)!=expected: raise ValueError("Retained template hash changed")
@@ -117,27 +162,9 @@ def main():
                 tc.append(paragraph(cell,"body"));tr.append(tc)
             t.append(tr)
         return t
-    parsed=list(blocks(SOURCE.read_text(encoding="utf-8")))
-    captions=[]; in_captions=False
-    for kind,text in parsed:
-        if kind=="h2" and text=="Figure captions":in_captions=True;continue
-        if in_captions:
-            if kind=="p":captions.append(text)
-            continue
-        if kind=="table":body.append(table(text));body.append(paragraph(""));continue
-        if kind=="h1":body.append(paragraph(text,"title","Title"))
-        elif kind in ["h2","h3"]:body.append(paragraph(text,"heading"))
-        else:body.append(paragraph(text,"abstract" if text.startswith("Earthquake catalog services") else "body"))
     relname="word/_rels/document.xml.rels"; rel=E.fromstring(parts[relname])
     relns="http://schemas.openxmlformats.org/package/2006/relationships"
-    figure_order_path = ROOT / "paper/figures/manuscript_figures.json"
-    if figure_order_path.exists():
-        figure_specs = json.loads(figure_order_path.read_text(encoding="utf-8"))["ordered_figures"]
-    else:
-        figure_specs = [{"path": "paper/figures/" + name} for name in
-                        ["figure_1_depth_location.png", "figure_2_magnitude_pairs.png", "figure_3_product_timeline.png"]]
-    if len(captions) != len(figure_specs):
-        raise ValueError("Each ordered and hash-verified figure requires one caption")
+    figure_nodes={}
     for i,(spec,caption) in enumerate(zip(figure_specs,captions),1):
         image_path = (ROOT / spec["path"]).resolve()
         if not image_path.is_relative_to((ROOT / "paper/figures").resolve()):
@@ -145,13 +172,16 @@ def main():
         image_bytes=image_path.read_bytes()
         if spec.get("sha256") and sha(image_bytes) != spec["sha256"]:
             raise ValueError("Figure bytes differ from their generation manifest")
-        if not caption.startswith("Figure " + str(i) + "."):
-            raise ValueError("Figure captions must follow the declared document order")
         px_w,px_h=struct.unpack(">II",image_bytes[16:24]); cx=5943600;cy=round(cx*px_h/px_w)
         fp=deepcopy(figure_pattern)
         pr=fp.find(w("pPr"))
         if pr is None:pr=node("pPr");fp.insert(0,pr)
-        pr.append(node("pageBreakBefore"));pr.append(node("keepNext"))
+        for name in ["pageBreakBefore","keepNext"]:
+            for old in pr.findall(w(name)): pr.remove(old)
+        pr.append(node("keepNext"))
+        for old in fp.findall(".//"+w("br")):
+            if old.get(w("type"))=="page": old.getparent().remove(old)
+        for old in fp.findall(".//"+w("lastRenderedPageBreak")): old.getparent().remove(old)
         for old in fp.findall(".//"+w("t")):old.text=""
         pic_ns={"a":"http://schemas.openxmlformats.org/drawingml/2006/main","wp":"http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"}
         for el in fp.findall(".//a:blip",pic_ns):el.set("{"+R+"}embed",f"rIdAuditFigure{i}")
@@ -159,7 +189,20 @@ def main():
         for el in fp.findall(".//wp:docPr",pic_ns):el.set("id",str(100+i));el.set("name",f"Figure {i}");el.set("descr",clean(caption))
         parts[f"word/media/audit_figure_{i}.png"]=image_bytes
         E.SubElement(rel,"{"+relns+"}Relationship",Id=f"rIdAuditFigure{i}",Type=R+"/image",Target=f"media/audit_figure_{i}.png")
-        body.append(fp);body.append(paragraph(caption,"caption"))
+        figure_nodes[i]=(fp,paragraph(caption,"caption"))
+    figure_placements=[]
+    section_name=None
+    for block_index,(kind,text) in enumerate(content):
+        if kind=="figure":
+            image_paragraph,caption_paragraph=figure_nodes[text]
+            body.append(image_paragraph);body.append(caption_paragraph)
+            figure_placements.append({"figure":text,"anchor":f"<!-- figure:{text} -->","content_block_index":block_index})
+        elif kind=="table":body.append(table(text));body.append(paragraph(""))
+        elif kind=="h1":body.append(paragraph(text,"title","Title"))
+        elif kind in ["h2","h3"]:
+            if kind=="h2": section_name=text
+            body.append(paragraph(text,"heading"))
+        else:body.append(paragraph(text,"abstract" if section_name=="Abstract" and not text.startswith("Keywords:") else "body"))
     parts[relname]=E.tostring(rel,xml_declaration=True,encoding="UTF-8",standalone=True)
     # Preserve source-derived page layout, continuous line numbering and footers.
     body.append(final_sect)
@@ -206,7 +249,7 @@ def main():
     SUPPORT.mkdir(parents=True, exist_ok=True)
     with ZipFile(SUPPORT/"Seismic_CG_highlights.docx","w",ZIP_DEFLATED) as z:
         for n,data in hparts.items():z.writestr(n,data)
-    text=SOURCE.read_text(encoding="utf-8");abstract=text.split("## Abstract",1)[1].split("## 1.",1)[0].split("Keywords:")[0]
+    text=without_figure_anchors(source_text);abstract=text.split("## Abstract",1)[1].split("## 1.",1)[0].split("Keywords:")[0]
     maintext=text.split("## 1.",1)[1].split("## References",1)[0]
     metadata_path = SOURCE.parent / "author_metadata.json"
     metadata = json.loads(metadata_path.read_text(encoding="utf-8")) if metadata_path.exists() else {}
@@ -215,7 +258,7 @@ def main():
                "coauthor review and final submission authorization are not established by building a document"]
     if not metadata.get("confirmed_for_manuscript"):
         pending.append("author metadata and declarations unconfirmed")
-    report={"source_sha256":sha(SOURCE.read_bytes()),"template_sha256":sha(raw),"manuscript_sha256":sha(dest.read_bytes()),"author_metadata_sha256":sha(metadata_path.read_bytes()) if metadata_path.exists() else None,"preserved_part_count":len(preserved),"modified_parts":sorted(modified),"figure_count":len(figure_specs),"figure_specs":figure_specs,"abstract_words":len(abstract.split()),"main_words_approximate":len(maintext.split()),"render_status":"not yet rendered; Word-native PDF export required on this Windows host","not_submission_ready":pending,
+    report={"source_sha256":sha(source_bytes),"template_sha256":sha(raw),"manuscript_sha256":sha(dest.read_bytes()),"author_metadata_sha256":sha(metadata_path.read_bytes()) if metadata_path.exists() else None,"preserved_part_count":len(preserved),"modified_parts":sorted(modified),"figure_count":len(figure_specs),"figure_specs":figure_specs,"figure_placement":"inline","figure_anchor_count":len(figure_placements),"figure_placements":figure_placements,"word_count_excludes_figure_anchors":True,"abstract_words":len(abstract.split()),"main_words_approximate":len(maintext.split()),"render_status":"not yet rendered; Word-native PDF export required on this Windows host","not_submission_ready":pending,
             "scientific_scope":"Bounded retained-projection application; independent historical public-state reconstruction accuracy is not claimed.",
             "editorial_risk":"The journal may judge the executable evidence-contract contribution incremental; software validation alone does not prove an advance over the state of the art."}
     (SUPPORT/"build_report.json").write_text(json.dumps(report,indent=2),encoding="utf-8")

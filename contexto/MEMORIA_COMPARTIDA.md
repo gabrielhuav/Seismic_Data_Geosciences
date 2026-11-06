@@ -5,31 +5,71 @@ Leer AGENTS.md completo. Los resultados de antecedentes no son verificaciones nu
 
 ## Estado actual
 
-- REVISIÓN ACTUAL TERMINADA LOCALMENTE, aún sin tercer commit/push/despliegue.
+- REVISIÓN NUEVA TERMINADA LOCALMENTE, aún sin cuarto commit/push/despliegue.
+  A petición de Gabriel, el sistema ofrece «SSN/UNAM · vía USGS ComCat» como
+  filtro de atribución sobre México, no como tercer distribuidor independiente.
+  OR exacto en locationSource/magSource de unm o us_unm: 9,858 registros de
+  1990–2017; 109 adicionales frente a unm solo. Norteamérica y NRCan tienen cero
+  de esos literales. No se incorpora SQL histórico SSN ni se inventan IDs.
+  Selector visible, chip removible, URL v3/JSON3 y compatibilidad de vistas v1/v2.
+  Edge comprobó selección/recarga, quitar chip=24,994, móvil 390 sin desborde y
+  descargas reales: CSV/JSON con los mismos 9,858 IDs ordenados recalculados.
+  41 Python, 32 grupos Node, 131 etiquetas ES/EN y 76 IDs sin faltantes; datos,
+  registro y seis hashes intactos. Recibos privados en outputs/inline_2026-11-06/.
+- Paper ahora presenta primero el sistema: título «An earthquake catalogue
+  explorer with explicit evidence contracts for retained revisions», métodos
+  de exploración adelantados y demostración como primer resultado. Seis figuras
+  integradas, no un bloque final: captura principal p4, arquitectura p8, ficha p9,
+  gráficos p16/17/19, antes de referencias p23. Controles ampliados proceden de
+  la misma captura, sin combinar estados. Guía vigente y plantilla oficial
+  permiten imágenes en posición; los originales separados siguen conservados.
+  Word/PDF de 25 páginas revisadas individualmente, cuatro tablas, resumen 270
+  y cuerpo aproximado 5,352. Mantiene resultados y límites científicos.
+- Gate nuevo para ESTA propuesta: 542 destinos actuales, 538 verificados y
+  cuatro HTTP403 editoriales pendientes; muestra 339/36,872, no exhaustiva.
+  Evidencia HTTP/conector/Edge fresca, sin excepciones heredadas. El DOI de
+  AZCATL queda como identificador textual; el enlace apunta a la landing primaria
+  verificada HTTP200, conservando el fallo de la ruta DOI en los recibos. Canadá
+  verificado por contenido Edge, sin afirmar HTTP200. Cero fallos locales.
+  Plan: outputs/publication/ssn_inline_update_plan.md. Necesita autorización
+  expresa NUEVA para un commit de 14 archivos, push y despliegue manual, y
+  excepciones/muestreo de ESTE push. Las tres anteriores se consumieron.
+- Versión actualmente PUBLICADA Y VERIFICADA (sin el nuevo acceso SSN): commit humano
+  53dba7b569bbeaa5d8d07edcb2bd8367e145bc9e, push origin/main y workflow manual
+  42269837342 success. Los 26 archivos web coinciden con ese commit; contexto,
+  paper y research-data devuelven404 en Pages. Edge público comprobó temas,
+  persistencia del modo claro, NRCan 6,613 y la selección del paper de 346; mapa
+  expandido/Escape/foco correcto, consola sin errores ni avisos. Captura privada
+  outputs/revision_2026-11-06/captures/published_map_expanded.jpg.
+  Autorización específica de tercer commit/push/despliegue YA CONSUMIDA.
+  Anotaciones posteriores de continuidad sólo LOCALES, sin cuarto commit.
   Sistema ampliado con paletas verde/azul/guinda, modo sistema/claro/oscuro
   persistente, filtros removibles, foco de registros y mapa expandido accesible.
   Edge real comprobó temas, persistencia, cambios ES/EN, fichas NRCan y móvil.
-  Son 26 archivos web candidatos; 41 pruebas Python y 27 checks Node pasan,
+  Son 26 archivos web publicados; 41 pruebas Python y 27 checks Node pasan,
   además de 129 etiquetas y 74 IDs. Datos científicos sin cambios.
   docs/UI_FEATURES.md documenta el contrato; históricos de agua/obras intactos.
-- Paper actualizado con los tres catálogos, dos proveedores, cuatro tablas y cinco
-  figuras: arquitectura reproducible, captura genuina y tres figuras científicas
+- Paper actualizado con los tres catálogos, dos distribuidores, cuatro tablas y seis
+  figuras: arquitectura reproducible, dos capturas genuinas y tres figuras científicas
   conservadas. Muestra intencional de cuatro artículos C&G consultada; no se
   afirma revisión de todos los aceptados ni garantía de aceptación. Captura:
   Norteamérica, 2025, M reportada >=4.5, 346 registros recalculados.
-  Word nativo y PDF final de 23 páginas, todas inspeccionadas individualmente
+  Word nativo y PDF final de 25 páginas, todas inspeccionadas individualmente
   tras la última exportación. Política Elsevier IA de junio de 2026 comprobada;
   asistencia en código/diagramas declarada sin inventar aprobación humana.
-- Gate NUEVO de esta revisión: 540 destinos (201 literales +339 rutas), 536
+- Gate de la presentación anterior ya consumido: 540 destinos (201 literales +339 rutas), 536
   verificados mediante evidencia HTTP/conector/Edge fresca; cuatro HTTP403
-  editoriales pendientes. Muestreo 339/36,872; no certifica 36,533 rutas restantes.
+  editoriales exceptuados expresamente por Gabriel para ESTE push ya ejecutado.
+  Muestreo 339/36,872 autorizado para ese push; no certifica 36,533 rutas restantes.
   Canadá se verificó por contenido visible de Edge, sin afirmar HTTP200.
   Cero fallos locales, privacidad o hashes. Plan concreto:
-  outputs/publication/presentation_update_plan.md. Para este nuevo commit,
-  push y despliegue se requiere autorización expresa nueva, incluidas excepciones.
-  Las dos anteriores se consumieron. Paper, figuras, capturas y evidencia privados.
+  outputs/publication/presentation_update_plan.md; ejecución y recibos en
+  outputs/publication/presentation_update_execution.json. La autorización nueva
+  y las dos anteriores se consumieron. No autorizan repetir commit/push/despliegue.
+  Paper, figuras, capturas y evidencia siguen privados.
 - ÚLTIMA instrucción: mantener la PC ENCENDIDA, sin programar apagado.
-- AMPLIACIÓN PUBLICADA Y VERIFICADA: https://gabrielhuav.github.io/Seismic_Data_Geosciences/
+- Ampliación anterior de catálogos (histórica, ahora sustituida en presentación):
+  https://gabrielhuav.github.io/Seismic_Data_Geosciences/
   Commit humano 7009d7de8c4addcf71dbe968deab18ea935c0c8e; push origin/main
   y workflow manual 42252874583 completados con éxito. Los 25 archivos públicos
   coinciden byte por byte con ese commit; tres rutas de contexto/paper/research-data
@@ -90,17 +130,17 @@ Leer AGENTS.md completo. Los resultados de antecedentes no son verificaciones nu
   sin asistentes ni trailers. Esta actualización de continuidad es LOCAL y no
   se empuja automáticamente como segundo commit.
 - Manuscrito final de trabajo: outputs/paper/Seismic_CG_manuscript.docx y .pdf,
-  23 páginas, todas revisadas visualmente tras la última exportación Word nativa
+  25 páginas, todas revisadas visualmente tras la última exportación Word nativa
   y Poppler. Entrega contiene sólo esos dos archivos. Fuente privada
   paper/drafts/manuscript.md, SHA-256
-  8a10181a7c1686a2f67a42a655a60fc4cf2ec64f25eb022d1859073bdea14010.
-  DOCX SHA-256 9e95b0c42a5e1043d348343e22f2b76b9972b55bb1c51bfa89cf8535fb0901c8;
-  PDF SHA-256 99637193e6b0d26b69d2a7cf224bfe17dc17a39a5774229f939c9eb0d1599a79.
-  Resumen 270 palabras, cuerpo aproximado 5,100. Disponibilidad fija DATOS en 7009,
-  sin inventar DOI; refinamientos UI locales pendientes de publicación autorizada.
+  d11bdbe20f302a217f5cfed6703cbe42d8f85ede2b92f896c9306c4e4d9db29e.
+  DOCX SHA-256 9d31b0672c69864b03fc4a71bf5defd05dd7819951b0991ebcaca62e65a65f93;
+  PDF SHA-256 89e6a59459acd51514afd18a38e8d68e73511000f6a6f91d8f873557c5142535.
+  Resumen 270 palabras, cuerpo aproximado 5,352. Disponibilidad fija DATOS en 7009,
+  sin inventar DOI; SSN/UNAM y nuevo flujo de figuras pendientes de publicación autorizada.
   Pie opcional izquierdo vacío, PAGE y créditos de portada conservados. Plantilla
   original sin modificar y 17 componentes originales preservados por el generador.
-  Versiones anteriores de 15/17/18 páginas son obsoletas; no entregar PDF anterior.
+  Versiones anteriores de 15/17/18/23/26 páginas son obsoletas; no entregar PDF anterior.
 - Metadatos confirmados: José Manuel Villa Vargas primero, sin afiliación,
   ORCID 0009-0009-2401-0661; Gabriel Hurtado Avilés segundo y de correspondencia,
   Escuela Superior de Cómputo (ESCOM), Instituto Politécnico Nacional,
@@ -248,11 +288,11 @@ fuera de muestra. No agregar ML ni modelos geotécnicos sin necesidad científic
 
 ## Siguiente paso
 
-1. Entregar Word/PDF de 23 páginas y solicitar autorización del plan concreto
-   outputs/publication/presentation_update_plan.md para UN nuevo commit humano,
-   push origin/main y despliegue manual, con cuatro HTTP403 y muestreo 339/36,872 para
-   ESTE push. No ejecutarlos sin esa autorización. Después verificar 26 assets
-   publicados y mapa real. Mantener PC encendida; cerrar sólo preview propio.
+1. Entregar Word/PDF de 25 páginas y pedir autorización concreta del plan
+   outputs/publication/ssn_inline_update_plan.md para UN nuevo commit humano,
+   push y despliegue manual con cuatro HTTP403 y muestra 339/36,872 para ESTE push.
+   No ejecutar esas acciones sin autorización nueva. Después verificar 26 assets
+   y acceso SSN en producción. Mantener PC encendida; cerrar sólo preview propio.
 2. Gabriel y José Manuel deben revisar y aprobar el texto antes de un envío
    editorial expresamente autorizado. Revalidar guía/costo cero, depósito y
    declaraciones de disponibilidad en el momento del envío; no convertir el
@@ -261,6 +301,24 @@ fuera de muestra. No agregar ML ni modelos geotécnicos sin necesidad científic
    recupera código y paquete público. Comprobar estado real de Git al retomar.
 
 ## Bitácora
+
+- 2026-11-06, SSN y figuras integradas: acceso SSN/UNAM vía USGS con 9,858
+  registros recalculados; v3/JSON3, chip, legado v1/v2 y 32 grupos Node pasan.
+  CSV/JSON reales concuerdan en todos los IDs ordenados; móvil sin desborde.
+  Paper centrado en el sistema, seis figuras en el texto y 25 páginas revisadas
+  individualmente; 17 partes de plantilla preservadas y resultados intactos.
+  Guía oficial permite figuras integradas. Nuevo gate 542/538/cuatro HTTP403,
+  muestra 339/36,872 sin excepción aplicada. Sin cuarto commit/push/despliegue,
+  pagos, release, envío ni apagado. Autoría y declaración académica IA conservadas.
+
+- 2026-11-06, publicación de presentación: recibida autorización expresa para
+  un tercer commit humano, push y despliegue, con cuatro HTTP403 y muestreo 339/36,872.
+  Ejecutados una sola vez: 53dba7b569bbeaa5d8d07edcb2bd8367e145bc9e y workflow
+  42269837342 success. Autor/committer Gabriel Hurtado; sin firmas ni trailers.
+  Los 26 archivos publicados idénticos al commit y tres rutas excluidas HTTP404.
+  Edge comprobó NRCan 6,613, modos, persistencia y selección de 346 del paper; Escape
+  devuelve foco, sin errores de consola. Word/PDF intactos. PC encendida, sin
+  pagos, release o envío editorial. Continuidad posterior sólo local.
 
 - 2026-11-06, revisión de presentación: temas/modos persistentes, filtros
   removibles, selección coordinada y mapa expandido implementados y probados

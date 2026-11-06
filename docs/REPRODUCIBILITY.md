@@ -121,15 +121,22 @@ The maintained capture uses North America, origin year 2025, reported magnitude
 at least 4.5 and 346 matching records. It is an illustration, not a usability
 experiment, source-accuracy evaluation or reconstruction of past public states.
 
-The interface figure shows magnified controls, active filters and map context
-from that same original capture. Its source crop bounds are recorded without
-altering reported values or source pixels. The generator rejects a changed
-capture hash or incompatible dimensions rather than silently applying old crops.
-`paper/figures/system_figures_manifest.json` records the two new figures;
-`paper/figures/manuscript_figures.json` fixes the five-image document order and
+Each interface figure uses one genuine capture, rather than combining independent
+states into an image. The overview enlarges the source controls and shows the
+corresponding map from that same captured state; both source frames are recorded.
+The overview records the active source, filters and map;
+the second capture records source-specific inspection. The generator verifies
+the capture hash and rejects an unsuitable tall layout. Native capture dimensions
+are retained in its receipt; PNG packaging at 300dpi does not add native detail.
+`paper/figures/system_figures_manifest.json` records the two captures and diagram;
+`paper/figures/manuscript_figures.json` fixes the six-image document order and
 SHA-256 values. The three original scientific figures and their audited data
 are preserved. The DOCX builder requires one correctly numbered caption per
 verified image and preserves 17 unrelated template package parts byte for byte.
+Standalone `<!-- figure:N -->` markers position figures and captions in the text,
+near the corresponding task or result, without a final image appendix or a
+mandatory page break before each figure. The builder rejects missing, repeated
+or out-of-order anchors and excludes them from the word count.
 Captures, figure assets and private manuscript source stay in the authoring
 copy, outside the website and public code checkout.
 

@@ -104,7 +104,7 @@ async function main() {
   for(let n=0;n<100 && !vm.runInContext('state.ready || state.loadError',context);n++)await new Promise(resolve=>setTimeout(resolve,5));
   assert.equal(vm.runInContext('state.loadError',context),null);
   assert.equal(vm.runInContext('state.events.length',context),14041);assert.equal(vm.runInContext('state.catalog.id',context),'usgs-na-2020-2025');
-  assert.equal(new URL(location.href).searchParams.get('v'),'2');checks++;console.log('PASS real-byte default catalog loader');
+  assert.equal(new URL(location.href).searchParams.get('v'),'3');checks++;console.log('PASS real-byte default catalog loader');
   for(const [name,value] of [['yearFrom','2025'],['magMin','4.5']]) {
     const control=elements.get(name);control.value=value;
     for(const callback of control.listeners.input||[])callback();
@@ -168,11 +168,11 @@ async function main() {
   assert.equal(vm.runInContext('state.ready',context),false);assert.equal(elements.get('download').disabled,true);assert.equal(elements.get('retry').hidden,false);
   tamper='';await vm.runInContext("loadCatalog('usgs-mx-historical')",context);
   assert.equal(vm.runInContext('state.events.length',context),24994);assert.equal(elements.get('depthMax').disabled,false);checks++;console.log('PASS integrity failure disables exports and another catalog recovers');
-  vm.runInContext("writeFilters({...V.defaults,search:'Oaxaca',yearFrom:2000,yearTo:2025,magMin:4,magMax:8,magType:'mww',originSource:'us',depthMax:100,missingOnly:true});applyFilters()",context);
+  vm.runInContext("writeFilters({...V.defaults,search:'Oaxaca',yearFrom:2000,yearTo:2025,magMin:4,magMax:8,magType:'mww',originSource:'us',depthMax:100,missingOnly:true,unmOnly:true});applyFilters()",context);
   for(const key of Object.keys(V.defaults))assert(elements.get('activeFilters').innerHTML.includes('data-remove-filter="'+key+'"'),'Missing active filter chip '+key);
   vm.runInContext("removeFilter('search')",context);assert.equal(vm.runInContext('state.applied.search',context),'');
   vm.runInContext("writeFilters(V.catalogDefaults(state.catalog));applyFilters()",context);
-  assert.equal(elements.get('activeFilters').hidden,true);checks++;console.log('PASS all nine active filter controls have removable chips and reset cleanly');
+  assert.equal(elements.get('activeFilters').hidden,true);checks++;console.log('PASS all ten active filter controls have removable chips and reset cleanly');
   const count=vm.runInContext('state.filtered.length',context), selected=vm.runInContext('state.filtered[41].id',context);
   vm.runInContext('showOnMap('+JSON.stringify(selected)+')',context);
   assert.equal(map.highlighted,selected);assert.equal(vm.runInContext('state.page',context),1);assert.equal(vm.runInContext('state.filtered.length',context),count);
@@ -182,6 +182,56 @@ async function main() {
   for(const callback of documentListeners.keydown)callback({key:'Escape',preventDefault(){}});
   assert.equal(vm.runInContext('state.expanded',context),false);assert.equal(elements.get('catalogSelect').inert,undefined);assert.equal(document.activeElement,elements.get('expandMap'));
   checks++;console.log('PASS expanded map closes with Escape and restores outside interaction and focus');
+  const chooseSource=async value=>{
+    elements.get('providerSelect').value=value;
+    await Promise.all((elements.get('providerSelect').listeners.change||[]).map(callback=>callback()));
+  };
+  await vm.runInContext("loadCatalog('usgs-na-2020-2025')",context);
+  assert.equal(elements.get('unmOnly').disabled,true);
+  assert.equal(V.filterEvents(vm.runInContext('state.events',context),{...V.catalogDefaults(catalogs[0]),unmOnly:true}).length,0);
+  await chooseSource('ssn-unam');
+  assert.equal(vm.runInContext('state.catalog.id',context),'usgs-mx-historical');
+  assert.equal(vm.runInContext('state.catalog.provider',context),'usgs');
+  assert.equal(vm.runInContext('state.filtered.length',context),9858);assert.equal(vm.runInContext('state.applied.unmOnly',context),true);
+  assert.equal(elements.get('providerSelect').value,'ssn-unam');assert.equal(elements.get('catalogSelect').children.length,1);
+  assert.equal(elements.get('unmNotice').hidden,false);assert.equal(elements.get('unmOnly').disabled,false);
+  assert(elements.get('activeFilters').innerHTML.includes('data-remove-filter="unmOnly"'));
+  const ssnURL=location.href;
+  const query=JSON.parse(vm.runInContext("JSON.stringify(V.queryDocument({view:currentView(),catalog:state.catalog,manifest:state.manifest,assetHashes:state.hashes,rows:state.filtered,pageURL:location.href}))",context));
+  assert.equal(query.schema,'seismic-local-query/3');assert.equal(query.catalog.provider,'usgs');assert.equal(query.catalog.id,'usgs-mx-historical');
+  const mx=catalogs.find(c=>c.id==='usgs-mx-historical');
+  assert.equal(query.input.events_sha256,mx.sha256);assert.equal(query.input.manifest_sha256,mx.manifest_sha256);
+  assert.equal(query.input.registry_sha256,crypto.createHash('sha256').update(fs.readFileSync('system/dist/data/catalogs.json')).digest('hex'));
+  assert.equal(query.selection.unmOnly,true);assert.equal(query.result.row_count,9858);
+  assert.deepEqual(query.predicate_rules.unmOnly.fields,['locationSource','magSource']);
+  assert.deepEqual(query.predicate_rules.unmOnly.accepted_literal_codes,['unm','us_unm']);assert.equal(query.predicate_rules.unmOnly.operator,'OR');
+  for(const language of ['en','es']) {
+    vm.runInContext('changeLanguage('+JSON.stringify(language)+')',context);
+    assert.equal(elements.get('providerSelect').value,'ssn-unam');assert.equal(vm.runInContext('state.filtered.length',context),9858);
+  }
+  checks++;console.log('PASS visible SSN source loads Mexico, exact 9858-row union and USGS query provenance');
+  for(const callback of elements.get('activeFilters').listeners.click)callback({target:{closest:()=>({dataset:{removeFilter:'unmOnly'}})}});
+  assert.equal(vm.runInContext('state.filtered.length',context),24994);assert.equal(elements.get('providerSelect').value,'usgs');
+  assert.equal(vm.runInContext('state.catalog.id',context),mx.id);assert.equal(elements.get('catalogSelect').children.length,2);
+  assert.equal(vm.runInContext('state.applied.unmOnly',context),false);assert.equal(elements.get('unmNotice').hidden,true);
+  await chooseSource('nrcan');location.href=ssnURL;await vm.runInContext('restoreLocation()',context);
+  assert.equal(vm.runInContext('state.filtered.length',context),9858);assert.equal(elements.get('providerSelect').value,'ssn-unam');
+  location.href='https://example.org/?v=2&catalog=usgs-mx-historical';await vm.runInContext('restoreLocation()',context);
+  assert.equal(vm.runInContext('state.filtered.length',context),24994);assert.equal(vm.runInContext('state.applied.unmOnly',context),false);
+  checks++;console.log('PASS removing SSN chip restores USGS Mexico and v3 restores across providers without changing v2');
+  delayed=mx.events_url;vm.runInContext('state.cache.clear()',context);
+  await Promise.all([chooseSource('ssn-unam'),chooseSource('nrcan')]);
+  assert.equal(vm.runInContext('state.catalog.provider',context),'nrcan');assert.equal(vm.runInContext('state.applied.unmOnly',context),false);
+  assert.equal(elements.get('providerSelect').value,'nrcan');assert.equal(elements.get('unmOnly').disabled,true);
+  assert.equal(vm.runInContext('state.filtered.length',context),6613);
+  delayed='';tamper=mx.events_url;vm.runInContext('state.cache.clear()',context);await chooseSource('ssn-unam');
+  assert.equal(vm.runInContext('state.ready',context),false);assert.equal(elements.get('download').disabled,true);
+  tamper='';await Promise.all(elements.get('retry').listeners.click.map(callback=>callback()));
+  assert.equal(vm.runInContext('state.filtered.length',context),9858);assert.equal(elements.get('providerSelect').value,'ssn-unam');
+  await chooseSource('usgs');assert.equal(vm.runInContext('state.filtered.length',context),24994);
+  await chooseSource('ssn-unam');for(const callback of elements.get('reset').listeners.click)callback();
+  assert.equal(vm.runInContext('state.filtered.length',context),24994);assert.equal(elements.get('providerSelect').value,'usgs');
+  checks++;console.log('PASS SSN load races, integrity failure, retry, ordinary source selection and reset preserve filter semantics');
   console.log(JSON.stringify({passed:checks},null,2));
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

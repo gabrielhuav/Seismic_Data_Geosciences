@@ -50,6 +50,37 @@ identifiable and are not claimed to represent independent physical events.
 Depth values whose units cannot be documented remain raw values outside the
 common kilometre field, rather than being silently converted or labelled.
 
+## SSN/UNAM attribution within USGS ComCat
+
+**SSN/UNAM · via USGS ComCat** is a visible source shortcut to a filtered view
+of the fixed Mexico-region catalogue. Its technical distributor remains USGS
+and its catalogue identifier remains `usgs-mx-historical`; no fourth catalogue,
+third distributor or independent SSN download is introduced. The
+[USGS contributor directory](https://earthquake.usgs.gov/data/comcat/contributor/)
+identifies UNM as Instituto de Geofísica, UNAM. The primary
+[EMSC contributor directory](https://emsc-csem.org/Earthquake_data/contributors.php)
+explicitly associates UNM with Servicio Sismológico Nacional, Instituto de
+Geofísica, UNAM, in Mexico City. This supports the institutional label, not a
+claim that ComCat supplies the complete SSN national catalogue.
+
+The selection is an exact case-sensitive OR over the reported `locationSource`
+and `magSource` fields, accepting only the literal values `unm` and `us_unm`.
+Both variants remain unchanged; no additional meaning is invented for the
+`us_unm` prefix. Of the 24,994 Mexico-region records, 9,530 match the origin
+field, 8,444 match the magnitude field and 8,116 match both, yielding 9,858
+records in the union. Their UTC origin times span
+1990-07-11T10:37:47.750Z to 2017-11-13T11:23:01.560Z. Other filters can narrow
+that selection further. The North America and NRCan packages each have zero
+matches in these two fields; this describes those selected fields and bytes,
+not SSN network activity or national completeness.
+
+The view uses the existing ComCat event identifiers and provenance. It does
+not recover original SSN identifiers or revision history. No historical SSN
+SQL is republished or imported; reuse terms for that separate historical
+resource remain unresolved. Registry, packaged event bytes, reported values,
+coordinates and source manifests are unchanged. The URL and JSON query
+identify the attribution predicate separately from the actual distributor.
+
 ## Map backgrounds
 
 - **Natural Earth local** is the default and works without a tile service.

@@ -9,7 +9,7 @@ const fmt = n => new Intl.NumberFormat(I.language).format(n);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const value = (n, dec = 2) => n === null || n === undefined || n === '' ? t('notReported') : Number(n).toLocaleString(I.language, {maximumFractionDigits: dec});
 const date = s => s ? s.replace('T', ' ').replace(/Z$/, ' UTC') : t('notReported');
-const unm = e => [e.locationSource, e.magSource].some(x => /^(?:unm|us_unm)$/i.test(x));
+const unm = V.isUnmAttributed;
 const controls = Object.keys(V.defaults);
 const catalogLabel = c => c.label?.[I.language] || c.label?.en || c.id;
 const snapshot = () => String(state.manifest?.snapshot_commit || state.catalog?.snapshot || '');
@@ -25,8 +25,8 @@ function choices() {
     revisions: (state.revisions?.events || []).map(e => e.id), events: state.events.map(e => e.id),
     snapshot: snapshot(), catalogs: state.registry?.catalogs, defaultCatalog: state.registry?.default_catalog_id, catalog: state.catalog};
 }
-function readFilters() {return Object.fromEntries(controls.map(k => [k, k === 'missingOnly' ? $(k).checked : $(k).value]));}
-function writeFilters(filters) {for (const k of controls) if (k === 'missingOnly') $(k).checked = filters[k]; else $(k).value = filters[k];}
+function readFilters() {return Object.fromEntries(controls.map(k => [k, typeof V.defaults[k] === 'boolean' ? $(k).checked : $(k).value]));}
+function writeFilters(filters) {for (const k of controls) if (typeof V.defaults[k] === 'boolean') $(k).checked = filters[k]; else $(k).value = filters[k];}
 function currentView() {
   return {filters: {...state.applied}, sort: $('sort').value, lang: I.language, tab: state.tab,
     revision: $('revisionEvent').value || '', event: state.selectedEvent || state.highlightedEvent, map: state.map?.getView() || null,
@@ -68,10 +68,13 @@ function populateCatalogControls() {
   if (!state.registry) return;
   const selected = state.catalog || state.registry.catalogs.find(c => c.id === V.catalogFromURL(location.href, choices())) || state.registry.catalogs[0];
   const append = (id, value, text) => {const option = document.createElement('option');option.value = value;option.textContent = text;$(id).append(option);};
+  const ssnActive = selected.id === V.legacyCatalog && state.applied.unmOnly === true;
   $('providerSelect').replaceChildren();for (const [id, name] of new Map(state.registry.catalogs.map(c => [c.provider,c.provider_name]))) append('providerSelect', id, name);
-  $('providerSelect').value = selected.provider;$('catalogSelect').replaceChildren();
-  for (const c of state.registry.catalogs.filter(c => c.provider === selected.provider)) append('catalogSelect', c.id, catalogLabel(c));
+  append('providerSelect', 'ssn-unam', t('ssnSource'));
+  $('providerSelect').value = ssnActive ? 'ssn-unam' : selected.provider;$('catalogSelect').replaceChildren();
+  for (const c of state.registry.catalogs.filter(c => ssnActive ? c.id === V.legacyCatalog : c.provider === selected.provider)) append('catalogSelect', c.id, catalogLabel(c));
   $('catalogSelect').value = selected.id;$('providerSelect').disabled = false;$('catalogSelect').disabled = false;
+  $('unmNotice').hidden = !ssnActive;
 }
 function actionStatus(key) {state.action = key;$('actionStatus').textContent = key ? t(key) : '';}
 function showWarnings() {
@@ -84,6 +87,7 @@ function buttons() {
   // overwritten when that asynchronous load finishes; catalog choices remain live.
   for (const id of [...controls, 'searchButton', 'reset', 'sort']) $(id).disabled = !state.ready;
   if (state.ready) $('depthMax').disabled = !depthKnown();
+  $('unmOnly').disabled = !state.ready || state.catalog?.id !== V.legacyCatalog;
 }
 function applyFilters(persist = true) {
   if (!state.ready) return;
@@ -91,7 +95,7 @@ function applyFilters(persist = true) {
   $('filterError').textContent = checked.valid ? '' : t('invalidFilters');
   if (!checked.valid) return;
   state.applied = checked.filters;state.page = 0;
-  state.filtered = V.filterEvents(state.events, state.applied, $('sort').value);render();
+  state.filtered = V.filterEvents(state.events, state.applied, $('sort').value);populateCatalogControls();render();
   if (persist) {state.invalidLink = [];showWarnings();actionStatus('');syncURL();}
 }
 function render() {
@@ -105,9 +109,9 @@ function render() {
 function renderFilterChips() {
   const initial=V.catalogDefaults(state.catalog), active=controls.filter(key=>state.applied[key]!==initial[key]);
   $('activeFilters').hidden=!active.length;
-  const names={search:'search',yearFrom:'from',yearTo:'to',magMin:'magMin',magMax:'magMax',magType:'magType',originSource:'originSource',depthMax:'maxDepth',missingOnly:'missingOnly'};
+  const names={search:'search',yearFrom:'from',yearTo:'to',magMin:'magMin',magMax:'magMax',magType:'magType',originSource:'originSource',depthMax:'maxDepth',missingOnly:'missingOnly',unmOnly:'unmOnly'};
   $('activeFilters').innerHTML=active.map(key=>{
-    const raw=state.applied[key], text=key==='missingOnly' ? t(names[key]) : t(names[key])+': '+(raw==='__missing__' ? t('notReported') : raw);
+    const raw=state.applied[key], text=typeof V.defaults[key]==='boolean' ? t(names[key]) : t(names[key])+': '+(raw==='__missing__' ? t('notReported') : raw);
     return `<button type="button" data-remove-filter="${key}" aria-label="${esc(t('removeFilter',{filter:text}))}">${esc(text)}<span aria-hidden="true">×</span></button>`;
   }).join('');
 }
@@ -266,10 +270,15 @@ for (const id of controls) {
 }
 $('searchForm').addEventListener('submit', event => {event.preventDefault();if (!state.ready) return;clearTimeout(debounce);applyFilters();});
 $('reset').addEventListener('click', () => {if (state.ready) {clearTimeout(debounce);writeFilters(V.catalogDefaults(state.catalog));applyFilters();}});
-$('providerSelect').addEventListener('change', () => {const c = state.registry.catalogs.find(c => c.provider === $('providerSelect').value);if (c) loadCatalog(c.id);});
+function selectDataSource(source) {
+  if (source === 'ssn-unam') return loadCatalog(V.legacyCatalog, false, {unmOnly:true});
+  const c = state.catalog?.provider === source ? state.catalog : state.registry.catalogs.find(c => c.provider === source);
+  if (c) return loadCatalog(c.id);
+}
+$('providerSelect').addEventListener('change', () => selectDataSource($('providerSelect').value));
 $('catalogSelect').addEventListener('change', () => loadCatalog($('catalogSelect').value));
 $('mapBase').addEventListener('change', () => state.map?.setBase($('mapBase').value));
-$('retry').addEventListener('click', () => state.registry && state.map ? loadCatalog(state.catalog.id, state.pendingRestore) : initialize());
+$('retry').addEventListener('click', () => state.registry && state.map ? loadCatalog(state.catalog.id, state.pendingRestore, state.pendingFilters) : initialize());
 $('sort').addEventListener('change', () => applyFilters());
 $('prev').addEventListener('click', () => {state.page--;renderTable();});$('next').addEventListener('click', () => {state.page++;renderTable();});
 $('records').addEventListener('click', e => {const locate=e.target.closest('[data-locate-event]');if(locate){showOnMap(locate.dataset.locateEvent);return;}const button = e.target.closest('[data-event]');if (button) detail(button.dataset.event);});
@@ -302,9 +311,13 @@ async function fetchAsset(url) {
   const digest = await crypto.subtle.digest('SHA-256', bytes);
   return {data, hash: Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2,'0')).join('')};
 }
-async function loadCatalog(id, restore = false) {
+async function loadCatalog(id, restore = false, preset = {}) {
   const c = state.registry.catalogs.find(c => c.id === id);if (!c) return;
   const request = ++state.request;clearTimeout(debounce);state.restoring = true;state.ready = false;state.loadError = null;state.catalog = c;state.pendingRestore = restore;
+  const initial = {...V.catalogDefaults(c), ...preset};
+  if (c.id !== V.legacyCatalog) initial.unmOnly = false;
+  state.pendingFilters = {...initial};
+  state.applied = restore ? V.parseURL(location.href, {catalogs:state.registry.catalogs,defaultCatalog:state.registry.default_catalog_id,catalog:c}).view.filters : {...initial};
   state.selectedEvent = '';state.highlightedEvent='';if ($('detail').open) $('detail').close();state.events = [];state.filtered = [];state.manifest = null;
   $('activeFilters').replaceChildren();$('activeFilters').hidden=true;
   state.map?.setRecords([]);$('records').replaceChildren();$('histogram').replaceChildren();
@@ -326,7 +339,7 @@ async function loadCatalog(id, restore = false) {
     state.latest = state.events.reduce((latest,e) => e.time > latest ? e.time : latest, '').slice(0,10);
     populateFilters();state.ready = true;state.formValid = true;state.invalidLink = [];state.restoring = false;
     if (restore) restoreFromURL();else {
-      state.restoring = true;writeFilters(V.catalogDefaults(c));$('sort').value = 'recent';state.page = 0;
+      state.restoring = true;writeFilters(initial);$('sort').value = 'recent';state.page = 0;
       state.map.setRegion(c.bounds);state.map.reset();applyFilters(false);describeDataset();showWarnings();actionStatus('');
       state.restoring = false;syncURL();buttons();
     }

@@ -50,9 +50,43 @@ test('query JSON identifies exact bytes, actual local selection and limits', () 
  const hashes={events:hash('system/dist/data/events.json'),manifest:hash('system/dist/data/manifest.json')};
  assert.equal(hashes.events,manifest.derived_asset_sha256);
  const query=V.queryDocument({view,manifest,assetHashes:hashes,rows,pageURL:V.serialize(view,'https://example.org/'),createdUTC:'2026-11-05T00:00:00Z'});
- assert.equal(query.schema,'seismic-local-query/2');assert.equal(query.input.events_sha256,manifest.derived_asset_sha256);assert.equal(query.input.source_files.length,46);
+ assert.equal(query.schema,'seismic-local-query/3');assert.equal(query.input.events_sha256,manifest.derived_asset_sha256);assert.equal(query.input.source_files.length,46);
  assert.equal(query.result.row_count,1);assert.deepEqual(query.result.ordered_event_ids,['us2000ahv0']);assert.equal(query.selection.search,'us2000ahv0');
  assert(query.limits.some(x=>x.includes('not an equivalent live ComCat request')));assert(query.predicate_rules.map.includes('do not alter'));
 
+});
+test('UNM attribution is a literal two-field OR, with immutable source values', () => {
+ const sample=[
+  {id:'origin',locationSource:'unm',magSource:'us'},
+  {id:'magnitude',locationSource:'us',magSource:'us_unm'},
+  {id:'both',locationSource:'us_unm',magSource:'unm'},
+  {id:'uppercase',locationSource:'UNM'}, {id:'substring',locationSource:'foo_unm'},
+  {id:'space',magSource:'unm '}, {id:'network',net:'unm',place:'UNM'}
+ ].map(e=>({year:2010,mag:4,depth:null,horizontalError:null,time:'2010',...e}));
+ const unchanged=JSON.stringify(sample);
+ assert.deepEqual(V.filterEvents(sample,{...V.defaults,unmOnly:true}).map(e=>e.id),['origin','magnitude','both']);
+ assert.equal(JSON.stringify(sample),unchanged);
+ assert.equal(V.filterEvents(events,{...V.defaults,unmOnly:true}).length,9858);
+ assert.equal(V.validateFilters({...V.defaults,unmOnly:'true'}).valid,false);
+});
+test('v3 attribution URLs round-trip and v1/v2 cannot activate the new predicate', () => {
+ const mx='usgs-mx-historical', na='usgs-na-2020-2025';
+ const registry=JSON.parse(fs.readFileSync('system/dist/data/catalogs.json','utf8'));
+ const opts={...options,catalogs:registry.catalogs,defaultCatalog:na};
+ for(const sort of ['recent','oldest','mag']) {
+  const filters={...V.defaults,unmOnly:true,yearFrom:1995,yearTo:2015,magMin:4};
+  const url=V.serialize({catalog:mx,filters,sort,lang:'es',tab:'catalog'},'https://example.org/');
+  assert.equal(new URL(url).searchParams.get('v'),'3');assert.equal(new URL(url).searchParams.get('unmOnly'),'1');
+  const restored=V.parseURL(url,opts);assert.deepEqual(restored.invalid,[]);assert.deepEqual(restored.view.filters,filters);
+  assert.deepEqual(V.filterEvents(events,restored.view.filters,sort).map(e=>e.id),V.filterEvents(events,filters,sort).map(e=>e.id));
+ }
+ for(const v of ['1','2']) {
+  const restored=V.parseURL(`https://example.org/?v=${v}&catalog=${mx}&unmOnly=1`,opts);
+  assert.equal(restored.view.filters.unmOnly,false);assert(restored.invalid.includes('unmOnly'));
+ }
+ for(const invalid of ['true','yes','2',''])assert(V.parseURL(`https://example.org/?v=3&catalog=${mx}&unmOnly=${invalid}`,opts).invalid.includes('unmOnly'));
+ const wrong=V.parseURL(`https://example.org/?v=3&catalog=${na}&unmOnly=1`,opts);
+ assert.equal(wrong.view.filters.unmOnly,false);assert(wrong.invalid.includes('unmOnly'));
+ assert.throws(()=>V.serialize({catalog:na,filters:{...V.defaults,unmOnly:true},sort:'recent',lang:'es',tab:'catalog'},'https://example.org/'));
 });
 console.log(JSON.stringify({passed:checks.length,checks},null,2));

@@ -1,4 +1,4 @@
-"""Create the original workflow figure and package a genuine interface capture.
+"""Create a workflow figure and package two genuine interface captures.
 
 The screenshot is captured through the browser tool after interface QA. This
 script does not fabricate, recolor or annotate application pixels. The capture
@@ -79,14 +79,14 @@ def workflow():
                                         arrowstyle="-|>", mutation_scale=9,
                                         color="#425A58", linewidth=1))
 
-    row(.55, "A  Retained revision audit", [
+    row(.065, "B  Retained revision audit", [
         ("Frozen inputs", f"{len(events)} selected events\n{len(versions)} origin versions\nPreserved bytes"),
         ("Identity\nand clocks", "Product lineage\nSource and author\nProducer clock"),
         ("Evidence\ncontracts", "Captured snapshot\nConditional\nprojection\nHistorical refusal"),
         ("Implementation\nchecks", f"SQL: {comparison_count:,} checks\nSynthetic: {synthetic_count} cases\nReal past states:\nnot validated"),
     ], "#EDF4F3")
     ax.plot([0, 1], [.49, .49], color="#A6B2B0", linewidth=.8, linestyle=(0, (4, 3)))
-    row(.065, "B  Exploratory catalogue interface", [
+    row(.55, "A  Exploratory catalogue interface", [
         ("Data\ncatalogues", f"MX (USGS): {catalogue_counts['usgs-mx-historical']:,}\nNA (USGS): {catalogue_counts['usgs-na-2020-2025']:,}\nNRCan: {catalogue_counts['nrcan-ca-historical']:,}"),
         ("Provenance\nboundary", "Active catalogue\nHashes, field limits\nNo automatic merge"),
         ("Local selection", "ID, place, fields\nMap, record table\nCSV, query JSON"),
@@ -108,48 +108,68 @@ def workflow():
             "scope": "Separate pilot audit and exploratory interface; neither row validates historical public catalog states."}
 
 
-def interface(capture_receipt):
+def interface(capture_receipt, *, figure_id, name):
     receipt = load(capture_receipt)
     screenshot = ROOT / receipt["image"]["path"]
     image = plt.imread(screenshot)
     if record(screenshot)["sha256"] != receipt["image"]["sha256"]:
         raise ValueError("Interface screenshot differs from its capture receipt")
-    ratio = image.shape[0] / image.shape[1]
-    if ratio > 1.05:
+    bounds = receipt.get("capture", {}).get("figure_crop_pixel_bounds", [0, 0, image.shape[1], image.shape[0]])
+    x0, y0, x1, y1 = bounds
+    if not (0 <= x0 < x1 <= image.shape[1] and 0 <= y0 < y1 <= image.shape[0]):
+        raise ValueError("Figure frame escapes its immutable browser capture")
+    ratio = (y1 - y0) / (x1 - x0)
+    if ratio > 1.15:
         raise ValueError("Review screenshot layout before embedding a tall view")
-    # Magnified controls and a map context view all refer to the same immutable
-    # screenshot, not different catalogues or queries. No application pixel or
-    # reported value is recolored, retouched or synthesized.
-    if image.shape[:2] != (993, 995):
-        raise ValueError("Review panel crop definitions for a changed browser capture")
-    fig = plt.figure(figsize=(6.5, 6.8))
-    panels = [
-        ("(A)  Catalogue and base-map controls", [.015, .837, .97, .135], [344, 0, 995, 95]),
-        ("(B)  Active local selection", [.015, .727, .66, .075], [8, 165, 450, 216]),
-        ("(C)  The same 346 selected records", [.015, .002, .97, .68], [0, 230, 995, 993]),
-    ]
-    for title, position, (x0, y0, x1, y1) in panels:
-        ax = fig.add_axes(position)
-        ax.imshow(image); ax.set_xlim(x0, x1); ax.set_ylim(y1, y0)
-        ax.set_title(title, loc="left", fontsize=9.5, fontweight="bold", pad=3)
+    # Each figure derives from one immutable browser state. Enlarging the
+    # overview's controls compares two regions of that same capture, so small
+    # source labels can be read without combining independent interface states.
+    if figure_id == "interface":
+        if image.shape[:2] != (1160, 1408):
+            raise ValueError("Review overview frames for changed capture dimensions")
+        fig = plt.figure(figsize=(6.5, 4.75))
+        panels = [
+            ("(A)  Data source and catalogue controls", [.015, .79, .97, .165], [490, 130, 1138, 217]),
+            ("(B)  The same 346 selected records", [.015, .002, .97, .735], [17, 359, 1406, 1088]),
+        ]
+        bounds = []
+        for title, position, frame in panels:
+            ax = fig.add_axes(position)
+            ax.imshow(image, interpolation="none")
+            ax.set_xlim(frame[0], frame[2]); ax.set_ylim(frame[3], frame[1])
+            ax.set_title(title, loc="left", fontsize=9.5, fontweight="bold", pad=3)
+            ax.axis("off")
+            bounds.append(frame)
+    else:
+        fig = plt.figure(figsize=(6.5, 6.5 * ratio))
+        ax = fig.add_axes([0, 0, 1, 1])
+        ax.imshow(image, interpolation="none")
+        ax.set_xlim(x0, x1)
+        ax.set_ylim(y1, y0)
         ax.axis("off")
-    files = base.save(fig, "figure_interface")
-    return {"id": "interface", "files": files,
+    files = base.save(fig, name)
+    return {"id": figure_id, "files": files,
             "sources": [record(capture_receipt), record(screenshot)],
-            "panels": [{"title": title, "source_pixel_bounds": bounds} for title, _, bounds in panels],
-            "scope": "Genuine interface capture, an illustration of the recorded local query rather than a usability or source-accuracy evaluation."}
+            "native_capture_pixels": {"width": image.shape[1], "height": image.shape[0]},
+            "source_pixel_bounds": bounds,
+            "scope": "One genuine interface capture of its recorded view. No combined states, retouched observations or usability/source-accuracy evaluation."}
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--architecture-only", action="store_true")
     parser.add_argument("--capture-receipt", type=Path,
-                        default=ROOT / "outputs/revision_2026-11-06/captures/receipt.json")
+                        default=ROOT / "outputs/inline_2026-11-06/captures/interface_receipt.json")
+    parser.add_argument("--inspector-receipt", type=Path,
+                        default=ROOT / "outputs/inline_2026-11-06/captures/inspector_receipt.json")
     args = parser.parse_args()
     base.style()
-    figures = [workflow()]
-    if not args.architecture_only:
-        figures.append(interface(args.capture_receipt))
+    architecture = workflow()
+    figures = [architecture] if args.architecture_only else [
+        interface(args.capture_receipt, figure_id="interface", name="figure_interface"),
+        architecture,
+        interface(args.inspector_receipt, figure_id="inspector", name="figure_inspector"),
+    ]
     result = {"schema_version": 1, "generated_utc": datetime.now(timezone.utc).isoformat(),
               "generator": record(Path(__file__).resolve()), "figures": figures,
               "formats": ["png", "pdf", "svg"], "png_dpi": 300}
