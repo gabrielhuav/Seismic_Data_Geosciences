@@ -4,6 +4,7 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="Explora un extracto fijado de ComCat y la evidencia de sus revisiones.">
   <title>Observatorio de datos sísmicos</title>
+  <script src="preferences.js"></script>
   <link rel="stylesheet" href="vendor/leaflet/leaflet.css"><link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,9 +13,10 @@
   <div class="brand"><span class="mark" aria-hidden="true">∿</span><div><b data-i18n="brand">DATOS SÍSMICOS</b><span data-i18n="brandSub">OBSERVATORIO</span></div></div>
   <nav data-i18n-aria="mainNav" aria-label="Secciones"><button id="catalogTab" aria-current="page" data-i18n="catalog">Catálogo</button><button id="revisionsTab" data-i18n="revisions">Revisiones</button><button id="methodsTab" data-i18n="methods">Evidencia y métodos</button></nav>
   <span class="snapshot" data-i18n="snapshot">Instantánea de investigación</span>
+  <div class="appearance-controls"><label><span data-i18n="theme">Tema</span><select id="theme"><option value="green" data-i18n="themeGreen">Verde</option><option value="blue" data-i18n="themeBlue">Azul</option><option value="maroon" data-i18n="themeMaroon">Guinda</option></select></label><label><span data-i18n="appearance">Modo</span><select id="appearance"><option value="system" data-i18n="modeSystem">Sistema</option><option value="light" data-i18n="modeLight">Claro</option><option value="dark" data-i18n="modeDark">Oscuro</option></select></label></div>
   <label class="language-control"><span class="visually-hidden">Idioma / Language</span><select id="language"><option value="es">ES</option><option value="en">EN</option></select></label>
 </header>
-<main id="main">
+<main id="main" tabindex="-1">
 <section class="intro"><p class="eyebrow" data-i18n="eyebrow">NORTEAMÉRICA · CATÁLOGOS CON PROCEDENCIA</p><h1 data-i18n="headline">Cada registro tiene una fuente.</h1><p data-i18n="intro">Explora sismos de México, Estados Unidos y Canadá con su cobertura y fuente explícitas.</p></section>
 <div id="loadStatus" role="status" data-i18n="loading">Cargando los datos fijados…</div>
 <div class="view-tools"><button id="share" class="secondary" data-i18n="share" disabled>Compartir vista</button><button id="query" class="secondary" data-i18n="query" disabled>Descargar consulta JSON</button><span id="actionStatus" role="status" aria-live="polite"></span><button id="retry" hidden data-i18n="retry">Reintentar carga</button></div>
@@ -40,9 +42,10 @@
 <label class="check"><input id="missingOnly" type="checkbox"><span data-i18n="missingOnly">Sin error horizontal reportado</span></label>
 </div><p class="small" data-i18n="filterNote">Un error ausente es desconocido, nunca cero. Las magnitudes de distintos tipos no se convierten ni se tratan como equivalentes.</p></details>
 <div class="filter-actions"><button id="reset" class="text-button" data-i18n="reset">Restablecer filtros</button><span id="filterSummary" class="small" aria-live="polite"></span><button id="download" class="primary" disabled><span data-i18n="csv">Descargar CSV filtrado</span> <span aria-hidden="true">↓</span></button></div><p id="filterError" role="alert"></p>
+<div id="activeFilters" class="active-filters" role="group" data-i18n-aria="activeFilters" aria-label="Filtros activos" hidden></div>
 </div>
 <div class="visuals">
-<article class="map-card"><div class="section-head"><div><p class="eyebrow" data-i18n="epicenters">EPICENTROS</p><h2 data-i18n="distribution">Distribución regional</h2></div><div class="map-actions"><button id="fitMap" data-i18n="fit">Ajustar a registros</button><button id="resetMap" data-i18n="region">Región</button></div></div>
+<article id="mapCard" class="map-card" aria-labelledby="mapHeading"><div class="section-head"><div><p class="eyebrow" data-i18n="epicenters">EPICENTROS</p><h2 id="mapHeading" data-i18n="distribution">Distribución regional</h2></div><div class="map-actions"><button id="fitMap" data-i18n="fit">Ajustar a registros</button><button id="resetMap" data-i18n="region">Región</button><button id="expandMap" aria-expanded="false" aria-controls="mapCard" data-i18n="expandMap">Ampliar mapa</button></div></div>
 <div class="map-wrap"><div id="map" role="region" data-i18n-aria="mapLabel" aria-label="Mapa geográfico de los epicentros filtrados" aria-describedby="mapHelp"></div><p id="mapStatus" class="map-status"></p></div>
 <div class="legend"><span id="depthLegend"><span><i class="dot shallow"></i><span data-i18n="shallow">Profundidad ≤ 70 km</span></span><span><i class="dot deep"></i><span data-i18n="deep">Profundidad &gt; 70 km</span></span><span><i class="dot unknown"></i><span data-i18n="unknownDepth">Profundidad desconocida</span></span></span><span data-i18n="sizeLegend">El tamaño del punto sigue la magnitud reportada</span></div><p id="depthNotice" class="small depth-notice" hidden data-i18n="depthUnitUnknown">La fuente no documenta la unidad de profundidad. Se conserva el valor crudo en la ficha y CSV; no se aplica filtro ni escala de colores en km.</p>
 <p id="baseStatus" class="small base-status" role="status" data-i18n="baseLocalNote">Base local disponible sin servicio de teselas.</p><p class="small source-note map-note" data-i18n="oneCatalog">Un catálogo activo. El proveedor distribuye los datos; la agencia del origen puede ser otra. Los catálogos pueden compartir observaciones y sus conteos no se suman.</p><p class="small map-note"><span id="mapHelp" data-i18n="mapHelp">Arrastra para desplazar; usa +/− o un gesto de pellizco para ampliar. Selecciona un epicentro, o usa la tabla, para consultar su ficha.</span> <span data-i18n="mapNote">El tamaño del símbolo no es un radio de sacudida; los eventos no se asignan a países.</span></p></article>

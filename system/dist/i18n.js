@@ -68,7 +68,11 @@
     catalogRegistry:'Registro de catálogos y coberturas', canadaDocs:'Earthquakes Canada · Natural Resources Canada', osmPolicy:'Política de teselas OpenStreetMap', usgsMapTerms:'Condiciones de The National Map',
     credits:'Datos: USGS, Natural Resources Canada y redes contribuyentes. Cada manifiesto conserva sus créditos y derechos específicos; la licencia del software no relicencia datos de terceros. Interfaz de investigación, no servicio operativo de alertas.',
     loaded:'{n} registros · instantánea fijada {commit} · sin actualización en vivo', retry:'Reintentar carga',
-    invalidPackage:'El paquete del catálogo no tiene una estructura válida.', canadaLicence:'Datos de NRCan bajo Open Government Licence – Canada', 'country.Greenland':'Groenlandia'
+    invalidPackage:'El paquete del catálogo no tiene una estructura válida.', canadaLicence:'Datos de NRCan bajo Open Government Licence – Canada',
+    theme:'Tema', appearance:'Modo', themeGreen:'Verde', themeBlue:'Azul', themeMaroon:'Guinda', modeSystem:'Sistema', modeLight:'Claro', modeDark:'Oscuro',
+    activeFilters:'Filtros activos', removeFilter:'Quitar filtro: {filter}', seeOnMap:'Ver en mapa', locateId:'Ver {id} en el mapa',
+    expandMap:'Ampliar mapa', collapseMap:'Cerrar mapa ampliado', outsideFilters:'Este registro está fuera de los filtros actuales. Ajusta los filtros para mostrarlo en el mapa; consultar su ficha no cambia la selección.',
+    'country.Greenland':'Groenlandia'
   });
   Object.assign(messages.en, {
     description:'Explore North American seismic catalogs with explicit coverage, providers and provenance.',
@@ -101,7 +105,11 @@
     catalogRegistry:'Catalog registry and coverage', canadaDocs:'Earthquakes Canada · Natural Resources Canada', osmPolicy:'OpenStreetMap tile policy', usgsMapTerms:'The National Map terms',
     credits:'Data: USGS, Natural Resources Canada and contributing networks. Each manifest retains source-specific credits and rights; the software license does not relicense third-party data. Research interface, not an operational alert service.',
     loaded:'{n} records · pinned snapshot {commit} · no live catalog updates', retry:'Retry loading',
-    invalidPackage:'The catalog package has an invalid structure.', canadaLicence:'NRCan data under the Open Government Licence – Canada', 'country.Greenland':'Greenland', 'country.Russia':'Russia'
+    invalidPackage:'The catalog package has an invalid structure.', canadaLicence:'NRCan data under the Open Government Licence – Canada',
+    theme:'Theme', appearance:'Mode', themeGreen:'Green', themeBlue:'Blue', themeMaroon:'Maroon', modeSystem:'System', modeLight:'Light', modeDark:'Dark',
+    activeFilters:'Active filters', removeFilter:'Remove filter: {filter}', seeOnMap:'See on map', locateId:'See {id} on the map',
+    expandMap:'Expand map', collapseMap:'Close expanded map', outsideFilters:'This record is outside the current filters. Adjust the filters to display it on the map; inspecting its details does not change the selection.',
+    'country.Greenland':'Greenland', 'country.Russia':'Russia'
   });
   let language = 'es';
   function t(key, values = {}) {

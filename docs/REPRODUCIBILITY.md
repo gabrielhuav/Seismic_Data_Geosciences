@@ -101,7 +101,45 @@ libcomcat, Timeline or the INGV service.
 
 ## Figures and manuscript
 
+The expanded manuscript distinguishes three source catalogues from the original
+36-event revision pilot. Its catalogue table is recalculated from the packaged
+sources; adding a catalogue does not expand the revision-validation cohort.
+The final interface includes three palettes and system/light/dark appearance,
+removable filter indicators, record focus and an expanded map. See
+[interface behavior and inspection examples](UI_FEATURES.md). Appearance and
+map navigation do not change the scientific query; removing a filter does.
+
 `python scripts/make_figures.py` regenerates traceable PNG, PDF and SVG figures. Install matplotlib in the chosen scientific environment first. This run used the Codex bundled Python 3.12.14 and matplotlib 3.11.2 in the ignored `tmp/paper_deps` directory. Hashes, subsets and versions are recorded in `paper/figures/figures_manifest.json`.
+
+After the revision and independent validation reports have been reproduced,
+`python -m scripts.make_system_figures --architecture-only` generates the
+additional workflow diagram from actual catalogue and audit counts. A genuine
+browser capture is required for the interface figure. The full command accepts
+`--capture-receipt <path>`; the receipt identifies the immutable image, shared
+query URL, visible result, display preferences and exact application/data hashes.
+The maintained capture uses North America, origin year 2025, reported magnitude
+at least 4.5 and 346 matching records. It is an illustration, not a usability
+experiment, source-accuracy evaluation or reconstruction of past public states.
+
+The interface figure shows magnified controls, active filters and map context
+from that same original capture. Its source crop bounds are recorded without
+altering reported values or source pixels. The generator rejects a changed
+capture hash or incompatible dimensions rather than silently applying old crops.
+`paper/figures/system_figures_manifest.json` records the two new figures;
+`paper/figures/manuscript_figures.json` fixes the five-image document order and
+SHA-256 values. The three original scientific figures and their audited data
+are preserved. The DOCX builder requires one correctly numbered caption per
+verified image and preserves 17 unrelated template package parts byte for byte.
+Captures, figure assets and private manuscript source stay in the authoring
+copy, outside the website and public code checkout.
+
+AI assistance in implementation and plotting code is declared in the manuscript
+Methods and general declaration; the explanatory diagram caption also identifies
+the tool and session version. The declarations follow the [Elsevier journal AI
+policy updated June 2026](https://www.elsevier.com/about/policies-and-standards/generative-ai-policies-for-journals),
+checked on 6 November 2026. Reproducible plotting and genuine captures remain
+distinct from fabricated observations or generative image synthesis. No
+coauthor review or editorial approval is inferred from software or layout QA.
 
 The author-review manuscript source is local in `paper/drafts/manuscript.md`. The retained journal template and its checksum are in `paper/templates/`. `scripts/build_manuscript.py` patches a copy, preserving every unrelated package part byte-for-byte. It requires a template-distillation contract under ignored `tmp/template-contract/` and writes review artifacts to ignored `outputs/paper/`. The source, template and builder must be preserved together for regeneration. The template itself is never overwritten.
 

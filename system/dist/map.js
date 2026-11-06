@@ -23,8 +23,10 @@ window.SeismicMapGeometry = (function () {
 })();
 
 // Local cartography and one canvas keep geographic context independent of tile APIs.
-window.createSeismicMap = function ({element, basemap, onSelect, onViewChange = () => {}, onBaseChange = () => {}, onBaseStatus = () => {}, translate = key => key, formatNumber = String}) {
-  let region = L.latLngBounds([[14, -190], [84, -50]]), activeBase = 'local', tiles = null, tileErrors = 0;
+window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = () => {}, onViewChange = () => {}, onBaseChange = () => {}, onBaseStatus = () => {}, translate = key => key, formatNumber = String}) {
+  let region = L.latLngBounds([[14, -190], [84, -50]]), activeBase = 'local', tiles = null, tileErrors = 0, selectedId = '';
+  const color = (name, fallback) => window.getComputedStyle?.(document.documentElement).getPropertyValue(name).trim() || fallback;
+  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)');
   const {displayLongitude, displayPolygon} = window.SeismicMapGeometry;
   const eventLatLng = event => [event.latitude, displayLongitude(event.longitude)];
   const visualBasemap = {...basemap, features: basemap.features.map(feature => {
@@ -35,16 +37,20 @@ window.createSeismicMap = function ({element, basemap, onSelect, onViewChange = 
   const map = L.map(element, {
     preferCanvas: true, minZoom: 1.5, maxZoom: 12, zoomSnap: .25,
     maxBounds: [[-5, -210], [85, -40]], maxBoundsViscosity: .8,
-    attributionControl: true, keyboard: true
+    attributionControl: true, keyboard: true, zoomAnimation: !reducedMotion?.matches,
+    fadeAnimation: !reducedMotion?.matches, markerZoomAnimation: !reducedMotion?.matches
   });
+  reducedMotion?.addEventListener?.('change', event => {map.options.zoomAnimation = !event.matches;map.options.fadeAnimation = !event.matches;map.options.markerZoomAnimation = !event.matches;});
   map.attributionControl.setPrefix('<a href="https://leafletjs.com/">Leaflet</a>');
   const naturalAttribution = '<a href="https://www.naturalearthdata.com/about/terms-of-use/">Made with Natural Earth</a>';
   map.attributionControl.addAttribution(naturalAttribution);
   L.control.scale({imperial: false, maxWidth: 120}).addTo(map);
   const countryRenderer = L.canvas({padding: .25});
+  const countryStyle = f => ({color: color('--map-boundary', '#889e97'), weight: .9,
+    fillColor: f.properties.ADMIN === 'Mexico' ? color('--map-focus-land', '#f1e8ce') : color('--map-land', '#f0f2e8'), fillOpacity: 1});
   const countries = L.geoJSON(visualBasemap, {
     renderer: countryRenderer, interactive: false,
-    style: f => ({color: '#889e97', weight: .9, fillColor: f.properties.ADMIN === 'Mexico' ? '#f1e8ce' : '#f0f2e8', fillOpacity: 1})
+    style: countryStyle
   }).addTo(map);
   const labelPane = map.createPane('countryLabels');
   labelPane.style.zIndex = 420; labelPane.style.pointerEvents = 'none';
@@ -99,14 +105,23 @@ window.createSeismicMap = function ({element, basemap, onSelect, onViewChange = 
       c.style.width = size.x + 'px';c.style.height = size.y + 'px';
       L.DomUtil.setPosition(c, this._map.containerPointToLayerPoint([0, 0]));
       const ctx = c.getContext('2d');ctx.setTransform(ratio, 0, 0, ratio, 0, 0);this.points = [];
+      const colors = {unknown: color('--point-unknown', '#526f7a'), deep: color('--point-deep', '#bc5b1e'), shallow: color('--point-shallow', '#087568')};
+      let selectedPoint;
       for (const e of this.records || []) {
         const p = this._map.latLngToContainerPoint(eventLatLng(e));
         const radius = Math.max(2, (e.mag - 2.5) * 1.25);
         if (p.x < -radius || p.x > size.x + radius || p.y < -radius || p.y > size.y + radius) continue;
         this.points.push({x: p.x, y: p.y, radius, event: e});
-        ctx.beginPath();ctx.fillStyle = e.depth === null ? '#78949ba8' : e.depth > 70 ? '#d77635aa' : '#08756899';
+        ctx.beginPath();ctx.globalAlpha = .7;ctx.fillStyle = e.depth === null ? colors.unknown : e.depth > 70 ? colors.deep : colors.shallow;
         ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);ctx.fill();
+        if (e.id === selectedId) selectedPoint = {x:p.x,y:p.y,radius};
       }
+      if (selectedPoint) {
+        ctx.globalAlpha = 1;ctx.beginPath();ctx.arc(selectedPoint.x,selectedPoint.y,Math.max(8,selectedPoint.radius+4),0,Math.PI*2);
+        ctx.lineWidth=5;ctx.strokeStyle=color('--selection-halo','#fff');ctx.stroke();
+        ctx.lineWidth=2.5;ctx.strokeStyle=color('--point-selected','#9b4b00');ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
       document.getElementById('mapStatus').textContent = translate('visible', {visible: formatNumber(this.points.length), filtered: formatNumber((this.records || []).length)});
     },
     setRecords(records) {this.records = records;this.redraw();}
@@ -126,6 +141,7 @@ window.createSeismicMap = function ({element, basemap, onSelect, onViewChange = 
     }
     if (!nearest) {map.closePopup();return;}
     const e = nearest;
+    select(e.id);
     const content = `<strong>${safe(e.place)}</strong><p class="map-popup-meta">${safe(formatNumber(e.mag))} ${safe(e.magType || translate('unknownType'))} · ${safe(e.time)}<br>${safe(e.id)}</p><button class="map-inspect" data-map-event="${safe(e.id)}">${safe(translate('inspectRecord'))}</button>`;
     L.popup({maxWidth: 290}).setLatLng(eventLatLng(e)).setContent(content).openOn(map);
   });
@@ -146,9 +162,20 @@ window.createSeismicMap = function ({element, basemap, onSelect, onViewChange = 
       const button = element.querySelector(selector);if (button) {button.title = translate(key);button.setAttribute('aria-label', translate(key));}
     }
   }
+  function select(id) {
+    const next = (events.records || []).some(e => e.id === id) ? id : '';
+    if (next !== selectedId) {selectedId = next;onHighlight(next);}
+    events.redraw();
+  }
   languageChanged();
   return {
-    setRecords(records) {map.closePopup();events.setRecords(records);},
+    setRecords(records) {map.closePopup();events.setRecords(records);if (selectedId && !records.some(e => e.id === selectedId)) select('');},
+    highlight: select,
+    focusRecord(id) {
+      const event = (events.records || []).find(e => e.id === id);if (!event) return false;
+      select(id);map.closePopup();map.setView(eventLatLng(event),Math.max(5.5,map.getZoom()),{animate:false});return true;
+    },
+    themeChanged() {countries.setStyle(countryStyle);labels();events.redraw();},
     reset, fitRecords, languageChanged, setBase,
     getBase() {return activeBase;},
     setRegion(bounds) {region = L.latLngBounds(bounds);},

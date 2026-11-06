@@ -5,16 +5,48 @@ Leer AGENTS.md completo. Los resultados de antecedentes no son verificaciones nu
 
 ## Estado actual
 
+- REVISIÓN ACTUAL TERMINADA LOCALMENTE, aún sin tercer commit/push/despliegue.
+  Sistema ampliado con paletas verde/azul/guinda, modo sistema/claro/oscuro
+  persistente, filtros removibles, foco de registros y mapa expandido accesible.
+  Edge real comprobó temas, persistencia, cambios ES/EN, fichas NRCan y móvil.
+  Son 26 archivos web candidatos; 41 pruebas Python y 27 checks Node pasan,
+  además de 129 etiquetas y 74 IDs. Datos científicos sin cambios.
+  docs/UI_FEATURES.md documenta el contrato; históricos de agua/obras intactos.
+- Paper actualizado con los tres catálogos, dos proveedores, cuatro tablas y cinco
+  figuras: arquitectura reproducible, captura genuina y tres figuras científicas
+  conservadas. Muestra intencional de cuatro artículos C&G consultada; no se
+  afirma revisión de todos los aceptados ni garantía de aceptación. Captura:
+  Norteamérica, 2025, M reportada >=4.5, 346 registros recalculados.
+  Word nativo y PDF final de 23 páginas, todas inspeccionadas individualmente
+  tras la última exportación. Política Elsevier IA de junio de 2026 comprobada;
+  asistencia en código/diagramas declarada sin inventar aprobación humana.
+- Gate NUEVO de esta revisión: 540 destinos (201 literales +339 rutas), 536
+  verificados mediante evidencia HTTP/conector/Edge fresca; cuatro HTTP403
+  editoriales pendientes. Muestreo 339/36,872; no certifica 36,533 rutas restantes.
+  Canadá se verificó por contenido visible de Edge, sin afirmar HTTP200.
+  Cero fallos locales, privacidad o hashes. Plan concreto:
+  outputs/publication/presentation_update_plan.md. Para este nuevo commit,
+  push y despliegue se requiere autorización expresa nueva, incluidas excepciones.
+  Las dos anteriores se consumieron. Paper, figuras, capturas y evidencia privados.
+- ÚLTIMA instrucción: mantener la PC ENCENDIDA, sin programar apagado.
+- AMPLIACIÓN PUBLICADA Y VERIFICADA: https://gabrielhuav.github.io/Seismic_Data_Geosciences/
+  Commit humano 7009d7de8c4addcf71dbe968deab18ea935c0c8e; push origin/main
+  y workflow manual 42252874583 completados con éxito. Los 25 archivos públicos
+  coinciden byte por byte con ese commit; tres rutas de contexto/paper/research-data
+  dan404. Revisión visual en producción: USGS/NRCan y búsqueda Canada (241
+  coincidencias textuales) funcionan, mapa completo visible, sin errores de consola.
+  Captura privada outputs/expansion/system_published.jpg. Ambas autorizaciones
+  de commit/push y despliegues ya se consumieron. No hay permiso para repetirlos.
+  Esta actualización posterior de continuidad es LOCAL, sin otro commit.
 - Gabriel AUTORIZÓ expresamente el 6 nov un nuevo commit humano, su push a
   origin/main y el despliegue manual Pages de esta ampliación, aceptando para
   ESTE push los cuatro HTTP403 y el muestreo de 339/36,872 rutas USGS únicas.
-  Ejecutar una sola vez y comprobar commit/workflow/URL antes de afirmar éxito.
+  Acciones ejecutadas una sola vez y comprobadas como consta arriba.
   La PC debe quedar encendida. No autoriza acciones posteriores adicionales.
-- Ampliación TERMINADA LOCALMENTE, segundo commit/push/despliegue autorizados y
-  pendientes de ejecutar al guardar este estado. Tres catálogos: USGS Norteamérica 2020–2025
+- Ampliación terminada y pública. Tres catálogos: USGS Norteamérica 2020–2025
   (14,041 registros), México original (24,994) y NRCan histórico 1985–2019 (6,613
-  M reportada >=3.5). No se suman como terremotos independientes ni modifican el
-  paper. Buscador visible, proveedor de datos y catálogo separados de la base:
+  M reportada >=3.5). No se suman como terremotos independientes. La revisión
+  actual sí los documenta en el paper. Buscador visible y selectores separados:
   Natural Earth local, OpenStreetMap y USGS Topo bajo demanda y con atribución.
   Canadá septentrional/Alaska/Aleutianas visibles; coordenadas crudas intactas,
   antimeridiano sólo visual. Coberturas/licencias/límites en docs/CATALOGS.md.
@@ -22,14 +54,14 @@ Leer AGENTS.md completo. Los resultados de antecedentes no son verificaciones nu
   al boletín NEDB. De 101,365 filas se seleccionan 6,613; cinco repeticiones se
   conservan. Claves locales derivadas, sin IDs originales, tipo de evento,
   revisiones o incertidumbres inventados. depth=null; raw_depth sin unidad
-  documentada. El papel conserva su diagnóstico México y piloto de 36 eventos.
+  documentada. El manuscrito conserva su diagnóstico México y piloto de 36 eventos.
 - Revisión real en navegador integrado completada: búsquedas Canadá/Alaska,
   USGS/NRCan, ficha canadiense y profundidad cruda, CSV/JSON (6,613 filas e IDs
   ordenados iguales), URLs v1 México, vistas v2 en inglés/base USGS Topo, bases
   remotas visibles y atribuidas, móvil sin desborde y mapa local completo. Se
   corrigió pérdida de búsqueda durante carga, bloqueando filtros hasta terminar.
-  Captura privada outputs/expansion/system_review.jpg. No afirmar que esta
-  ampliación ya está en Pages; los bloqueos anteriores de Edge son históricos.
+  Captura local outputs/expansion/system_review.jpg; la revisión adicional en
+  Pages y su captura pública se registran arriba. Bloqueos de Edge históricos.
 - Entrega reducida: outputs/paper/ contiene SÓLO Word final y PDF con hashes
   intactos indicados abajo. Veinticinco auxiliares/versiones/highlights archivados
   sin pérdida en outputs/archive/paper_auxiliares_2026-11-06/. Generaciones futuras
@@ -44,7 +76,7 @@ Leer AGENTS.md completo. Los resultados de antecedentes no son verificaciones nu
   aprobación para ESTE push, ya recibida; no se heredaron las del primero.
 - ÚLTIMA instrucción de Gabriel: NO apagar la PC al terminar, revocando su
   solicitud intermedia. Helper anterior deshabilitado; no programar apagado.
-- Trabajo técnico y manuscrito completos. Sistema PÚBLICO verificado:
+- Primera publicación (histórica, sustituida por la ampliación anterior):
   https://gabrielhuav.github.io/Seismic_Data_Geosciences/
   GitHub Pages, workflow manual exitoso 42169307720, commit único
   6b74f733628b41ab02816d6ba955739d0f22706c. Los 20 archivos publicados responden
@@ -58,17 +90,17 @@ Leer AGENTS.md completo. Los resultados de antecedentes no son verificaciones nu
   sin asistentes ni trailers. Esta actualización de continuidad es LOCAL y no
   se empuja automáticamente como segundo commit.
 - Manuscrito final de trabajo: outputs/paper/Seismic_CG_manuscript.docx y .pdf,
-  18 páginas, todas revisadas visualmente tras la última exportación Word nativa
-  y Poppler. Highlights DOCX/PDF de una página también revisados. Fuente privada
+  23 páginas, todas revisadas visualmente tras la última exportación Word nativa
+  y Poppler. Entrega contiene sólo esos dos archivos. Fuente privada
   paper/drafts/manuscript.md, SHA-256
-  408a2240b963439c7cceb5ba3f0a8d51f1b1c4c704aa2a4c74c588b0d367b180.
-  DOCX SHA-256 dfedc5c2ed797c1ab8c7b1ac18446926e58ef0cb89b97461c44dba0be16ab606;
-  PDF SHA-256 912dbea82b650122f8a0a23bcb6cf81fb1e4b4343f974054fe37a7f85a741936.
-  Resumen 254 palabras, cuerpo aproximado 4,008. Disponibilidad incluye el commit
-  y sitio realmente publicados; no se inventa DOI de depósito archivístico.
+  8a10181a7c1686a2f67a42a655a60fc4cf2ec64f25eb022d1859073bdea14010.
+  DOCX SHA-256 9e95b0c42a5e1043d348343e22f2b76b9972b55bb1c51bfa89cf8535fb0901c8;
+  PDF SHA-256 99637193e6b0d26b69d2a7cf224bfe17dc17a39a5774229f939c9eb0d1599a79.
+  Resumen 270 palabras, cuerpo aproximado 5,100. Disponibilidad fija DATOS en 7009,
+  sin inventar DOI; refinamientos UI locales pendientes de publicación autorizada.
   Pie opcional izquierdo vacío, PAGE y créditos de portada conservados. Plantilla
   original sin modificar y 17 componentes originales preservados por el generador.
-  Versiones anteriores de 15/17 páginas son obsoletas; no entregar PDF anterior.
+  Versiones anteriores de 15/17/18 páginas son obsoletas; no entregar PDF anterior.
 - Metadatos confirmados: José Manuel Villa Vargas primero, sin afiliación,
   ORCID 0009-0009-2401-0661; Gabriel Hurtado Avilés segundo y de correspondencia,
   Escuela Superior de Cómputo (ESCOM), Instituto Politécnico Nacional,
@@ -216,10 +248,11 @@ fuera de muestra. No agregar ML ni modelos geotécnicos sin necesidad científic
 
 ## Siguiente paso
 
-1. Ejecutar el commit humano, push y despliegue manual Pages ya autorizados el
-   6 nov; verificar assets/URL y registrar los identificadores finales. No repetir
-   acciones consumidas. Mantener la PC encendida. Entregar únicamente Word
-   final, PDF y enlace real, distinguiendo versión pública y candidata local.
+1. Entregar Word/PDF de 23 páginas y solicitar autorización del plan concreto
+   outputs/publication/presentation_update_plan.md para UN nuevo commit humano,
+   push origin/main y despliegue manual, con cuatro HTTP403 y muestreo 339/36,872 para
+   ESTE push. No ejecutarlos sin esa autorización. Después verificar 26 assets
+   publicados y mapa real. Mantener PC encendida; cerrar sólo preview propio.
 2. Gabriel y José Manuel deben revisar y aprobar el texto antes de un envío
    editorial expresamente autorizado. Revalidar guía/costo cero, depósito y
    declaraciones de disponibilidad en el momento del envío; no convertir el
@@ -228,6 +261,21 @@ fuera de muestra. No agregar ML ni modelos geotécnicos sin necesidad científic
    recupera código y paquete público. Comprobar estado real de Git al retomar.
 
 ## Bitácora
+
+- 2026-11-06, revisión de presentación: temas/modos persistentes, filtros
+  removibles, selección coordinada y mapa expandido implementados y probados
+  en Edge. Paper sincronizado con USGS/NRCan, cinco figuras/cuatro tablas,
+  23 páginas finales inspeccionadas individualmente; Word/PDF coincidentes.
+  41 Python y 27 Node pasan. Nueva política IA comprobada y declaración veraz
+  integrada. Gate 540/536/cuatro HTTP403, muestra 339/36,872; Canadá visible en Edge.
+  Sin tercer commit/push/despliegue, pagos, release ni envío. PC encendida.
+
+- 2026-11-06, cierre: commit humano 7009d7de8c4addcf71dbe968deab18ea935c0c8e,
+  push origin/main y workflow 42252874583 success. Identidad humana comprobada,
+  sin firma ni trailers; 25 assets Pages idénticos al commit y tres rutas excluidas404.
+  USGS/NRCan y búsqueda en producción comprobados; captura publicada guardada.
+  Paper Word/PDF intactos; auxiliares archivados. PC encendida, helper deshabilitado
+  y servidor local propio cerrado. Sin pagos, release ni envío editorial.
 
 - 2026-11-06: entrega reducida a dos finales y auxiliares archivados sin pérdida;
   Word/PDF de 18 páginas intactos. Ampliación local de tres catálogos, dos

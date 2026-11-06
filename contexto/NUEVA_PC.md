@@ -9,11 +9,20 @@ ya se ejecutaron con autorización expresa. GitHub Pages está publicado.
 La autorización quedó consumida y no permite repetir esas acciones.
 Un clon sólo recupera los archivos efectivamente incluidos en el remoto.
 
-Actualización del 6 nov: ampliación local con tres catálogos (USGS México/NA y
-NRCan Canadá), dos proveedores y tres bases revisada en navegador. No asumir que
-está publicada sin comprobar un segundo commit/push y workflow autorizados.
+Actualización del 6 nov publicada: tres catálogos (USGS México/NA y NRCan Canadá),
+dos proveedores y tres bases revisadas en navegador público. Segundo commit
+7009d7de8c4addcf71dbe968deab18ea935c0c8e y push autorizados ejecutados;
+workflow 42252874583 success; 25 assets coinciden. No repetir autorizaciones consumidas.
 outputs/paper/ sólo conserva Word final y PDF; auxiliares en outputs/archive/.
 La última instrucción es mantener la PC encendida; no programar apagado.
+
+Revisión posterior terminada sólo LOCAL: tres paletas y modo sistema/claro/oscuro,
+filtros removibles, foco coordinado y mapa expandido. Paper actualizado con
+USGS/NRCan, cuatro tablas y cinco figuras; Word/PDF de 23 páginas revisadas una a una.
+41 pruebas Python y 27 checks Node pasan. El remoto sigue en 7009 hasta nueva
+autorización específica; las dos anteriores ya se consumieron. Plan privado
+outputs/publication/presentation_update_plan.md y gate nuevo de 540 destinos,
+536 verificados/cuatro HTTP403, muestra 339/36,872. No inferir despliegue del candidato.
 
 Ahora también existen código, crudos, figuras y un manuscrito revisable locales.
 La fuente del paper, figuras, plantilla y otros archivos ignorados no viajan con Git.

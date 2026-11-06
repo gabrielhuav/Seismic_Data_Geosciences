@@ -66,10 +66,10 @@ test('antimeridian display keeps each ring continuous and leaves all source coor
 // Exercise the asynchronous loader against real packaged bytes, without a browser,
 // map tile requests or network access. DOM controls and map behavior are bounded stubs.
 class Element {
-  constructor(id='') {this.id=id;this.value='';this.checked=false;this.hidden=false;this.disabled=false;this.open=false;this.children=[];this.listeners={};this.textContent='';this.dataset={};}
+  constructor(id='') {this.id=id;this.value='';this.checked=false;this.hidden=false;this.disabled=false;this.open=false;this.children=[];this.listeners={};this.textContent='';this.dataset={};this.classes=new Set();this.classList={toggle:(name,on)=>on ? this.classes.add(name) : this.classes.delete(name)};}
   append(child) {this.children.push(child);if(this.children.length===1 && child.value!==undefined)this.value=child.value;}
   replaceChildren(...children) {this.children=[];this.value='';for(const child of children)this.append(child);}
-  querySelector(selector) {if(selector.includes('__missing__'))return this.children.find(c=>c.value==='__missing__');return null;}
+  querySelector(selector) {const option=selector.match(/^option\[value="([^"]*)"\]$/);return option ? this.children.find(child=>child.value===option[1]) : null;}
   setAttribute(name,value) {this[name]=value;}
   removeAttribute(name) {delete this[name];}
   addEventListener(type,callback) {(this.listeners[type]??=[]).push(callback);}
@@ -81,9 +81,13 @@ async function main() {
   for(const match of html.matchAll(/\bid="([^"]+)"/g))elements.set(match[1],new Element(match[1]));
   for(const key of Object.keys(V.defaults)) elements.get(key).value=V.defaults[key];
   elements.get('sort').value='recent';elements.get('mapBase').value='local';
-  const document={documentElement:{},querySelector:()=>({}),querySelectorAll:()=>[],getElementById:id=>elements.get(id),createElement:()=>new Element(),body:new Element()};
+  const documentListeners={};
+  const document={documentElement:new Element(),querySelector:()=>({}),querySelectorAll:()=>[],getElementById:id=>elements.get(id),createElement:()=>new Element(),body:new Element(),
+    addEventListener(type,callback){(documentListeners[type]??=[]).push(callback);}};
+  for(const element of elements.values())element.focus=()=>{document.activeElement=element;};
+  elements.get('mapCard').parentElement=document.body;document.body.children=[elements.get('mapCard'),elements.get('catalogSelect')];
   const location={href:'https://example.org/'};
-  const map={records:[],view:[50,-120,3],base:'local',setRecords(rows){this.records=rows;},getView(){return this.view;},setView(v){this.view=v;},setRegion(b){this.region=b;},reset(){this.view=[50,-120,3];},setBase(id){this.base=id;},getBase(){return this.base;},languageChanged(){},resize(){},fitRecords(){}};
+  const map={records:[],view:[50,-120,3],base:'local',setRecords(rows){this.records=rows;},getView(){return this.view;},setView(v){this.view=v;},setRegion(b){this.region=b;},reset(){this.view=[50,-120,3];},setBase(id){this.base=id;},getBase(){return this.base;},languageChanged(){},resize(){},fitRecords(){},highlight(id){this.highlighted=id;},focusRecord(id){this.highlighted=id;this.view=[60,-120,5.5];},themeChanged(){}};
   let tamper='', delayed='';
   const fetch=async url=>{
     if(url===delayed)await new Promise(resolve=>setTimeout(resolve,15));
@@ -94,11 +98,48 @@ async function main() {
   const context={window:{SeismicViewState:V,addEventListener(){}},document,location,history:{replaceState(_,__,url){location.href=url;}},navigator:{},fetch,
     crypto:crypto.webcrypto,TextDecoder,URL,Intl,Blob,setTimeout,clearTimeout,requestAnimationFrame:callback=>callback(),createSeismicMap:()=>map};
   vm.createContext(context);vm.runInContext(fs.readFileSync('system/dist/i18n.js','utf8'),context);
+  context.window.document=document;context.window.localStorage={getItem:()=>null,setItem(){}};
+  vm.runInContext(fs.readFileSync('system/dist/preferences.js','utf8'),context);
   vm.runInContext(fs.readFileSync('system/dist/app.js','utf8'),context);
   for(let n=0;n<100 && !vm.runInContext('state.ready || state.loadError',context);n++)await new Promise(resolve=>setTimeout(resolve,5));
   assert.equal(vm.runInContext('state.loadError',context),null);
   assert.equal(vm.runInContext('state.events.length',context),14041);assert.equal(vm.runInContext('state.catalog.id',context),'usgs-na-2020-2025');
   assert.equal(new URL(location.href).searchParams.get('v'),'2');checks++;console.log('PASS real-byte default catalog loader');
+  for(const [name,value] of [['yearFrom','2025'],['magMin','4.5']]) {
+    const control=elements.get(name);control.value=value;
+    for(const callback of control.listeners.input||[])callback();
+    assert.equal(elements.get('download').disabled,true,'Exports must be unavailable while numeric input is pending');
+    assert.equal((control.listeners.change||[]).length,0,'Numeric controls must not also apply through change');
+  }
+  await new Promise(resolve=>setTimeout(resolve,160));
+  assert.equal(vm.runInContext('state.applied.yearFrom',context),2025);assert.equal(vm.runInContext('state.applied.magMin',context),4.5);
+  assert(vm.runInContext('state.filtered.length>0 && state.filtered.length<14041',context));
+  for(const key of ['yearFrom','magMin'])assert(elements.get('activeFilters').innerHTML.includes('data-remove-filter="'+key+'"'));
+  assert.equal(new URL(location.href).searchParams.get('from'),'2025');assert.equal(new URL(location.href).searchParams.get('min'),'4.5');assert.equal(elements.get('download').disabled,false);
+  elements.get('magMin').value='';for(const callback of elements.get('magMin').listeners.input)callback();
+  assert.equal(elements.get('download').disabled,true);await new Promise(resolve=>setTimeout(resolve,160));
+  assert.equal(elements.get('download').disabled,true);assert(elements.get('filterError').textContent);assert.equal(vm.runInContext('state.applied.magMin',context),4.5);
+  vm.runInContext('writeFilters(V.catalogDefaults(state.catalog));applyFilters()',context);
+  checks++;console.log('PASS numeric input immediately invalidates exports and updates selection, URL and chips after validation');
+  const before=vm.runInContext('JSON.stringify(currentView().filters)',context), beforeRows=vm.runInContext('state.filtered.map(e=>e.id).join()',context), beforeURL=location.href;
+  context.window.SeismicPreferences.set({theme:'maroon',mode:'dark'});
+  assert.equal(vm.runInContext('JSON.stringify(currentView().filters)',context),before);assert.equal(vm.runInContext('state.filtered.map(e=>e.id).join()',context),beforeRows);assert.equal(location.href,beforeURL);
+  checks++;console.log('PASS appearance preferences do not change scientific selection, row order or URL');
+  vm.runInContext("writeFilters({...V.catalogDefaults(state.catalog),magType:'mww',originSource:'us'});applyFilters()",context);
+  const rawOptions=JSON.stringify(['magType','originSource'].map(name=>elements.get(name).children.map(option=>option.value)));
+  const selectedRows=vm.runInContext('state.filtered.map(e=>e.id).join()',context);
+  for(const [lang,allTypes,allOrigins,missing] of [['en','All reported types','All origin agencies','Not reported'],['es','Todos los tipos reportados','Todas las agencias de origen','No reportado']]) {
+    vm.runInContext('changeLanguage('+JSON.stringify(lang)+')',context);
+    assert.equal(elements.get('magType').querySelector('option[value=""]').textContent,allTypes);
+    assert.equal(elements.get('originSource').querySelector('option[value=""]').textContent,allOrigins);
+    assert.equal(elements.get('magType').querySelector('option[value="__missing__"]').textContent,missing);
+    assert.equal(elements.get('magType').value,'mww');assert.equal(elements.get('originSource').value,'us');
+    assert.equal(JSON.stringify(['magType','originSource'].map(name=>elements.get(name).children.map(option=>option.value))),rawOptions);
+    for(const name of ['magType','originSource'])for(const option of elements.get(name).children)if(option.value && option.value!=='__missing__')assert.equal(option.textContent,option.value);
+    assert.equal(vm.runInContext('state.filtered.map(e=>e.id).join()',context),selectedRows);
+  }
+  vm.runInContext('writeFilters(V.catalogDefaults(state.catalog));applyFilters()',context);
+  checks++;console.log('PASS ES/EN filter option labels update while selected values, raw codes and row selection stay unchanged');
   await vm.runInContext("loadCatalog('nrcan-ca-historical')",context);
   assert.equal(vm.runInContext('state.events.length',context),6613);assert.equal(elements.get('depthMax').disabled,true);assert.equal(elements.get('depthLegend').hidden,true);
   const id=vm.runInContext('state.events[0].id',context);vm.runInContext('detail('+JSON.stringify(id)+')',context);
@@ -127,6 +168,20 @@ async function main() {
   assert.equal(vm.runInContext('state.ready',context),false);assert.equal(elements.get('download').disabled,true);assert.equal(elements.get('retry').hidden,false);
   tamper='';await vm.runInContext("loadCatalog('usgs-mx-historical')",context);
   assert.equal(vm.runInContext('state.events.length',context),24994);assert.equal(elements.get('depthMax').disabled,false);checks++;console.log('PASS integrity failure disables exports and another catalog recovers');
+  vm.runInContext("writeFilters({...V.defaults,search:'Oaxaca',yearFrom:2000,yearTo:2025,magMin:4,magMax:8,magType:'mww',originSource:'us',depthMax:100,missingOnly:true});applyFilters()",context);
+  for(const key of Object.keys(V.defaults))assert(elements.get('activeFilters').innerHTML.includes('data-remove-filter="'+key+'"'),'Missing active filter chip '+key);
+  vm.runInContext("removeFilter('search')",context);assert.equal(vm.runInContext('state.applied.search',context),'');
+  vm.runInContext("writeFilters(V.catalogDefaults(state.catalog));applyFilters()",context);
+  assert.equal(elements.get('activeFilters').hidden,true);checks++;console.log('PASS all nine active filter controls have removable chips and reset cleanly');
+  const count=vm.runInContext('state.filtered.length',context), selected=vm.runInContext('state.filtered[41].id',context);
+  vm.runInContext('showOnMap('+JSON.stringify(selected)+')',context);
+  assert.equal(map.highlighted,selected);assert.equal(vm.runInContext('state.page',context),1);assert.equal(vm.runInContext('state.filtered.length',context),count);
+  assert(elements.get('records').innerHTML.includes('record-selected'));checks++;console.log('PASS locating a record highlights map and table without changing filters or counts');
+  elements.get('expandMap').focus();vm.runInContext('setExpanded(true)',context);
+  assert.equal(elements.get('mapCard')['aria-modal'],'true');assert.equal(elements.get('catalogSelect').inert,true);
+  for(const callback of documentListeners.keydown)callback({key:'Escape',preventDefault(){}});
+  assert.equal(vm.runInContext('state.expanded',context),false);assert.equal(elements.get('catalogSelect').inert,undefined);assert.equal(document.activeElement,elements.get('expandMap'));
+  checks++;console.log('PASS expanded map closes with Escape and restores outside interaction and focus');
   console.log(JSON.stringify({passed:checks},null,2));
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

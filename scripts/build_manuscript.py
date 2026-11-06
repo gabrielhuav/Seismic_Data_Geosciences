@@ -75,7 +75,10 @@ def main():
         if pr is None: pr=node("pPr")
         for name in ["numPr","sectPr","pageBreakBefore"]:
             for c in pr.findall(w(name)): pr.remove(c)
-        if role in ["title","heading","caption"]: pr.append(node("keepNext"))
+        if role in ["title","heading"]: pr.append(node("keepNext"))
+        if role == "caption":
+            for old in pr.findall(w("keepNext")): pr.remove(old)
+            pr.append(node("keepLines"))
         if style:
             for old in pr.findall(w("pStyle")): pr.remove(old)
             pr.insert(0,node("pStyle",val=style))
@@ -95,7 +98,10 @@ def main():
         for edge in ["top","bottom"]: margins.append(node(edge,w=70,type="dxa"))
         for edge in ["left","right"]: margins.append(node(edge,w=100,type="dxa"))
         prop.append(margins);t.append(prop)
-        widths=[2500,3430,3430] if len(rows[0])==3 else [9360//len(rows[0])]*len(rows[0])
+        if len(rows[0]) == 4 and "Catalogue" in rows[0][0]:
+            widths = [2100, 1700, 1100, 4460]
+        else:
+            widths=[2500,3430,3430] if len(rows[0])==3 else [9360//len(rows[0])]*len(rows[0])
         grid=node("tblGrid")
         for width in widths:grid.append(node("gridCol",w=width))
         t.append(grid)
@@ -124,10 +130,23 @@ def main():
         else:body.append(paragraph(text,"abstract" if text.startswith("Earthquake catalog services") else "body"))
     relname="word/_rels/document.xml.rels"; rel=E.fromstring(parts[relname])
     relns="http://schemas.openxmlformats.org/package/2006/relationships"
-    image_files=["figure_1_depth_location.png","figure_2_magnitude_pairs.png","figure_3_product_timeline.png"]
-    if len(captions)!=3:raise ValueError("Exactly three verified figure captions are required")
-    for i,(filename,caption) in enumerate(zip(image_files,captions),1):
-        image_bytes=(ROOT/"paper/figures"/filename).read_bytes()
+    figure_order_path = ROOT / "paper/figures/manuscript_figures.json"
+    if figure_order_path.exists():
+        figure_specs = json.loads(figure_order_path.read_text(encoding="utf-8"))["ordered_figures"]
+    else:
+        figure_specs = [{"path": "paper/figures/" + name} for name in
+                        ["figure_1_depth_location.png", "figure_2_magnitude_pairs.png", "figure_3_product_timeline.png"]]
+    if len(captions) != len(figure_specs):
+        raise ValueError("Each ordered and hash-verified figure requires one caption")
+    for i,(spec,caption) in enumerate(zip(figure_specs,captions),1):
+        image_path = (ROOT / spec["path"]).resolve()
+        if not image_path.is_relative_to((ROOT / "paper/figures").resolve()):
+            raise ValueError("Manuscript figure escapes the maintained figure directory")
+        image_bytes=image_path.read_bytes()
+        if spec.get("sha256") and sha(image_bytes) != spec["sha256"]:
+            raise ValueError("Figure bytes differ from their generation manifest")
+        if not caption.startswith("Figure " + str(i) + "."):
+            raise ValueError("Figure captions must follow the declared document order")
         px_w,px_h=struct.unpack(">II",image_bytes[16:24]); cx=5943600;cy=round(cx*px_h/px_w)
         fp=deepcopy(figure_pattern)
         pr=fp.find(w("pPr"))
@@ -196,7 +215,7 @@ def main():
                "coauthor review and final submission authorization are not established by building a document"]
     if not metadata.get("confirmed_for_manuscript"):
         pending.append("author metadata and declarations unconfirmed")
-    report={"source_sha256":sha(SOURCE.read_bytes()),"template_sha256":sha(raw),"manuscript_sha256":sha(dest.read_bytes()),"author_metadata_sha256":sha(metadata_path.read_bytes()) if metadata_path.exists() else None,"preserved_part_count":len(preserved),"modified_parts":sorted(modified),"abstract_words":len(abstract.split()),"main_words_approximate":len(maintext.split()),"render_status":"not yet rendered; Word-native PDF export required on this Windows host","not_submission_ready":pending,
+    report={"source_sha256":sha(SOURCE.read_bytes()),"template_sha256":sha(raw),"manuscript_sha256":sha(dest.read_bytes()),"author_metadata_sha256":sha(metadata_path.read_bytes()) if metadata_path.exists() else None,"preserved_part_count":len(preserved),"modified_parts":sorted(modified),"figure_count":len(figure_specs),"figure_specs":figure_specs,"abstract_words":len(abstract.split()),"main_words_approximate":len(maintext.split()),"render_status":"not yet rendered; Word-native PDF export required on this Windows host","not_submission_ready":pending,
             "scientific_scope":"Bounded retained-projection application; independent historical public-state reconstruction accuracy is not claimed.",
             "editorial_risk":"The journal may judge the executable evidence-contract contribution incremental; software validation alone does not prove an advance over the state of the art."}
     (SUPPORT/"build_report.json").write_text(json.dumps(report,indent=2),encoding="utf-8")
