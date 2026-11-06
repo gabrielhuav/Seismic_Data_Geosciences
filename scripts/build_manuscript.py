@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / "paper/templates/C&G_WordTemplate.docx"
 SOURCE = ROOT / "paper/drafts/manuscript.md"
 OUT = ROOT / "outputs/paper"
+SUPPORT = ROOT / "outputs/paper-support"
 W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 R = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
 NS = {"w": W, "r": R}
@@ -183,7 +184,8 @@ def main():
             if len(line)>85:raise ValueError("Highlight exceeds 85 characters")
             hb.append(paragraph("• "+line))
     hb.append(deepcopy(final_sect));hparts=dict(parts);hparts["word/document.xml"]=E.tostring(hdoc,xml_declaration=True,encoding="UTF-8",standalone=True)
-    with ZipFile(OUT/"Seismic_CG_highlights.docx","w",ZIP_DEFLATED) as z:
+    SUPPORT.mkdir(parents=True, exist_ok=True)
+    with ZipFile(SUPPORT/"Seismic_CG_highlights.docx","w",ZIP_DEFLATED) as z:
         for n,data in hparts.items():z.writestr(n,data)
     text=SOURCE.read_text(encoding="utf-8");abstract=text.split("## Abstract",1)[1].split("## 1.",1)[0].split("Keywords:")[0]
     maintext=text.split("## 1.",1)[1].split("## References",1)[0]
@@ -197,7 +199,7 @@ def main():
     report={"source_sha256":sha(SOURCE.read_bytes()),"template_sha256":sha(raw),"manuscript_sha256":sha(dest.read_bytes()),"author_metadata_sha256":sha(metadata_path.read_bytes()) if metadata_path.exists() else None,"preserved_part_count":len(preserved),"modified_parts":sorted(modified),"abstract_words":len(abstract.split()),"main_words_approximate":len(maintext.split()),"render_status":"not yet rendered; Word-native PDF export required on this Windows host","not_submission_ready":pending,
             "scientific_scope":"Bounded retained-projection application; independent historical public-state reconstruction accuracy is not claimed.",
             "editorial_risk":"The journal may judge the executable evidence-contract contribution incremental; software validation alone does not prove an advance over the state of the art."}
-    (OUT/"build_report.json").write_text(json.dumps(report,indent=2),encoding="utf-8")
+    (SUPPORT/"build_report.json").write_text(json.dumps(report,indent=2),encoding="utf-8")
     print(json.dumps(report,indent=2))
 
 

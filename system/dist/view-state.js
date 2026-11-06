@@ -10,6 +10,8 @@
   const keys = Object.keys(defaults);
   const tabs = ['catalog', 'revisions', 'methods'];
   const sorts = ['recent', 'oldest', 'mag'];
+  const defaultCatalog = 'usgs-na-2020-2025', legacyCatalog = 'usgs-mx-historical';
+  const bases = ['local', 'osm', 'usgs-topo'];
   const urlKeys = {search: 'q', yearFrom: 'from', yearTo: 'to', magMin: 'min', magMax: 'max',
     magType: 'mt', originSource: 'src', depthMax: 'depth', missingOnly: 'missing'};
 
@@ -36,11 +38,26 @@
 
   function validMap(value) {
     return Array.isArray(value) && value.length === 3 && value.every(Number.isFinite)
-      && value[0] >= -5 && value[0] <= 55 && value[1] >= -145 && value[1] <= -55 && value[2] >= 3 && value[2] <= 9;
+      && value[0] >= -5 && value[0] <= 85 && value[1] >= -210 && value[1] <= -40 && value[2] >= 1.5 && value[2] <= 12;
+  }
+
+  function catalogDefaults(catalog) {
+    return {...defaults, yearFrom: catalog?.years?.[0] ?? defaults.yearFrom,
+      yearTo: catalog?.years?.[1] ?? defaults.yearTo, magMin: catalog?.minimum_magnitude ?? defaults.magMin};
+  }
+
+  function catalogFromURL(input, options = {}) {
+    const p = new URL(input).searchParams;
+    const fallback = p.get('v') === '1' ? legacyCatalog : options.defaultCatalog || defaultCatalog;
+    const requested = p.get('v') === '1' ? legacyCatalog : p.get('catalog') || fallback;
+    return !options.catalogs || options.catalogs.some(c => (typeof c === 'string' ? c : c.id) === requested) ? requested : fallback;
   }
 
   function parseURL(input, options = {}) {
-    const params = new URL(input).searchParams, invalid = [], raw = {...defaults};
+    const params = new URL(input).searchParams, invalid = [], catalog = catalogFromURL(input, options);
+    const definition = options.catalogs?.find(c => c.id === catalog) || options.catalog;
+    const initial = catalogDefaults(definition), raw = {...initial};
+    if (params.has('catalog') && params.get('catalog') !== catalog) invalid.push('catalog');
     for (const k of keys) if (params.has(urlKeys[k])) raw[k] = params.get(urlKeys[k]);
     if (params.has('missing')) {
       if (!['0', '1'].includes(params.get('missing'))) invalid.push('missing');
@@ -48,7 +65,7 @@
     }
     const checked = validateFilters(raw, options);
     if (!checked.valid) invalid.push(...checked.errors);
-    const view = {filters: checked.valid ? checked.filters : {...defaults}, lang: 'es', tab: 'catalog', sort: 'recent', revision: '', event: '', map: null};
+    const view = {filters: checked.valid ? checked.filters : initial, lang: 'es', tab: 'catalog', sort: 'recent', revision: '', event: '', map: null, catalog, base: 'local'};
     for (const [key, allowed] of [['lang', ['es', 'en']], ['tab', tabs], ['sort', sorts]]) {
       if (params.has(key)) {
         if (allowed.includes(params.get(key))) view[key] = params.get(key); else invalid.push(key);
@@ -66,7 +83,8 @@
       const center = pieces.length === 3 && pieces.every(p => p.trim() !== '') ? pieces.map(Number) : [];
       if (validMap(center)) view.map = center; else invalid.push('c');
     }
-    if (params.has('v') && params.get('v') !== '1') invalid.push('v');
+    if (params.has('base')) {if (bases.includes(params.get('base'))) view.base = params.get('base');else invalid.push('base');}
+    if (params.has('v') && !['1','2'].includes(params.get('v'))) invalid.push('v');
     if (params.has('snapshot') && params.get('snapshot') !== options.snapshot) invalid.push('snapshot');
     return {view, invalid: [...new Set(invalid)]};
   }
@@ -75,9 +93,12 @@
     const checked = validateFilters(view.filters);
     if (!checked.valid || !tabs.includes(view.tab) || !sorts.includes(view.sort) || !['es', 'en'].includes(view.lang)) throw Error('Invalid view');
     const url = new URL(base); url.search = ''; url.hash = '';
-    const p = url.searchParams; p.set('v', '1'); p.set('lang', view.lang);
+    const p = url.searchParams; p.set('v', '2'); p.set('lang', view.lang);
+    p.set('catalog', view.catalog || legacyCatalog);
+    if (view.base && bases.includes(view.base) && view.base !== 'local') p.set('base', view.base);
     if (view.snapshot) p.set('snapshot', view.snapshot);
-    for (const k of keys) if (checked.filters[k] !== defaults[k]) p.set(urlKeys[k], k === 'missingOnly' ? (checked.filters[k] ? '1' : '0') : String(checked.filters[k]));
+    // Numeric bounds are explicit so a registry update cannot silently alter a saved selection.
+    for (const k of keys) if (typeof defaults[k] === 'number' || checked.filters[k] !== defaults[k]) p.set(urlKeys[k], k === 'missingOnly' ? (checked.filters[k] ? '1' : '0') : String(checked.filters[k]));
     if (view.tab !== 'catalog') p.set('tab', view.tab);
     if (view.sort !== 'recent') p.set('sort', view.sort);
     if (view.revision) p.set('rev', view.revision);
@@ -87,32 +108,41 @@
   }
 
   function filterEvents(events, f, sort = 'recent') {
-    const q = f.search.toLowerCase();
+    const searchText = text => String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const q = searchText(f.search);
     const rows = events.filter(e => e.year >= f.yearFrom && e.year <= f.yearTo && e.mag >= f.magMin && e.mag <= f.magMax
       && (e.depth === null ? f.depthMax === 1000 : e.depth <= f.depthMax)
       && (!f.magType || (f.magType === '__missing__' ? !e.magType : e.magType === f.magType))
       && (!f.originSource || e.locationSource === f.originSource)
       && (!f.missingOnly || e.horizontalError === null)
-      && (!q || e.id.toLowerCase().includes(q) || e.place.toLowerCase().includes(q)));
+      && (!q || searchText(e.id).includes(q) || searchText(e.place).includes(q)));
     rows.sort(sort === 'mag' ? (a,b) => b.mag-a.mag || b.time.localeCompare(a.time)
       : sort === 'oldest' ? (a,b) => a.time.localeCompare(b.time) : (a,b) => b.time.localeCompare(a.time));
     return rows;
   }
 
-  function queryDocument({view, manifest, assetHashes, rows, pageURL, createdUTC}) {
+  function queryDocument({view, catalog, manifest, assetHashes, rows, pageURL, createdUTC}) {
     return {
-      schema: 'seismic-local-query/1', created_utc: createdUTC,
-      engine: 'Seismic Data Observatory browser-local filter, version 1',
-      input: {events_path: 'data/events.json', events_sha256: assetHashes.events,
-        manifest_path: 'data/manifest.json', manifest_sha256: assetHashes.manifest,
+      schema: 'seismic-local-query/2', created_utc: createdUTC,
+      engine: 'Seismic Data Observatory browser-local filter, version 2',
+      catalog: {id: catalog?.id || view.catalog || legacyCatalog, provider: catalog?.provider || 'usgs',
+        provider_name: catalog?.provider_name || 'U.S. Geological Survey', role: catalog?.role,
+        bounds: catalog?.bounds, years: catalog?.years, minimum_magnitude: catalog?.minimum_magnitude,
+        snapshot: catalog?.snapshot},
+      input: {events_path: catalog?.events_url || 'data/events.json', events_sha256: assetHashes.events,
+        manifest_path: catalog?.manifest_url || 'data/manifest.json', manifest_sha256: assetHashes.manifest,
+        registry_path: 'data/catalogs.json', registry_sha256: assetHashes.registry,
         snapshot_repository: manifest.snapshot_repository, snapshot_commit: manifest.snapshot_commit,
-        source_files: manifest.files, packaged_event_type: 'earthquake'},
+        source_files: manifest.files, packaged_event_type: catalog && catalog.provider !== 'usgs' ? null : 'earthquake',
+        identifier_kind: catalog?.identifier_kind || manifest.identifier_kind || 'source_event_id',
+        depth_unit: catalog?.depth_unit_status === 'not_documented_in_source' ? null : 'km',
+        coordinates: 'Original reported coordinates. Any antimeridian shift is display-only.'},
       selection: {...view.filters}, sort: view.sort,
       predicate_rules: {
         year: 'Inclusive UTC origin-time year bounds.', magnitude: 'Inclusive reported values; exact magType match; no scale conversion.',
         depth: 'Inclusive maximum; null depth included only when depthMax is the default 1000.',
         missingOnly: 'When true require horizontalError === null; unknown is never zero.',
-        search: 'Trimmed case-insensitive substring of event ID or reported place.',
+        search: 'Trimmed case-insensitive substring of event ID or reported place; NFD combining accents removed for comparison only. Original text is retained.',
         originSource: 'Exact locationSource match; not a country assignment.',
         missing_magnitude_type: 'The sentinel __missing__ selects absent magnitude types.',
         sort_ties: 'mag uses descending origin time as a tiebreaker; time ties preserve packaged row order.',
@@ -122,6 +152,7 @@
       view_url: pageURL,
       limits: [
         'This describes a local query over the identified packaged bytes, not an equivalent live ComCat request.',
+        'Only one catalog is selected. Different provider catalogs can share observations; their counts are not additive or independent validation.',
         'A live ComCat response can change and cannot replace this snapshot when reproducing the result.',
         'The regional rectangle includes offshore and neighbouring areas; no event nationality is inferred.',
         'Reported magnitude types are not interchangeable; missing uncertainties remain unknown.',
@@ -130,5 +161,5 @@
       ]
     };
   }
-  return {defaults, validateFilters, validMap, parseURL, serialize, filterEvents, queryDocument};
+  return {defaults, defaultCatalog, legacyCatalog, catalogDefaults, catalogFromURL, validateFilters, validMap, parseURL, serialize, filterEvents, queryDocument};
 });

@@ -24,10 +24,13 @@ jobs:
         run: python scripts/prepare_public_evidence.py restore
       - name: Run scientific contract checks
         run: python -m unittest discover -s tests
+      - name: Verify catalogue registry and packaged source hashes
+        run: python scripts/build_catalogs.py --verify-only
       - name: Check shared views, filters and bilingual labels
         run: |
           node tests/test_view_state.cjs
           node tests/test_system_labels.cjs
+          node tests/test_catalog_frontend.cjs
       - name: Reproduce the independent retained-product validation
         run: python -m scripts.validate_evidence
       - name: Check static references, privacy and pinned asset bytes

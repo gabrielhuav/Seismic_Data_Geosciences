@@ -4,9 +4,16 @@
 
 Este proyecto se preparó localmente el 5 nov 2026. Después Gabriel autorizó crear y
 conectar el remoto público https://github.com/gabrielhuav/Seismic_Data_Geosciences.
-Después se autorizó un commit inicial y un push con excepciones concretas.
-Comprueba si ya se ejecutaron: una autorización consumida no permite repetirlos.
+El commit inicial 6b74f733628b41ab02816d6ba955739d0f22706c y su push
+ya se ejecutaron con autorización expresa. GitHub Pages está publicado.
+La autorización quedó consumida y no permite repetir esas acciones.
 Un clon sólo recupera los archivos efectivamente incluidos en el remoto.
+
+Actualización del 6 nov: ampliación local con tres catálogos (USGS México/NA y
+NRCan Canadá), dos proveedores y tres bases revisada en navegador. No asumir que
+está publicada sin comprobar un segundo commit/push y workflow autorizados.
+outputs/paper/ sólo conserva Word final y PDF; auxiliares en outputs/archive/.
+La última instrucción es mantener la PC encendida; no programar apagado.
 
 Ahora también existen código, crudos, figuras y un manuscrito revisable locales.
 La fuente del paper, figuras, plantilla y otros archivos ignorados no viajan con Git.

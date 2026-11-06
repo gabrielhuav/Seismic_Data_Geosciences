@@ -3,6 +3,7 @@
 *.pdf -text
 data/raw/** -text
 research-data/comcat/** -text
+research-data/catalogs/** -text
 system/dist/data/** -text
 system/dist/vendor/leaflet/** -text
 

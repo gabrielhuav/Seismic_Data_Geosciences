@@ -32,7 +32,7 @@ test('round trip leaves actual selected IDs and order unchanged', () => {
 test('malformed numeric/filter/map/selection inputs are rejected safely', () => {
  const parsed=V.parseURL('https://example.org/?from=NaN&to=1800&min=Infinity&depth=-101&missing=yes&mt=unknown&src=unknown&c=,0,99&tab=admin&lang=xx&event=%3Cscript%3E&rev=missing&v=9&snapshot=wrong',options);
  assert(parsed.invalid.length>=10);assert.deepEqual(parsed.view.filters,V.defaults);assert.equal(parsed.view.lang,'es');assert.equal(parsed.view.tab,'catalog');assert.equal(parsed.view.map,null);assert.equal(parsed.view.event,'');assert.equal(parsed.view.revision,'');
- for(const c of ['NaN,-100,5','23,-100,Infinity','56,-100,5','23,-146,5','23,-100,2','23,-100,10','23,-100','23,-100,5,0'])assert(V.parseURL('https://example.org/?c='+encodeURIComponent(c),options).invalid.includes('c'));
+ for(const c of ['NaN,-100,5','23,-100,Infinity','86,-100,5','23,-211,5','23,-100,1','23,-100,13','23,-100','23,-100,5,0'])assert(V.parseURL('https://example.org/?c='+encodeURIComponent(c),options).invalid.includes('c'));
 });
 test('blank and inverted bounds are invalid; magnitude type comparison is exact', () => {
  assert.equal(V.validateFilters({...V.defaults,magMin:''}).valid,false);
@@ -50,7 +50,7 @@ test('query JSON identifies exact bytes, actual local selection and limits', () 
  const hashes={events:hash('system/dist/data/events.json'),manifest:hash('system/dist/data/manifest.json')};
  assert.equal(hashes.events,manifest.derived_asset_sha256);
  const query=V.queryDocument({view,manifest,assetHashes:hashes,rows,pageURL:V.serialize(view,'https://example.org/'),createdUTC:'2026-11-05T00:00:00Z'});
- assert.equal(query.schema,'seismic-local-query/1');assert.equal(query.input.events_sha256,manifest.derived_asset_sha256);assert.equal(query.input.source_files.length,46);
+ assert.equal(query.schema,'seismic-local-query/2');assert.equal(query.input.events_sha256,manifest.derived_asset_sha256);assert.equal(query.input.source_files.length,46);
  assert.equal(query.result.row_count,1);assert.deepEqual(query.result.ordered_event_ids,['us2000ahv0']);assert.equal(query.selection.search,'us2000ahv0');
  assert(query.limits.some(x=>x.includes('not an equivalent live ComCat request')));assert(query.predicate_rules.map.includes('do not alter'));
 

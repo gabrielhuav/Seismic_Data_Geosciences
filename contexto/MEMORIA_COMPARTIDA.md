@@ -1,61 +1,74 @@
 # Memoria compartida: sismos para Computers & Geosciences
 
-Actualizada: 5 de noviembre de 2026. Hablar con Gabriel en español y brevemente.
+Actualizada: 6 de noviembre de 2026. Hablar con Gabriel en español y brevemente.
 Leer AGENTS.md completo. Los resultados de antecedentes no son verificaciones nuevas.
 
 ## Estado actual
 
-- Gabriel autorizó expresamente un commit inicial humano y un push a origin/main,
-  además de publicar el sistema. Aceptó para ESE push los cuatro HTTP 403
-  editoriales documentados y el muestreo de 264 de 24,994 rutas de eventos:
-  «Sí: autorizo el commit, el push y esas excepciones». Plan concreto local:
-  outputs/publication/initial_release_plan.md. No se autorizan commits adicionales,
-  amend, otros pushes, releases ni envío editorial. El apagado sigue condicionado
-  a terminar el trabajo y guardar los archivos; todavía no se ha ejecutado.
-- Sistema preparado en system/dist: mapa Leaflet 1.9.4 y Natural Earth local,
-  ES/EN con español por defecto, filtros, buscador, gráfico anual, fichas con
-  fuentes y hashes, CSV, 36 historiales de origen, vistas restaurables por URL
-  y descarga JSON de consultas locales con hashes e IDs ordenados. Contiene
-  24,994 earthquake de 46 CSV fijados. El encuadre no limita el CSV, las magnitudes
-  no se convierten y no se infiere país, predicción ni daño.
-- Host elegido: GitHub Pages gratuito de ESTE repositorio público; workflow
-  manual .github/workflows/pages.yml que sólo sube system/dist. No hay Site de
-  Sites. Contexto, paper, figuras y crudos históricos SSN quedan fuera de la web.
-  Comprobar estado Git real: la autorización inicial puede estar consumida.
-  Identidad: Gabriel Hurtado <gabrielhurtadoaviles@gmail.com>, sin firmas,
-  asistentes, coautores ni trailers automáticos.
-- Selección pública preparada: código y documentación propios bajo MIT de Gabriel,
-  pruebas, artefacto web, AGENTS.md, tres Markdown de continuidad, procedencia de
-  plantilla y research-data/comcat con 40 respuestas oficiales originales
-  (35,641,601 bytes) y manifiestos. prepare_public_evidence.py verifica y restaura
-  los bytes sin red ni sobrescritura de evidencia diferente. Los derechos de
-  fuentes y contribuyentes no se sustituyen por MIT. Plantilla Word original,
-  figuras y fuente del manuscrito, outputs, tmp, data/raw y prompts quedan locales.
-- Verificaciones: 36 tests científicos; seis grupos Node de URL/filtros/JSON;
-  102 etiquetas bilingües, 53 IDs y diez assets cartográficos coherentes. Cero
-  fallos de referencias locales, privacidad o integridad. Red: 171 literales y
-  264 rutas; 423 de 435 pasan HTTP, ocho TLS de GitHub verificados por conector
-  con contenido recuperado, cuatro HTTP 403 exceptuados para el push autorizado.
-  Recibos actuales en outputs/links/connector_receipts_current.json. No se
-  certifican las otras 24,730 rutas. Comparar el grafo de URLs y hashes actuales
-  con el informe antes de empujar; los fallos HTTP originales siguen registrados.
-- Edge está autorizado por Gabriel, pero Computer Use detuvo dos turnos porque
-  no pudo identificar su URL actual con confianza suficiente para la política.
-  No seguir intentando ni eludir el control. La UI nueva carece de revisión
-  visual/interactiva completa: sólo revisión independiente de código, lógica y
-  carga HTTP 200. Word sí funciona como aplicación independiente por Computer Use.
-- Manuscrito completo de 17 páginas y tres figuras, fuente privada
+- Gabriel AUTORIZÓ expresamente el 6 nov un nuevo commit humano, su push a
+  origin/main y el despliegue manual Pages de esta ampliación, aceptando para
+  ESTE push los cuatro HTTP403 y el muestreo de 339/36,872 rutas USGS únicas.
+  Ejecutar una sola vez y comprobar commit/workflow/URL antes de afirmar éxito.
+  La PC debe quedar encendida. No autoriza acciones posteriores adicionales.
+- Ampliación TERMINADA LOCALMENTE, segundo commit/push/despliegue autorizados y
+  pendientes de ejecutar al guardar este estado. Tres catálogos: USGS Norteamérica 2020–2025
+  (14,041 registros), México original (24,994) y NRCan histórico 1985–2019 (6,613
+  M reportada >=3.5). No se suman como terremotos independientes ni modifican el
+  paper. Buscador visible, proveedor de datos y catálogo separados de la base:
+  Natural Earth local, OpenStreetMap y USGS Topo bajo demanda y con atribución.
+  Canadá septentrional/Alaska/Aleutianas visibles; coordenadas crudas intactas,
+  antimeridiano sólo visual. Coberturas/licencias/límites en docs/CATALOGS.md.
+- NRCan: CSV específico Open Government bajo OGL–Canada, sin extender licencia
+  al boletín NEDB. De 101,365 filas se seleccionan 6,613; cinco repeticiones se
+  conservan. Claves locales derivadas, sin IDs originales, tipo de evento,
+  revisiones o incertidumbres inventados. depth=null; raw_depth sin unidad
+  documentada. El papel conserva su diagnóstico México y piloto de 36 eventos.
+- Revisión real en navegador integrado completada: búsquedas Canadá/Alaska,
+  USGS/NRCan, ficha canadiense y profundidad cruda, CSV/JSON (6,613 filas e IDs
+  ordenados iguales), URLs v1 México, vistas v2 en inglés/base USGS Topo, bases
+  remotas visibles y atribuidas, móvil sin desborde y mapa local completo. Se
+  corrigió pérdida de búsqueda durante carga, bloqueando filtros hasta terminar.
+  Captura privada outputs/expansion/system_review.jpg. No afirmar que esta
+  ampliación ya está en Pages; los bloqueos anteriores de Edge son históricos.
+- Entrega reducida: outputs/paper/ contiene SÓLO Word final y PDF con hashes
+  intactos indicados abajo. Veinticinco auxiliares/versiones/highlights archivados
+  sin pérdida en outputs/archive/paper_auxiliares_2026-11-06/. Generaciones futuras
+  usan outputs/paper-support/. Conservar fuente, plantilla, datos y software.
+- Ampliación: 41 pruebas Python, 16 casos JS, 119 etiquetas y 68 IDs; tres catálogos,
+  dos proveedores y seis hashes válidos. Reconstrucción aislada de 25 assets
+  idénticos; México y documentos intactos. Gate nuevo: 538 destinos, 534 verificados
+  y cuatro HTTP403 editoriales; 339/36,872 rutas USGS únicas muestreadas. Diez fallos
+  TLS GitHub resueltos con contenido fresco del conector; AZCATL pasó reintento.
+  Cero fallos locales/privacidad/hashes. Plan privado concreto:
+  outputs/publication/catalog_update_plan.md. Excepciones y muestreo requieren
+  aprobación para ESTE push, ya recibida; no se heredaron las del primero.
+- ÚLTIMA instrucción de Gabriel: NO apagar la PC al terminar, revocando su
+  solicitud intermedia. Helper anterior deshabilitado; no programar apagado.
+- Trabajo técnico y manuscrito completos. Sistema PÚBLICO verificado:
+  https://gabrielhuav.github.io/Seismic_Data_Geosciences/
+  GitHub Pages, workflow manual exitoso 42169307720, commit único
+  6b74f733628b41ab02816d6ba955739d0f22706c. Los 20 archivos publicados responden
+  y coinciden byte por byte con el commit; contexto, paper y research-data no se
+  sirven en Pages. El paquete científico sí está en el repositorio público.
+- Gabriel autorizó un commit inicial y un push con las excepciones concretas;
+  AMBOS YA SE CONSUMIERON. También se ejecutó la publicación solicitada. No hay
+  permiso general para amend, release, correo o envío editorial. La autorización
+  nueva específica del 6 nov consta arriba. Git humano: Gabriel Hurtado
+  <gabrielhurtadoaviles@gmail.com>, autor/committer comprobados, firma ausente,
+  sin asistentes ni trailers. Esta actualización de continuidad es LOCAL y no
+  se empuja automáticamente como segundo commit.
+- Manuscrito final de trabajo: outputs/paper/Seismic_CG_manuscript.docx y .pdf,
+  18 páginas, todas revisadas visualmente tras la última exportación Word nativa
+  y Poppler. Highlights DOCX/PDF de una página también revisados. Fuente privada
   paper/drafts/manuscript.md, SHA-256
-  68e71a07345d5b172fe1f5bdaa6584ae4684f3ff969da769c415659cab283cc0.
-  Resumen 254 palabras, cuerpo aproximado 3,920. Se revisaron las 17 páginas y
-  highlights de una página tras exportación nativa Word y Poppler. Algunos renders
-  omiten el texto opcional del pie. El generador ya deja ese slot vacío conservando
-  los campos PAGE y la autoría de portada. DOCX regenerado con esa corrección:
-  REQUIERE nueva exportación y revisión; el PDF actual aún es anterior a ella.
-  Actualizar disponibilidad sólo después de publicación real y regenerar/revisar.
-  La versión de 15 páginas es obsoleta; copia privada en
-  outputs/paper/reviewed_before_declarations/. No afirmar envío ni visto bueno
-  de coautores como consecuencia de autorizar el trabajo técnico.
+  408a2240b963439c7cceb5ba3f0a8d51f1b1c4c704aa2a4c74c588b0d367b180.
+  DOCX SHA-256 dfedc5c2ed797c1ab8c7b1ac18446926e58ef0cb89b97461c44dba0be16ab606;
+  PDF SHA-256 912dbea82b650122f8a0a23bcb6cf81fb1e4b4343f974054fe37a7f85a741936.
+  Resumen 254 palabras, cuerpo aproximado 4,008. Disponibilidad incluye el commit
+  y sitio realmente publicados; no se inventa DOI de depósito archivístico.
+  Pie opcional izquierdo vacío, PAGE y créditos de portada conservados. Plantilla
+  original sin modificar y 17 componentes originales preservados por el generador.
+  Versiones anteriores de 15/17 páginas son obsoletas; no entregar PDF anterior.
 - Metadatos confirmados: José Manuel Villa Vargas primero, sin afiliación,
   ORCID 0009-0009-2401-0661; Gabriel Hurtado Avilés segundo y de correspondencia,
   Escuela Superior de Cómputo (ESCOM), Instituto Politécnico Nacional,
@@ -65,22 +78,47 @@ Leer AGENTS.md completo. Los resultados de antecedentes no son verificaciones nu
   Writing-original draft, Writing-review & editing. Gabriel: Data curation,
   Investigation, Methodology, Project administration, Resources, Software,
   Validation, Visualization. Sin Funding acquisition. Registro privado:
-  paper/drafts/author_metadata.json.
-- Afirmaciones científicas acotadas fundamentadas: 36 eventos, 236 versiones de
-  origin, 205 en rama US, 31 pares de igual tipo, 13 cambios, cuatro cruces de 5.5,
-  desplazamiento mediano 12.339 km y máximo 79.684 km entre soluciones, no errores
-  contra verdad. SQL independiente: 472 cortes por diez consultas, 4,720
-  comparaciones y cero discrepancias. Ocho historias sintéticas y 24 casos:
-  cero discrepancias de proyección; políticas ilustrativas con 10/11/10
-  discrepancias contra replay conocido, sin interpretación como tasa operativa
-  o benchmark de otros programas. Se rechazaron estados de producto desconocidos.
-  No se reclama precisión de reconstrucción histórica. Riesgo editorial concreto:
-  C&G puede considerar incremental el contrato ejecutable; la validación no
-  demuestra por sí sola avance sobre el estado del arte.
+  paper/drafts/author_metadata.json. Asistencia académica de IA declarada.
+- El texto y resultados acotados están completos para revisión final humana;
+  no se afirma aprobación coautoral ni envío. C&G puede considerar incremental
+  la contribución computacional del contrato ejecutable: las pruebas no garantizan
+  avance sobre el estado del arte o aceptación. No se reclama reconstrucción
+  precisa del catálogo público pasado ni generalización a otros proveedores.
+- Sistema: mapa Leaflet 1.9.4/Natural Earth local, español/inglés, filtros,
+  buscador, gráfico anual, fichas con fuentes/hashes, CSV, 36 historiales,
+  vistas restaurables por URL y consulta JSON con filtros/hashes/IDs ordenados.
+  Conserva 24,994 earthquake de 46 CSV fijados. El encuadre no limita el CSV;
+  no se convierten magnitudes ni se infiere país, predicción o daño.
+- Reproducción pública: research-data/comcat contiene 40 respuestas oficiales
+  originales (35,641,601 bytes), adquisición y manifiestos; derechos por fuente
+  y metadatos públicos de operadores conservados. prepare_public_evidence.py
+  verify/restore funciona sin red y rechaza evidencia diferente. MIT de Gabriel
+  sólo cubre software/documentación propios, no observaciones/plantilla/terceros.
+  paper/drafts, figuras, plantilla DOCX original, outputs, tmp, data/raw y prompts
+  siguen privados/locales. Los tres Markdown de contexto y AGENTS sí están en Git,
+  según lo autorizado, pero fuera del artefacto web.
+- Validaciones: 36 tests científicos, seis grupos Node, 102 etiquetas, 53 IDs,
+  diez assets cartográficos. SQLite: 4,720 comparaciones sobre 472 cortes y diez
+  consultas de 36 detalles, cero discrepancias. Ocho historias sintéticas y 24
+  casos: cero discrepancias de proyección; políticas ilustrativas 10/11/10 contra
+  replay conocido, no tasas operativas ni benchmarks de programas existentes.
+  Se rechazan estados de producto desconocidos. CI reprodujo todos estos pasos.
+- Gate de push consumido para ese commit: cero fallos locales/privacidad/integridad;
+  171 URLs literales y 264 rutas probadas, 423/435 HTTP correctas, ocho TLS GitHub
+  verificados por conector y cuatro HTTP 403 editoriales exceptuados expresamente
+  por Gabriel. Muestreo de 264/24,994 también autorizado para ese push. No heredar
+  excepciones a futuros pushes ni afirmar que se visitaron las otras 24,730 rutas.
+  Informes privados en outputs/links y outputs/publication. Los bytes científicos
+  y Leaflet llevan -text para evitar normalización de Git que rompa sus hashes.
+- La revisión visual/interactiva quedó pendiente en la primera publicación por
+  un bloqueo de herramienta de Edge; ya se completó para la ampliación LOCAL
+  mediante el navegador integrado disponible, sin eludir avisos de seguridad.
 - Históricos de sismos, agua y obras, sitios, ramas, bases y contenedores intactos.
-  Vía Subscription sin cargo al autor; sin pagos ni envíos. Revalidar costos antes
-  de enviar. AZCATL 2026, DOI 10.24275/AZC2026E1004, sólo citado como antecedente;
-  no se reciclaron sus textos o figuras como inéditos.
+  Sin pagos ni envío editorial. Ruta elegida Subscription sin cargo al autor;
+  revalidar tarifas antes de enviar. Antecedente AZCATL DOI 10.24275/AZC2026E1004,
+  sólo citado, sin reciclar textos/figuras como inéditos.
+- El apagado al cierre anterior es historia; la instrucción vigente es mantener
+  la PC encendida. Registro privado outputs/publication/shutdown_request.json.
 
 ## Revista, costos y plantilla
 
@@ -178,20 +216,37 @@ fuera de muestra. No agregar ML ni modelos geotécnicos sin necesidad científic
 
 ## Siguiente paso
 
-1. Verificar si ya se consumieron el commit inicial y push autorizados. Si aún no,
-   comprobar selección, hashes y Git humano; ejecutar una sola vez con las
-   excepciones exactas. Configurar Pages sólo aquí, disparar el workflow manual,
-   esperar éxito y verificar URL y assets antes de entregar el enlace final.
-   Ningún amend ni push adicional queda autorizado automáticamente.
-2. Tras publicación efectiva, actualizar disponibilidad del paper con URL y versión
-   reales. Regenerar Word/highlights; cerrar los archivos antes de reemplazarlos,
-   exportar con Word nativo y desmarcar apertura automática del PDF en navegador.
-   Rasterizar con Poppler y revisar todas las páginas. Edge sigue bloqueado.
-3. Entregar documentos vigentes y enlace alojado verificado. Distinguir riesgo
-   editorial de afirmaciones no validadas; no enviar ni inventar aprobación de
-   coautores. Apagar sólo después del cierre completo y archivos guardados.
+1. Ejecutar el commit humano, push y despliegue manual Pages ya autorizados el
+   6 nov; verificar assets/URL y registrar los identificadores finales. No repetir
+   acciones consumidas. Mantener la PC encendida. Entregar únicamente Word
+   final, PDF y enlace real, distinguiendo versión pública y candidata local.
+2. Gabriel y José Manuel deben revisar y aprobar el texto antes de un envío
+   editorial expresamente autorizado. Revalidar guía/costo cero, depósito y
+   declaraciones de disponibilidad en el momento del envío; no convertir el
+   registro de GitHub en un DOI que no existe.
+3. Conservar copia privada del paper, fuente, plantilla y figuras: un clon sólo
+   recupera código y paquete público. Comprobar estado real de Git al retomar.
 
 ## Bitácora
+
+- 2026-11-06: entrega reducida a dos finales y auxiliares archivados sin pérdida;
+  Word/PDF de 18 páginas intactos. Ampliación local de tres catálogos, dos
+  proveedores y tres bases; buscador adelantado, UI y descargas comprobadas en
+  navegador real, 41 Python y 16 JS pasan. Reconstrucción aislada/hash verificados.
+  Sin segundo commit, push ni despliegue. Tras cambios de instrucción, la ÚLTIMA
+  orden de Gabriel es NO apagar la PC.
+- 2026-11-06: recibida aprobación específica para un nuevo commit humano, push
+  y despliegue manual, con cuatro HTTP403 y muestreo339/36872 aceptados para este
+  push. Acciones pendientes al guardar esta continuidad; no afirmar publicación
+  sin verificar el resultado real. Sin autorización de release ni envío editorial.
+
+- 2026-11-05, cierre final: commit humano 6b74f733628b41ab02816d6ba955739d0f22706c,
+  un push autorizado y Pages publicados. Workflow 42169307720 success; veinte
+  assets coinciden con el commit y tres rutas excluidas dan404. Word/PDF finales
+  de 18 páginas y highlights de una página revisados tras disponibilidad pública y
+  ajuste del pie opcional. No hubo pagos ni envío editorial. Continuidad posterior
+  actualizada sólo localmente; no se ejecutó segundo commit/push. Apagado al cierre
+  solicitado por Gabriel, sin forzar aplicaciones; verregistroprivado delresultado.
 
 - 2026-11-05: autoría, financiación y CRediT confirmados; validación SQL y
   sintética integrada; 36 tests y seis checks Node pasan. Sistema bilingüe con

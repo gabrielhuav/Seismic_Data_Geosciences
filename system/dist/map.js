@@ -1,18 +1,48 @@
 'use strict';
 
+// Pure display transforms never replace the source coordinates used by exports.
+window.SeismicMapGeometry = (function () {
+  const displayLongitude = longitude => longitude > 0 ? longitude - 360 : longitude;
+  // Rebuild each ring continuously, then shift the entire polygon. Raw GeoJSON and
+  // event coordinates remain unchanged; shifting isolated vertices would tear Russia.
+  function displayPolygon(rings) {
+    let shellCenter;
+    return rings.map((ring, index) => {
+      const continuous = ring.map((point, i) => {
+        let longitude = point[0];
+        return [longitude, ...point.slice(1)];
+      });
+      for (let i = 1; i < continuous.length; i++) continuous[i][0] += 360 * Math.round((continuous[i - 1][0] - continuous[i][0]) / 360);
+      const center = continuous.reduce((sum, p) => sum + p[0], 0) / Math.max(1, continuous.length);
+      if (!index) shellCenter = center > 0 ? center - 360 : center;
+      const shift = 360 * Math.round((shellCenter - center) / 360);
+      return continuous.map(p => [p[0] + shift, ...p.slice(1)]);
+    });
+  }
+  return {displayLongitude, displayPolygon};
+})();
+
 // Local cartography and one canvas keep geographic context independent of tile APIs.
-window.createSeismicMap = function ({element, basemap, onSelect, onViewChange = () => {}, translate = key => key, formatNumber = String}) {
-  const region = L.latLngBounds([[14, -118], [33, -86]]);
+window.createSeismicMap = function ({element, basemap, onSelect, onViewChange = () => {}, onBaseChange = () => {}, onBaseStatus = () => {}, translate = key => key, formatNumber = String}) {
+  let region = L.latLngBounds([[14, -190], [84, -50]]), activeBase = 'local', tiles = null, tileErrors = 0;
+  const {displayLongitude, displayPolygon} = window.SeismicMapGeometry;
+  const eventLatLng = event => [event.latitude, displayLongitude(event.longitude)];
+  const visualBasemap = {...basemap, features: basemap.features.map(feature => {
+    const g = feature.geometry;
+    return {...feature, geometry: g.type === 'Polygon' ? {...g, coordinates: displayPolygon(g.coordinates)}
+      : g.type === 'MultiPolygon' ? {...g, coordinates: g.coordinates.map(displayPolygon)} : g};
+  })};
   const map = L.map(element, {
-    preferCanvas: true, minZoom: 3, maxZoom: 9, zoomSnap: .25,
-    maxBounds: [[-5, -145], [55, -55]], maxBoundsViscosity: .8,
+    preferCanvas: true, minZoom: 1.5, maxZoom: 12, zoomSnap: .25,
+    maxBounds: [[-5, -210], [85, -40]], maxBoundsViscosity: .8,
     attributionControl: true, keyboard: true
   });
   map.attributionControl.setPrefix('<a href="https://leafletjs.com/">Leaflet</a>');
-  map.attributionControl.addAttribution('<a href="https://www.naturalearthdata.com/about/terms-of-use/">Made with Natural Earth</a>');
+  const naturalAttribution = '<a href="https://www.naturalearthdata.com/about/terms-of-use/">Made with Natural Earth</a>';
+  map.attributionControl.addAttribution(naturalAttribution);
   L.control.scale({imperial: false, maxWidth: 120}).addTo(map);
   const countryRenderer = L.canvas({padding: .25});
-  L.geoJSON(basemap, {
+  const countries = L.geoJSON(visualBasemap, {
     renderer: countryRenderer, interactive: false,
     style: f => ({color: '#889e97', weight: .9, fillColor: f.properties.ADMIN === 'Mexico' ? '#f1e8ce' : '#f0f2e8', fillOpacity: 1})
   }).addTo(map);
@@ -27,9 +57,32 @@ window.createSeismicMap = function ({element, basemap, onSelect, onViewChange = 
   }
   const labelSpecs = basemap.features.filter(f => Number.isFinite(f.properties.LABEL_X) && Number.isFinite(f.properties.LABEL_Y)).map(f => {
     const p = f.properties, major = ['Mexico', 'United States of America', 'Canada', 'Cuba'].includes(p.ADMIN);
-    return {properties: p, minZoom: major ? 3 : 5, marker: L.marker([p.LABEL_Y, p.LABEL_X], {pane: 'countryLabels', interactive: false, keyboard: false, icon: countryIcon(p)})};
+    return {properties: p, minZoom: major ? 1.5 : 5, marker: L.marker([p.LABEL_Y, displayLongitude(p.LABEL_X)], {pane: 'countryLabels', interactive: false, keyboard: false, icon: countryIcon(p)})};
   });
-  function labels() {labelLayer.clearLayers();for (const spec of labelSpecs) if (map.getZoom() >= spec.minZoom) {spec.marker.setIcon(countryIcon(spec.properties));labelLayer.addLayer(spec.marker);}}
+  function labels() {labelLayer.clearLayers();if (activeBase !== 'local') return;for (const spec of labelSpecs) if (map.getZoom() >= spec.minZoom) {spec.marker.setIcon(countryIcon(spec.properties));labelLayer.addLayer(spec.marker);}}
+  function setBase(id, persist = true) {
+    if (!['local', 'osm', 'usgs-topo'].includes(id)) id = 'local';
+    if (tiles) {tiles.off();map.removeLayer(tiles);tiles = null;}
+    activeBase = id;tileErrors = 0;
+    if (id === 'local') {
+      if (!map.hasLayer(countries)) countries.addTo(map);
+      map.attributionControl.addAttribution(naturalAttribution);onBaseStatus('baseLocalNote');
+    } else {
+      map.removeLayer(countries);map.attributionControl.removeAttribution(naturalAttribution);
+      const source = id === 'osm' ? {url:'https://tile.openstreetmap.org/{z}/{x}/{y}.png', attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'}
+        : {url:'https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}', attribution:'<a href="https://www.usgs.gov/programs/national-geospatial-program/national-map">U.S. Geological Survey, National Geospatial Program</a> · USGS The National Map; USGS Global Ecosystems; U.S. Census Bureau; USFS; Natural Earth; U.S. Department of State HIU; NOAA NCEI'};
+      // Only tiles in the user's current viewport are requested. No probes,
+      // prefetch, offline downloads or periodic retries are performed.
+      tiles = L.tileLayer(source.url, {attribution: source.attribution, maxZoom: 12,
+        maxNativeZoom: 12, updateWhenIdle: true, keepBuffer: 0}).addTo(map);
+      tiles.on('tileerror', () => {
+        tileErrors++;
+        if (tileErrors >= 3 && activeBase === id) {setBase('local', false);onBaseStatus('baseFallback');onBaseChange('local');}
+      });
+      onBaseStatus(id === 'osm' ? 'baseOsmNote' : 'baseUsgsNote');
+    }
+    labels();if (persist) onBaseChange(id);
+  }
 
   const EventsLayer = L.Layer.extend({
     onAdd(m) {
@@ -47,7 +100,7 @@ window.createSeismicMap = function ({element, basemap, onSelect, onViewChange = 
       L.DomUtil.setPosition(c, this._map.containerPointToLayerPoint([0, 0]));
       const ctx = c.getContext('2d');ctx.setTransform(ratio, 0, 0, ratio, 0, 0);this.points = [];
       for (const e of this.records || []) {
-        const p = this._map.latLngToContainerPoint([e.latitude, e.longitude]);
+        const p = this._map.latLngToContainerPoint(eventLatLng(e));
         const radius = Math.max(2, (e.mag - 2.5) * 1.25);
         if (p.x < -radius || p.x > size.x + radius || p.y < -radius || p.y > size.y + radius) continue;
         this.points.push({x: p.x, y: p.y, radius, event: e});
@@ -74,7 +127,7 @@ window.createSeismicMap = function ({element, basemap, onSelect, onViewChange = 
     if (!nearest) {map.closePopup();return;}
     const e = nearest;
     const content = `<strong>${safe(e.place)}</strong><p class="map-popup-meta">${safe(formatNumber(e.mag))} ${safe(e.magType || translate('unknownType'))} · ${safe(e.time)}<br>${safe(e.id)}</p><button class="map-inspect" data-map-event="${safe(e.id)}">${safe(translate('inspectRecord'))}</button>`;
-    L.popup({maxWidth: 290}).setLatLng([e.latitude, e.longitude]).setContent(content).openOn(map);
+    L.popup({maxWidth: 290}).setLatLng(eventLatLng(e)).setContent(content).openOn(map);
   });
   element.addEventListener('click', event => {
     const button = event.target.closest('[data-map-event]');if (button) {event.stopPropagation();onSelect(button.dataset.mapEvent);}
@@ -82,7 +135,7 @@ window.createSeismicMap = function ({element, basemap, onSelect, onViewChange = 
   function reset() {map.closePopup();map.fitBounds(region, {padding: [20, 20], animate: false});labels();}
   function fitRecords() {
     const rows = events.records || [];if (!rows.length) return;
-    const bounds = L.latLngBounds(rows.map(e => [e.latitude, e.longitude]));
+    const bounds = L.latLngBounds(rows.map(eventLatLng));
     map.closePopup();map.fitBounds(bounds, {padding: [30, 30], maxZoom: 8, animate: false});
   }
   reset();
@@ -96,7 +149,9 @@ window.createSeismicMap = function ({element, basemap, onSelect, onViewChange = 
   languageChanged();
   return {
     setRecords(records) {map.closePopup();events.setRecords(records);},
-    reset, fitRecords, languageChanged,
+    reset, fitRecords, languageChanged, setBase,
+    getBase() {return activeBase;},
+    setRegion(bounds) {region = L.latLngBounds(bounds);},
     getView() {const center = map.getCenter();return [center.lat, center.lng, map.getZoom()];},
     setView(view) {map.closePopup();map.setView([view[0], view[1]], view[2], {animate: false});},
     resize() {map.invalidateSize({pan: false});events.redraw();}

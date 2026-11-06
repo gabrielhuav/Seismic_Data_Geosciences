@@ -21,6 +21,7 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "system/dist"
 URL = re.compile(r"https?://[^\s<>\"'`(){}\[\]\\$]+")
+ENCODED_URL_SUFFIX = re.compile(r"['\"]\s*\+\s*encodeURIComponent\s*\(")
 CSS_URL = re.compile(r"url\(\s*['\"]?([^)'\"\s]+)", re.I)
 LOCAL_JSON = re.compile(r"['\"]((?:data|vendor)/[^'\"\s$]+)['\"]")
 SOURCE_MAP = re.compile(r"[#@]\s*sourceMappingURL=([^\s]+)")
@@ -80,6 +81,12 @@ def collect_links(scope):
                 non_navigation.append({"url": url, "source": name, "classification": "reserved parser base, never a navigable link", "line": text.count("\n", 0, match.start()) + 1})
             elif text[match.end():match.end()+2] == "${":
                 templates.append({"source": name, "prefix": url, "status": "resolved separately from typed packaged event IDs"})
+            elif text[match.end():match.end()+1] == "{":
+                templates.append({"source": name, "prefix": url,
+                                  "status": "parameterized provider URL; event routes inventoried separately and map tiles requested only for a user-selected visible view, never prefetched by this checker"})
+            elif ENCODED_URL_SUFFIX.match(text, match.end()):
+                templates.append({"source": name, "prefix": url,
+                                  "status": "URL prefix concatenated with an encoded identifier; typed packaged event routes inventoried separately, prefix is not a literal navigation target"})
             else:
                 external[url].add(name)
         refs = []
@@ -162,26 +169,49 @@ def privacy_and_integrity():
                 raw = target.read_bytes()
                 ok = len(raw) == asset["bytes"] and digest(raw) == asset["sha256"]
             checks.append({"check": "pinned map asset: " + asset["path"], "ok": ok})
+    registry_path = DIST / "data/catalogs.json"
+    if registry_path.exists():
+        registry = json.loads(registry_path.read_text(encoding="utf-8"))
+        ids = [item["id"] for item in registry["catalogs"]]
+        checks.append({"check": "unique catalogue IDs and valid default", "ok": len(ids) == len(set(ids)) and registry["default_catalog_id"] in ids})
+        for catalog in registry["catalogs"]:
+            for path_key, hash_key in [("events_url", "sha256"), ("manifest_url", "manifest_sha256")]:
+                target = (DIST / catalog[path_key]).resolve()
+                ok = target.is_relative_to(DIST.resolve()) and target.is_file()
+                if ok:
+                    ok = digest(target.read_bytes()) == catalog[hash_key]
+                checks.append({"check": catalog["id"] + ": " + path_key, "ok": ok})
     return {"inventory": inventory, "privacy_failures": failures, "integrity_checks": checks,
             "limits": "Checks known private path/credential signatures and packaged checksums; not a proof that arbitrary prose contains no personal information."}
 
 
 def event_routes(mode):
-    data = json.loads((DIST / "data/events.json").read_text(encoding="utf-8"))
-    records = [dict(zip(data["fields"], row)) for row in data["rows"]]
-    ids = [row["id"] for row in records]
-    malformed = [eid for eid in ids if not isinstance(eid, str) or not EVENT_ID.fullmatch(eid)]
-    files = {row["file"] for row in records}
-    manifest = json.loads((DIST / "data/manifest.json").read_text(encoding="utf-8"))
-    mapped_files = {spec["path"] for spec in manifest["files"] if spec.get("url", "").startswith("https://raw.githubusercontent.com/")}
-    sample = {}
-    for row in records:
-        # Deterministic examples span file, network and year, rather than first N.
-        sample.setdefault((row["file"], row["net"], row["time"][:4]), row["id"])
-    chosen = sorted(set(ids if mode == "all" else sample.values() if mode == "sample" else []))
-    routes = ["https://earthquake.usgs.gov/earthquakes/eventpage/" + quote(eid, safe="~()*!.'-") for eid in chosen]
-    return {"event_count": len(ids), "unique_event_ids": len(set(ids)), "malformed_event_ids": malformed,
-            "unmapped_raw_csv_files": sorted(files - mapped_files), "mode": mode,
+    registry_path = DIST / "data/catalogs.json"
+    catalogs = json.loads(registry_path.read_text(encoding="utf-8"))["catalogs"] if registry_path.exists() else [
+        {"id": "usgs-mx-historical", "provider": "usgs", "events_url": "data/events.json", "manifest_url": "data/manifest.json"}]
+    ids, malformed, unmapped, routes, summaries = [], [], [], set(), []
+    for catalog in catalogs:
+        data = json.loads((DIST / catalog["events_url"]).read_text(encoding="utf-8"))
+        records = [dict(zip(data["fields"], row)) for row in data["rows"]]
+        manifest = json.loads((DIST / catalog["manifest_url"]).read_text(encoding="utf-8"))
+        mapped_files = {spec["path"] for spec in manifest["files"] if urlsplit(spec.get("url", "")).scheme == "https"}
+        local_ids = [row["id"] for row in records]
+        ids.extend(catalog["id"] + ":" + eid for eid in local_ids)
+        malformed.extend(catalog["id"] + ":" + str(eid) for eid in local_ids if not isinstance(eid, str) or not EVENT_ID.fullmatch(eid))
+        unmapped.extend(catalog["id"] + ":" + name for name in sorted({row["file"] for row in records} - mapped_files))
+        sample = {}
+        for row in records:
+            sample.setdefault((row["file"], row["net"], row["time"][:4]), row["id"])
+        # Derived NRCan row keys never become USGS event URLs. Its dataset links
+        # are literal provenance links checked by collect_links.
+        derived_keys = catalog.get("identifier_kind") == "derived_row_key" or manifest.get("identifier_kind") == "derived_row_key"
+        chosen = set(local_ids if mode == "all" else sample.values() if mode == "sample" else []) if catalog["provider"] == "usgs" and not derived_keys else set()
+        routes.update("https://earthquake.usgs.gov/earthquakes/eventpage/" + quote(eid, safe="~()*!.'-") for eid in chosen)
+        summaries.append({"id": catalog["id"], "provider": catalog["provider"], "records": len(records), "sampled_or_selected_event_routes": len(chosen)})
+    routes = sorted(routes)
+    return {"event_count": len(ids), "unique_event_ids": len(set(ids)), "counting_unit": "catalogue records, namespaced by catalogue; overlapping observations are not asserted to be independent earthquakes",
+            "catalogues": summaries, "malformed_event_ids": malformed,
+            "unmapped_raw_csv_files": unmapped, "mode": mode,
             "route_count": len(routes), "generated_route_family": "USGS current event page, URL-encoded packaged event ID",
             "limits": "HTTP success on an event-page route does not prove that a current event exists or that current parameters equal the frozen observation. Sampling never certifies unvisited links."}, routes
 

@@ -11,9 +11,12 @@ Hurtado Avilés segundo y de correspondencia. Conserva los históricos de sismos
 La carpeta y el repo local están creados. Verifica Git y el despliegue real: Gabriel
 autorizó un commit inicial y un push con las excepciones concretas de enlaces de
 MEMORIA_COMPARTIDA.md; esa autorización puede haberse consumido. Hay sistema
-bilingüe preparado para GitHub Pages, un piloto de revisiones y manuscrito de
-17 páginas con autoría/declaraciones confirmadas. Consulta el estado de render
-y publicación antes de entregar. No reconstruir como verdad un catálogo histórico
+bilingüe publicado en GitHub Pages, un piloto de revisiones y manuscrito final de
+18 páginas con autoría/declaraciones confirmadas. La ampliación del 6 nov con
+tres catálogos, dos proveedores y tres bases está comprobada LOCALMENTE; revisar
+si recibió autorización propia y se publicó antes de afirmarlo. outputs/paper/
+contiene sólo Word final y PDF; auxiliares archivados fuera. Mantén la PC encendida:
+la última instrucción de Gabriel revocó el apagado. No reconstruir como verdad un catálogo histórico
 desde versiones retenidas. La validación SQL comprueba proyecciones retenidas;
 no demuestra precisión histórica ni garantiza aceptación editorial por C&G.
 Cada commit, incluido amend, push y publicación requiere mi autorización expresa para

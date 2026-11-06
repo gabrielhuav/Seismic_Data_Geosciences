@@ -15,9 +15,18 @@ earthquake probability or damage. The manuscript presents this bounded applicati
 the target journal's evaluation of its computational contribution remains separate.
 
 The [browser-local explorer](system/README.md) provides a geographic map, ES/EN,
-filters, source records, retained revision lineages, CSV export, shareable views
-and a downloadable local-query specification with input hashes and result IDs.
-It serves packaged files without a database, API key or paid map service.
+text search, catalogue and provider selectors, filters, source records, CSV export,
+shareable views and downloadable local-query specifications with input hashes
+and result IDs. Its default USGS North America catalogue covers 2020–2025;
+the original Mexico paper snapshot and a separately licensed NRCan historical
+Canadian catalogue remain individually selectable. These exploratory additions
+do not expand the article's empirical evidence or merge overlapping reports.
+The separate retained-revision pilot remains available in its own view.
+
+The default Natural Earth background is local. OpenStreetMap and USGS Topo are
+optional remote backgrounds, loaded after selection; background changes preserve
+the active catalogue. The app serves packaged data without a database, API key
+or paid map account. See [catalogues, attribution and coverage](docs/CATALOGS.md).
 
 Core auditing and validation require Python 3.10+ and its standard library:
 
@@ -26,11 +35,12 @@ python scripts/prepare_public_evidence.py restore
 python scripts/audit_revisions.py
 python -m scripts.validate_evidence
 python -m unittest discover -s tests
+python scripts/build_catalogs.py --verify-only
 python -m http.server 8787 --bind 127.0.0.1 --directory system/dist
 ```
 
 Open http://127.0.0.1:8787/ for the local explorer. The packaged application is
-ready to serve; rebuilding its CSV input is described in the
+ready to serve; rebuilding all three catalogues and the local cartography is described in the
 [reproduction guide](docs/REPRODUCIBILITY.md). Original pilot responses, the
 acquisition manifest and their checksums are in the
 [bounded evidence package](research-data/README.md). Figures and editable Word

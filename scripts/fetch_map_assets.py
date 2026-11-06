@@ -73,16 +73,16 @@ def main():
         points = list(coords(feature["geometry"]))
         west, east = min(p[0] for p in points), max(p[0] for p in points)
         south, north = min(p[1] for p in points), max(p[1] for p in points)
-        if west > -65 or east < -135 or south > 45 or north < 3: continue
+        if west > -40 or east < -195 or south > 85 or north < 3: continue
         props = feature["properties"]
         # Geographic context only. These polygons never classify event nationality.
         features.append({"type": "Feature", "properties": {k: props.get(k) for k in ["ADMIN", "NAME_EN", "ISO_A3", "LABEL_X", "LABEL_Y"]}, "geometry": feature["geometry"]})
     target = DIST / "data/basemap.geojson"
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(json.dumps({"type": "FeatureCollection", "features": features}, separators=(",", ":"), ensure_ascii=False), encoding="utf-8")
+    target.write_text(json.dumps({"type": "FeatureCollection", "features": features}, separators=(",", ":"), ensure_ascii=False), encoding="utf-8", newline="\n")
     manifest["assets"].append({"path": "data/basemap.geojson", "source": url, "source_sha256": digest(raw), "sha256": digest(target.read_bytes()), "bytes": target.stat().st_size,
-                               "transformation": "Whole country features whose envelopes intersect longitude -135..-65 and latitude 3..45; retained labels and original coordinates."})
-    (DIST / "data/map_assets.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+                               "transformation": "Whole country features whose envelopes intersect longitude -195..-40 and latitude 3..85; retained labels and original coordinates. World wrapping is a display-only operation in the map client."})
+    (DIST / "data/map_assets.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8", newline="\n")
     print(json.dumps({"features": len(features), "local_assets": len(manifest["assets"]), "basemap_bytes": target.stat().st_size}))
 
 
