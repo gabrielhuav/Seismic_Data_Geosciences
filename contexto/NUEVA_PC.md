@@ -2,6 +2,46 @@
 
 ## Estado actual
 
+- PUBLICACIÓN DEL WORD/PDF EN GITHUB AUTORIZADA por Gabriel el7nov2026:
+  «el paper no se esta subiendo al repo? commit y push, el commit y push ya sabes
+  van con mi firma y sin IA». Esta nueva instrucción autoriza UN commit humano,
+  UN push y compartir los dos finales en ESTE repositorio público. No autoriza
+  otro despliegue, release o envío editorial. Autor/committer Gabriel Hurtado
+  <gabrielhurtadoaviles@gmail.com>, sin coautores/trailers/firmas de IA.
+  La declaración académica veraz de asistencia de IA se conserva en el paper.
+  outputs/paper/ contiene sólo DOCX/PDF finales; .gitignore permite esas dos rutas
+  y mantiene privados fuentes/borradores/figuras/tesis/plantilla/evidencias.
+  README enlaza los finales; outputs/ se excluye de archives y Pages sólo sirve
+  system/dist. Gate NUEVO y ejecución en outputs/paper_publication_2026-11-07/.
+  Commit/push pendientes de cierre del gate, sin excepciones heredadas.
+
+- REFORMULACIÓN DEL PAPER COMPLETADA LOCALMENTE (7 nov 2026), según problema
+  y tres aportes aprobados por Gabriel: sistema computacional, fuentes documentadas,
+  resultados que resuelven tareas de consulta/comparación y generan información
+  derivada para análisis, estudio e investigaciones posteriores. Interfaz y
+  pipelines offline distinguidos; no nuevas capacidades ni datos atribuidos.
+  Título: A web system for traceable exploration and analysis of heterogeneous earthquake catalogues.
+  Word/PDF:26 páginas,8 figuras integradas,4 tablas; resumen255/cuerpo5260.
+  224 párrafos coinciden; todas las páginas cubiertas visualmente. Casos204SSN y
+  7107conjunto recalculados con hashes originales intactos. Figuras1–4 en p3/5/6/7.
+  Fuente SHA6126fdef9ed37f8c34103427011ce79a7d6dfbb70ad50f723b9008314b1e2aa3.
+  DOCX SHA0f01cc8de8a2f74aebbc639da4b7ff7034ff43dab01107720acf765ddf3a753b.
+  PDF SHA57cc442187659edb235a59bddd0a77c7c19c796b7d04ce544ffd32823ff35bf3.
+  QA outputs/reframing_2026-11-07/final_document_qa.json.
+  Sólo dos finales en outputs/paper/, ahora autorizados para GitHub. Fuente/figuras/tesis/respaldo privados.
+  Publicación web49372d0 intacta; ningún commit/push/despliegue nuevo.
+  PC ENCENDIDA: nunca apagar sin una NUEVA orden explícita de Gabriel.
+
+- PUBLICACIÓN6 COMPLETADA Y VERIFICADA: commit humano49372d02198a614a07dda1a3ecbb8a21d754ff68,
+  push origin/main y workflow42318820851 success, sin reintentos. Validate128238078699
+  y deploy128238468536 success; deploy terminó2026-11-07T00:34:42Z.
+ 30/30assets HTTP200/SHA/tamaño exactos(85761134bytes),tres exclusiones404.
+  Edge público verificó Todas las fuentes287936,MX127335,USA4434,Canadá1737 y
+  fuera de polígonos150789. Recibos country_combined_* bajo outputs/publication/.
+  Autorización6 CONSUMIDA: no repetir commit/push/despliegue ni crear release.
+- Exportación previa27p sustituida por la reformulación26p indicada arriba.
+  Respaldo pareado anterior:outputs/archive/paper_before_problem_reframing_2026-11-07/.
+
 - PUBLICACIÓN SSN NATIVA CONFIRMADA: commit humano y remoto main
   9a44a264d52dfd6f99161afb46c3dc5f4ad68dbe. Workflow42306742747 terminó
   correctamente tras el ÚNICO reintento deploy autorizado: job128215544013 success,
@@ -19,7 +59,7 @@
   y un reintento sólo del deploy, ejecutados una vez. No hay autorización nueva
   para otro commit/amend, push, despliegue, release, correo o envío editorial.
   Identidad humana y créditos académicos conservados; PC ENCENDIDA.
-- NUEVA REVISIÓN TERMINADA LOCALMENTE, TODAVÍA NO PUBLICADA:
+- REVISIÓN QUE SIRVIÓ DE CANDIDATO6 (ya publicada como consta arriba):
   selector país/territorio independiente del distribuidor y opción Todas las
   fuentes. País significa contención aproximada en47polígonos terrestres NE50m;
   outside/boundary/invalid quedan separados. No nacionalidad, EEZ ni país cercano.
@@ -28,16 +68,8 @@
   filas,2163IDs USGS compartidos/4326filas señaladas; sin deduplicación entre
   fuentes ni afirmación de terremotos únicos/independientes. URLv4+geoSHA/JSON4;
   vistas1/2/3 conservadas. CSV/JSON reales:287936filas/10365696celdas verificadas.
-- Word/PDF privados ACTUALIZADOS:27páginas inspeccionadas individualmente,
-  ocho figuras integradas y cuatro tablas editables; resumen280/cuerpo5473.
-  Tres capturas Edge genuinas: SSN204de2026/M>=4.5; mapa conjunto7107de2010–2025
-  M>=4.5(7073visibles); ficha NRCan2012/Mw7.7 con profundidad cruda23.2 y país
-  cartográfico derivado explícito. NASA es imagen estática de agosto2004.
-  Fuente SHA2beffa281c2e60a5cc43c53658eaf479be8e23fd6aa95fc1ea9fb18a1186b26b.
-  DOCX SHA8fb945c068dca9199d43b2116ce6360c277deff834c92832e2ee2d9151b781af.
-  PDF SHA7da9ad4b7241e3a07f086634e5f88fe1e8792a643b101ffd4e733053498c7852.
-  QA outputs/visual_2026-11-06/final_document_qa.json. outputs/paper/ sólo tiene
-  esos dos finales. Fuente, figuras, capturas, plantilla y tesis siguen privadas.
+- Word/PDF actuales:26p/8figuras/4tablas, hashes y QA de la reformulación arriba.
+  Las capturas y resultados científicos se conservan; fuente y material privado no publicados; DOCX/PDF autorizados para GitHub.
 - Validación local:63Python+61gruposJS,138etiquetas/81IDs ES/EN sin faltantes;
   índice reconstruido idéntico. Edge comprobó MX/USA/Canadá/outside, restauración
   v4, retorno/Escape/foco y consola vacía. Móvil390x844 sin desborde; pestaña de
@@ -46,16 +78,15 @@
 - Nuevo gate:552destinos,548verificados y cuatro403editoriales pendientes;
   muestra339/36872USGS,36533sinvisitar.30assets/85761134bytes y cero fallos
   locales/privacidad/hashes. No excepciones heredadas ni aplicadas todavía.
-  Plan outputs/publication/country_combined_update_plan.md; candidato nuevo
-  country_combined_candidate_manifest.json,23rutas. Pedir autorización NUEVA
-  para UN commit humano, UN push y UN despliegue manual con estas excepciones.
-  No publicar Word/PDF ni afirmar aprobación coautoral o envío editorial.
+  Plan country_combined_update_plan.md/candidato23rutas: aprobación6 recibida
+  y consumida; cuatro403 y muestreo aceptados expresamente para ESE push.
+  La nueva autorización7 permite publicar sólo Word/PDF finales; no presume aprobación coautoral ni envío editorial.
 
-La copia pública de código/datos en9a44a26 no incluye el nuevo trabajo local.
+La copia pública de código/datos en49372d0 incluye país/territorio y vista conjunta.
 Para cambiar de PC, conservar respaldo PRIVADO completo con la fuente mantenible,
 plantilla, figuras, capturas, crudos, outputs y contrato de plantilla. Un clon
 sólo recupera los archivos realmente publicados; no instala runtime ni Word.
-La entrega ACTUAL27p/8figs ya está revisada; sus hashes y QA están en Estado actual. No publicar respaldo
+La entrega ACTUAL26p/8figs ya está revisada; sus hashes y QA están en Estado actual. No publicar respaldo
 privado ni material de la tesis. Mantener la PC encendida.
 
 ## Estado inicial
@@ -143,23 +174,27 @@ No se trasladan chats, credenciales, hooks ni .git/config con un clon.
 
 ## Siguiente paso
 
-1. Esperar autorización expresa NUEVA para UN commit humano de23rutas del plan
-   outputs/publication/country_combined_update_plan.md, UN push a origin/main y
-   UN despliegue manual; cuatro403editoriales y muestreo339/36872 requieren
-   aceptación expresa para ESE push. Las autorizaciones anteriores se consumieron.
-2. Si autoriza: verificar candidato/gate exactos, identidad humana y ninguna
-   atribución automática; ejecutar cada acción UNA vez y seguir el workflow.
-   Después verificar30assets por tamaño/SHA y tres exclusiones404 en Pages,
-   revisar país/vista conjunta en Edge público. No repetir despliegue sin permiso.
-3. Tras publicación real, actualizar disponibilidad privada del paper al commit
-   publicado, regenerar Word/PDF y verificar todas las páginas por inspección o
-   identidad de imágenes previamente revisadas más revisión de páginas cambiadas.
-   Mantener sólo dos finales; actualizar recibos y continuidad sólo localmente.
-4. Mantener la PC encendida y preservar históricos. Sin release, correo, pago ni
-   envío editorial. La revisión/aprobación humana y tarifas se revalidan antes
-   de cualquier envío expresamente autorizado.
+1. Cerrar gate nuevo de enlaces y candidato8rutas para UN commit/push humano
+   ya autorizados. Si quedan fallos/muestreo, requieren excepción expresa para
+   ESTE push, como exige AGENTS.md. No heredar aprobaciones consumidas.
+2. Publicar sólo DOCX/PDF finales, README, reglas de inclusión/exclusión y tres
+   contextos; comprobar bytes remotos. Sin nuevo despliegue Pages ni envío editorial.
+3. Mantener históricos intactos y PC encendida, sin apagar salvo nueva orden explícita.
 
 ## Bitácora
+
+- 2026-11-07, Gabriel autoriza publicar Word/PDF finales mediante UN commit/push humano, sin atribuciones IA en Git. Preparadas excepciones acotadas de.gitignore yREADME; fuentes/tesis/evidencias privadas. Verificación nueva previa alpush en curso, sin accionesGitmutantes todavía. No nuevo despliegue ni apagado.
+
+- 2026-11-07, reformulación autorizada del paper: objetivo práctico+tres aportes+información derivada para análisis/estudio/investigación.26p/8figs/4tablas;224párrafos Word/PDF coinciden,QA visual completa y casos recalculados. Sólo fuente privada/documentos/continuidad local; sin Git,despliegue,envío,pago ni apagado.
+
+- 2026-11-06, reanudación autorizada: PDF final exportado con Word nativo y commit publicado49372d0;217 párrafos coinciden,27 páginas verificadas(19 idénticas+8 revisadas),8figuras/4tablas. Hashes y entrega cerrados localmente, sin Git ni despliegue adicional. PC encendida; no apagar sin nueva orden explícita.
+
+- 2026-11-06, autorización6 ejecutada:49372d0 humano/23rutas,unpush y
+  workflow42318820851 success sinretry;30assets exactos/tres404,países yAll
+  comprobados en Edge público. Gabriel detuvo Computer Use con Escape físico
+  antes de reexportar el PDF de la actualización de disponibilidad. Pareja
+  Word/PDF27p/8figs revisada conservada; versión con49372d0 preparada en soporte,
+  pendiente PDF/QA. Autorización6 consumida; PC encendida, sin otros cambiosGit.
 
 - 2026-11-06, cierre LOCAL de países/mapa conjunto y figuras:287936filas
   con procedencia;2163IDsUSGScompartidos señalados sin reconciliación entre fuentes.

@@ -4,9 +4,13 @@ contexto/*
 !contexto/INICIAR_CONVERSACION.md
 !contexto/NUEVA_PC.md
 tmp/
-outputs/
+outputs/*
+!outputs/paper/
+outputs/paper/*
+!outputs/paper/Seismic_CG_manuscript.docx
+!outputs/paper/Seismic_CG_manuscript.pdf
 paper/drafts/
-# Manuscript artifacts stay local; scripts and pinned template provenance are portable.
+# Only the two final manuscript files above are public; authoring inputs stay local.
 paper/figures/
 paper/templates/*.docx
 # Preserve original scientific bytes locally until source-specific release rights

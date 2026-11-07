@@ -11,3 +11,4 @@ system/dist/vendor/leaflet/** -text
 AGENTS.md export-ignore
 contexto/ export-ignore
 paper/ export-ignore
+outputs/ export-ignore
