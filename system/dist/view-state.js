@@ -6,7 +6,7 @@
 })(typeof globalThis === 'object' ? globalThis : this, function () {
   'use strict';
   const defaults = Object.freeze({search: '', yearFrom: 1900, yearTo: 2026, magMin: 3.5, magMax: 10,
-    magType: '', originSource: '', depthMax: 1000, missingOnly: false, unmOnly: false});
+    magType: '', originSource: '', depthMax: 1000, missingOnly: false, unmOnly: false, country: ''});
   const keys = Object.keys(defaults);
   const tabs = ['catalog', 'revisions', 'methods'];
   const sorts = ['recent', 'oldest', 'mag'];
@@ -15,7 +15,7 @@
   const unmSourceCodes = Object.freeze(['unm', 'us_unm']);
   const isUnmAttributed = event => unmSourceCodes.includes(event.locationSource) || unmSourceCodes.includes(event.magSource);
   const urlKeys = {search: 'q', yearFrom: 'from', yearTo: 'to', magMin: 'min', magMax: 'max',
-    magType: 'mt', originSource: 'src', depthMax: 'depth', missingOnly: 'missing', unmOnly: 'unmOnly'};
+    magType: 'mt', originSource: 'src', depthMax: 'depth', missingOnly: 'missing', unmOnly: 'unmOnly', country: 'country'};
 
   function validateFilters(input, options = {}) {
     const f = {...defaults, ...input}, errors = [];
@@ -30,6 +30,8 @@
     if (f.depthMax < -100 || f.depthMax > 1000) errors.push('depthMax');
     f.search = String(f.search ?? '').trim();
     f.magType = String(f.magType ?? ''); f.originSource = String(f.originSource ?? '');
+    f.country = String(f.country ?? '');
+    if (f.country && (!/^[A-Za-z0-9_-]{1,80}$/.test(f.country) || (options.countries && !options.countries.includes(f.country)))) errors.push('country');
     if (f.search.length > 200) errors.push('search');
     for (const [k, allowed] of [['magType', options.magTypes], ['originSource', options.originSources]]) {
       if (f[k].length > 80 || (allowed && f[k] && !allowed.includes(f[k]))) errors.push(k);
@@ -53,12 +55,13 @@
     const p = new URL(input).searchParams;
     const fallback = p.get('v') === '1' ? legacyCatalog : options.defaultCatalog || defaultCatalog;
     const requested = p.get('v') === '1' ? legacyCatalog : p.get('catalog') || fallback;
+    if (requested === 'all-catalogs' && p.get('v') === '4') return requested;
     return !options.catalogs || options.catalogs.some(c => (typeof c === 'string' ? c : c.id) === requested) ? requested : fallback;
   }
 
   function parseURL(input, options = {}) {
     const params = new URL(input).searchParams, invalid = [], catalog = catalogFromURL(input, options);
-    const definition = options.catalogs?.find(c => c.id === catalog) || options.catalog;
+    const definition = options.catalogs?.find(c => c.id === catalog) || (catalog === 'all-catalogs' ? {years:[1900,2026],minimum_magnitude:3.5} : options.catalog);
     const initial = catalogDefaults(definition), raw = {...initial};
     if (params.has('catalog') && params.get('catalog') !== catalog) invalid.push('catalog');
     for (const k of keys) if (params.has(urlKeys[k])) raw[k] = params.get(urlKeys[k]);
@@ -67,9 +70,10 @@
       raw.missingOnly = params.get('missing') === '1';
     }
     if (params.has('unmOnly')) {
-      if (params.get('v') !== '3' || !['0', '1'].includes(params.get('unmOnly'))) invalid.push('unmOnly');
-      raw.unmOnly = params.get('v') === '3' && params.get('unmOnly') === '1';
+      if (!['3','4'].includes(params.get('v')) || !['0', '1'].includes(params.get('unmOnly'))) invalid.push('unmOnly');
+      raw.unmOnly = ['3','4'].includes(params.get('v')) && params.get('unmOnly') === '1';
     }
+    if (params.has('country') && params.get('v') !== '4') {invalid.push('country');raw.country='';}
     if (raw.unmOnly && catalog !== legacyCatalog) {invalid.push('unmOnly');raw.unmOnly = false;}
     const checked = validateFilters(raw, options);
     if (!checked.valid) invalid.push(...checked.errors);
@@ -82,7 +86,7 @@
     for (const [key, allowed] of [['revision', options.revisions], ['event', options.events]]) {
       const value = params.get(key === 'revision' ? 'rev' : key);
       if (value !== null) {
-        if (/^[A-Za-z0-9_-]{1,80}$/.test(value) && (!allowed || allowed.includes(value))) view[key] = value;
+        if (/^[A-Za-z0-9_~.-]{1,180}$/.test(value) && (!allowed || allowed.includes(value))) view[key] = value;
         else invalid.push(key);
       }
     }
@@ -92,8 +96,9 @@
       if (validMap(center)) view.map = center; else invalid.push('c');
     }
     if (params.has('base')) {if (bases.includes(params.get('base'))) view.base = params.get('base');else invalid.push('base');}
-    if (params.has('v') && !['1','2','3'].includes(params.get('v'))) invalid.push('v');
+    if (params.has('v') && !['1','2','3','4'].includes(params.get('v'))) invalid.push('v');
     if (params.has('snapshot') && params.get('snapshot') !== options.snapshot) invalid.push('snapshot');
+    if (params.has('geo') && params.get('geo') !== options.geographyHash) invalid.push('geo');
     return {view, invalid: [...new Set(invalid)]};
   }
 
@@ -102,10 +107,11 @@
     if (!checked.valid || !tabs.includes(view.tab) || !sorts.includes(view.sort) || !['es', 'en'].includes(view.lang)) throw Error('Invalid view');
     if (checked.filters.unmOnly && (view.catalog || legacyCatalog) !== legacyCatalog) throw Error('UNM attribution requires the Mexico catalogue');
     const url = new URL(base); url.search = ''; url.hash = '';
-    const p = url.searchParams; p.set('v', '3'); p.set('lang', view.lang);
+    const p = url.searchParams; p.set('v', checked.filters.country || view.catalog === 'all-catalogs' ? '4' : '3'); p.set('lang', view.lang);
     p.set('catalog', view.catalog || legacyCatalog);
     if (view.base && bases.includes(view.base) && view.base !== 'local') p.set('base', view.base);
     if (view.snapshot) p.set('snapshot', view.snapshot);
+    if ((checked.filters.country || view.catalog==='all-catalogs') && view.geography) p.set('geo',view.geography);
     // Numeric bounds are explicit so a registry update cannot silently alter a saved selection.
     for (const k of keys) if (typeof defaults[k] === 'number' || checked.filters[k] !== defaults[k]) p.set(urlKeys[k], typeof defaults[k] === 'boolean' ? (checked.filters[k] ? '1' : '0') : String(checked.filters[k]));
     if (view.tab !== 'catalog') p.set('tab', view.tab);
@@ -125,20 +131,37 @@
       && (!f.originSource || e.locationSource === f.originSource)
       && (!f.missingOnly || e.horizontalError === null)
       && (!f.unmOnly || isUnmAttributed(e))
-      && (!q || searchText(e.id).includes(q) || searchText(e.place).includes(q)));
+      && (!f.country || e.country_id === f.country)
+      && (!q || searchText(e.id).includes(q) || searchText(e.source_event_id).includes(q) || searchText(e.place).includes(q)));
     rows.sort(sort === 'mag' ? (a,b) => b.mag-a.mag || b.time.localeCompare(a.time)
       : sort === 'oldest' ? (a,b) => a.time.localeCompare(b.time) : (a,b) => b.time.localeCompare(a.time));
     return rows;
   }
 
-  function queryDocument({view, catalog, manifest, assetHashes, fields, rows, pageURL, createdUTC}) {
+  function queryDocument({view, catalog, manifest, assetHashes, fields, rows, pageURL, createdUTC, inputs, geography}) {
+    if (catalog?.id === 'all-catalogs') {
+      if (!inputs?.length || !geography) throw Error('Combined queries require all source and geography evidence');
+      return {schema:'seismic-local-query/4', created_utc:createdUTC, engine:'Seismic Data Observatory browser-local filter, version 4',
+        catalog:{id:catalog.id,provider:'all',years:catalog.years,bounds:catalog.bounds},
+        inputs:inputs.map(input=>queryDocument({view:{...view,catalog:input.catalog.id},...input,assetHashes:{...input.hashes,registry:assetHashes.registry},rows:[],pageURL,createdUTC}).input),
+        input_catalogs:inputs.map(input=>({id:input.catalog.id,provider:input.catalog.provider,snapshot:input.catalog.snapshot,events_sha256:input.hashes.events,manifest_sha256:input.hashes.manifest})),
+        registry_sha256:assetHashes.registry, geography, selection:{...view.filters},sort:view.sort,view_url:pageURL,
+        result:{row_count:rows.length,ordered_event_ids:rows.map(e=>e.id),ordered_source_keys:rows.map(e=>({catalog:e._catalog_id,id:e.source_event_id}))},
+        predicate_rules:{...queryDocument({view,catalog:inputs[0].catalog,manifest:inputs[0].manifest,assetHashes:inputs[0].hashes,rows:[],pageURL,createdUTC}).predicate_rules,
+          composition:'All packaged rows retained in registry order. Composite key catalogId~packagedId. Exact USGS shared identifiers flagged; no cross-provider event reconciliation or deduplication.',
+          country:'Exact match to the derived country_id in the hash-identified land-polygon index; offshore/outside, boundary/ambiguous and invalid remain separate.'},
+        limits:['Counts are source records, not unique or independent earthquakes. Coverage windows and source semantics differ. Shared USGS IDs are flagged, not removed.',
+          'Proximity across providers does not establish event identity. No cross-provider duplicate matching is inferred.',
+          'Country/territory labels describe generalized land polygons, not nationality, maritime jurisdiction or authoritative coast/border membership.',
+          'Map extent and presentation do not alter the exported selection. Magnitude scales remain unconverted; missing depths and uncertainties remain unknown.']};
+    }
     // Preserve source-declared clocks and transformations without inventing a
     // server acquisition time or interpreting the provider's status vocabulary.
-    const sourceEvidence = Object.fromEntries(['official_catalogue','source_header','source_footer','query','time_basis','source_timing','raw_rows','packaged_records','selection','transformations','field_availability','field_semantics','identifier_derivation']
+    const sourceEvidence = Object.fromEntries(['official_catalogue','rights','source_header','source_footer','query','time_basis','source_timing','raw_rows','packaged_records','selection','transformations','field_availability','field_semantics','identifier_derivation']
       .filter(key => Object.hasOwn(manifest,key)).map(key => [key,manifest[key]]));
     return {
-      schema: 'seismic-local-query/3', created_utc: createdUTC,
-      engine: 'Seismic Data Observatory browser-local filter, version 3',
+      schema: view.filters.country ? 'seismic-local-query/4' : 'seismic-local-query/3', created_utc: createdUTC,
+      engine: 'Seismic Data Observatory browser-local filter, version '+(view.filters.country ? '4' : '3'),
       catalog: {id: catalog?.id || view.catalog || legacyCatalog, provider: catalog?.provider || 'usgs',
         provider_name: catalog?.provider_name || 'U.S. Geological Survey', role: catalog?.role,
         bounds: catalog?.bounds, years: catalog?.years, minimum_magnitude: catalog?.minimum_magnitude,
@@ -154,7 +177,7 @@
         raw_fields: (fields || Object.keys(rows[0] || {})).filter(key => key.startsWith('raw_')),
         ...sourceEvidence,
         coordinates: 'Original reported coordinates. Any antimeridian shift is display-only.'},
-      selection: {...view.filters}, sort: view.sort,
+      ...(geography ? {geography} : {}), selection: {...view.filters}, sort: view.sort,
       predicate_rules: {
         year: 'Inclusive UTC origin-time year bounds.', magnitude: 'Inclusive reported values; exact magType match; no scale conversion.',
         depth: 'Inclusive maximum; null depth included only when depthMax is the default 1000.',
@@ -164,6 +187,7 @@
           scope: 'SSN/UNAM attribution within the fixed Mexico ComCat catalogue. The distributor remains USGS; this is not an independent SSN catalogue.'},
         search: 'Trimmed case-insensitive substring of event ID or reported place; NFD combining accents removed for comparison only. Original text is retained.',
         originSource: 'Exact locationSource match; not a country assignment.',
+        country:'Exact match to derived country_id from generalized Natural Earth land polygons. Offshore/outside and boundary/ambiguous remain separate; no nearest-country or place-name inference.',
         missing_magnitude_type: 'The sentinel __missing__ selects absent magnitude types.',
         sort_ties: 'mag uses descending origin time as a tiebreaker; time ties preserve packaged row order.',
         map: 'Map bounds, zoom, language, selected event and tab do not alter the filter or CSV.'

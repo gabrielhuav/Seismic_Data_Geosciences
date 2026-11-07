@@ -5,10 +5,55 @@ Leer AGENTS.md completo. Los resultados de antecedentes no son verificaciones nu
 
 ## Estado actual
 
-- ACTUALIZACIÓN NATIVA SSN TERMINADA LOCALMENTE. Gabriel resolvió personalmente
-  el CAPTCHA y descargó el CSV oficial; el 6 nov reautorizó control de PC tras Escape.
-  No hay quinto commit, push ni despliegue autorizados. main y remoto siguen
-  5efc7953abc44f96350ca06f4b9a5f1cb6ec60f5; el sitio público conserva la versión anterior.
+- PUBLICACIÓN SSN NATIVA CONFIRMADA: commit humano y remoto main
+  9a44a264d52dfd6f99161afb46c3dc5f4ad68dbe. Workflow42306742747 terminó
+  correctamente tras el ÚNICO reintento deploy autorizado: job128215544013 success,
+  validate128215545684 success; éxito observado 2026-11-06T23:27:57Z.
+  La primera activación sí expiró en syncing_files; ese fallo quedó resuelto,
+  conservado en el recibo histórico y no autoriza repetir el despliegue.
+- Sitio verificado: https://gabrielhuav.github.io/Seismic_Data_Geosciences/
+  28/28 assets HTTP200 y SHA256/tamaño exactos; tres exclusiones HTTP404,
+  TLS normal. CSV SSN íntegro en GitHub HTTP200/hash correcto, fuera de Pages.
+  Edge público comprobó SSN242288, selección2026/M>=3.5=14875, cinco bases,
+  NASA36/36 teselas, retorno/Escape/foco, NRCan6613 y USGS NA14041; consola vacía.
+  Evidencia: native_ssn_pages_verification.json, native_ssn_retry_workflow_success.json
+  y native_ssn_public_browser_qa.json bajo outputs/publication/.
+- AUTORIZACIÓN5 Y REINTENTO CONSUMIDOS: un commit humano, un push, un dispatch
+  y un reintento sólo del deploy, ejecutados una vez. No hay autorización nueva
+  para otro commit/amend, push, despliegue, release, correo o envío editorial.
+  Identidad humana y créditos académicos conservados; PC ENCENDIDA.
+- NUEVA REVISIÓN TERMINADA LOCALMENTE, TODAVÍA NO PUBLICADA:
+  selector país/territorio independiente del distribuidor y opción Todas las
+  fuentes. País significa contención aproximada en47polígonos terrestres NE50m;
+  outside/boundary/invalid quedan separados. No nacionalidad, EEZ ni país cercano.
+  Índice SHA9063e0c34412fec41debad30f69a653486c18e0f94d5983e6a061847befe27cb;
+  cuatro paquetes, ocho hashes y coordenadas originales intactos. Unión de287936
+  filas,2163IDs USGS compartidos/4326filas señaladas; sin deduplicación entre
+  fuentes ni afirmación de terremotos únicos/independientes. URLv4+geoSHA/JSON4;
+  vistas1/2/3 conservadas. CSV/JSON reales:287936filas/10365696celdas verificadas.
+- Word/PDF privados ACTUALIZADOS:27páginas inspeccionadas individualmente,
+  ocho figuras integradas y cuatro tablas editables; resumen280/cuerpo5473.
+  Tres capturas Edge genuinas: SSN204de2026/M>=4.5; mapa conjunto7107de2010–2025
+  M>=4.5(7073visibles); ficha NRCan2012/Mw7.7 con profundidad cruda23.2 y país
+  cartográfico derivado explícito. NASA es imagen estática de agosto2004.
+  Fuente SHA2beffa281c2e60a5cc43c53658eaf479be8e23fd6aa95fc1ea9fb18a1186b26b.
+  DOCX SHA8fb945c068dca9199d43b2116ce6360c277deff834c92832e2ee2d9151b781af.
+  PDF SHA7da9ad4b7241e3a07f086634e5f88fe1e8792a643b101ffd4e733053498c7852.
+  QA outputs/visual_2026-11-06/final_document_qa.json. outputs/paper/ sólo tiene
+  esos dos finales. Fuente, figuras, capturas, plantilla y tesis siguen privadas.
+- Validación local:63Python+61gruposJS,138etiquetas/81IDs ES/EN sin faltantes;
+  índice reconstruido idéntico. Edge comprobó MX/USA/Canadá/outside, restauración
+  v4, retorno/Escape/foco y consola vacía. Móvil390x844 sin desborde; pestaña de
+  prueba cerrada, revisión normal1912x866. Preview propio127.0.0.1:18302 abierto
+  para revisar, sesión39864; no tocar servicios históricos. PC ENCENDIDA.
+- Nuevo gate:552destinos,548verificados y cuatro403editoriales pendientes;
+  muestra339/36872USGS,36533sinvisitar.30assets/85761134bytes y cero fallos
+  locales/privacidad/hashes. No excepciones heredadas ni aplicadas todavía.
+  Plan outputs/publication/country_combined_update_plan.md; candidato nuevo
+  country_combined_candidate_manifest.json,23rutas. Pedir autorización NUEVA
+  para UN commit humano, UN push y UN despliegue manual con estas excepciones.
+  No publicar Word/PDF ni afirmar aprobación coautoral o envío editorial.
+
 - CSV oficial SSN nacional, consulta 1900-01-01 a 2026-11-06 UTC/todas: 402,082
   registros, 45,950,120 bytes, SHA256
   0601c65544bc95ef865d3440e5e6d84249acdebd8edfb379669597096543f993.
@@ -41,33 +86,30 @@ Leer AGENTS.md completo. Los resultados de antecedentes no son verificaciones nu
   sin acreditar condiciones de uso sin cuenta/costo para este despliegue Leaflet.
   Recibos privados native_ssn_browser_qa.json y map_browser_qa.json. Dos errores de
   extensión Zotero observados no se atribuyen al sistema; no error de app observado.
-- Word y PDF definitivos privados en outputs/paper/, sólo esos dos entregables:
-  26 páginas verificadas, siete figuras integradas y cuatro tablas editables;
-  resumen275 y cuerpo5,492 palabras. Captura principal SSN 204 limpia en p3,
-  arquitectura p8, Canadá p9, resultados p16/17/19 y cobertura SSN p21.
-  Fuente SHA256 fc33f4766416fe4ef18ce285fe6589b50d9cd9dd56b6205b4db9ac9d1239a770.
+- Entrega privada PREVIA, anterior a país/vista conjunta y ocho figuras:
+  outputs/archive/paper_before_visual_emphasis_2026-11-06/,26p/siete figuras/cuatro tablas;
+  resumen275/cuerpo5492. CapturaSSN204 limpia y todas las páginas verificadas.
+  Fuente de esa entrega previa: fc33f4766416fe4ef18ce285fe6589b50d9cd9dd56b6205b4db9ac9d1239a770.
   DOCX SHA256 6b4566dd1719e8af83d5b74efa7070d71ea9e6489842084fac849f6f8d6fe55f.
   PDF SHA256 dbd4bfc7bd4ecc3d78ec41698d51d220ac821ba776c01c6bd217484bce730060.
-  Word nativo+Poppler:25 páginas idénticas a las individualmente inspeccionadas,
-  p14 revisada tras último cambio. QA: outputs/ssn_recent_2026-11-06/final_document_qa.json.
-  Generador actualizado: defaults usan capturas nuevas; exige frames revisados,
-  no vuelve silenciosamente a la captura antigua346. Autores/declaraciones intactos.
-- 51 pruebas Python y45 grupos JS más135 etiquetas/77 IDs pasan; reconstrucción
+  QA previa: outputs/ssn_recent_2026-11-06/final_document_qa.json. No trasladar
+  estos hashes ni esa QA a la nueva edición hasta regenerarla y verificarla.
+- Validaciones de la versión publicada9a44a26:51 pruebas Python y45 grupos JS más135 etiquetas/77 IDs pasan; reconstrucción
   SSN offline idéntica, ocho hashes válidos. SQLite4,720 comparaciones y24 casos
   sintéticos sin discrepancias; no son validación de catálogos públicos pasados.
-- Gate final NUEVO:553 destinos,547 verificados por HTTP/conector/Edge y6 pendientes:
-  cuatroHTTP 403 editoriales, timeoutAZCATL y copiaCSV nativa aún no publicada
-  (clienteTLS falló; GitHub API 404 confirma ausencia antes del push). Dos licencias Canadá
-  y portada Canadá vistas frescas en Edge; diez rutasGitHub por conector, sin
-  inventarHTTP 200 ni desactivarTLS. Muestra339/36,872 rutas USGS;36,533 sin visitar.
-  Cero fallos locales/privacidad/hashes;28 assets web. No excepción aceptada aún.
-  Plan concreto: outputs/publication/native_ssn_update_plan.md; hashes exactos en
-  outputs/publication/candidate_manifest.json. Pedir autorización para UN commit
-  humano de33rutas, UN push y UN despliegue manual con excepciones de ESTE push.
+- Gate HISTÓRICO consumido para el push9a44a26:553 destinos,547 verificados y
+  seis pendientes aceptados expresamente para ESE push:cuatro403editoriales,
+  timeoutAZCATL y copiaCSV prepublicación404/falloTLScliente. Muestra339/36872
+  rutas USGS aceptada para ese push;36533sinvisitar. El CSV nuevo ya se verificó
+  después HTTP200/hash correcto. La aprobación no se hereda a la revisión local
+  actual. Candidate_manifest.json y native_ssn_update_plan.md son el candidato
+  histórico aprobado de33rutas; no reescribirlos como aprobación del nuevo trabajo.
 - La PC queda ENCENDIDA. No pagos, correos, envío editorial, releases ni cambios
-  a servicios/históricos. Paper listo para revisión humana; no presumir aprobación
-  coautoral ni aceptación C&G. Publicar web/código tras autorización y revalidar
+  a servicios/históricos. La revisión27p/ocho figuras está terminada localmente; no presumir aprobación coautoral ni aceptación C&G.
+  Publicar web/código tras autorización y revalidar
   disponibilidad real; tarifas/guía se revalidan antes de cualquier envío autorizado.
+
+## Estados anteriores (históricos; prevalece Estado actual)
 
 - REVISIÓN SSN Y FIGURAS PUBLICADA Y VERIFICADA. Gabriel autorizó expresamente
   el cuarto commit humano, su push y un despliegue manual, con las excepciones
@@ -363,22 +405,46 @@ fuera de muestra. No agregar ML ni modelos geotécnicos sin necesidad científic
 
 ## Siguiente paso
 
-1. Solicitar autorización expresa para UN quinto commit humano de las33rutas del
-   plan native_ssn_update_plan.md, su push a origin/main y UN workflow manual Pages;
-   aceptar explícitamente las seis excepciones del gate actual y muestra339/36,872
-   para ESE push. Las cuatro autorizaciones anteriores ya se consumieron.
-2. Tras autorización: verificar identidad humana y candidato exacto, ejecutar una
-   vez cada acción, seguir workflow hasta éxito y comprobar28assets públicos por
-   hash, exclusiones de paper/contexto/research-data y enlace de CSV preservado.
-   Revisar SSN nativo y cinco bases en Edge público, sin inferir éxito antes.
-3. Gabriel y José Manuel revisan el manuscrito. Cualquier envío editorial, correo,
-   release o pago requiere autorización propia; revalidar guía, costo cero por
-   suscripción y declaraciones. No convertir GitHub o DOI del catálogo mutable
-   en un DOI de archivo que no existe. Mantener PC encendida.
-4. Conservar respaldo privado completo de fuente, plantilla, figuras y outputs;
-   un clon del remoto actual 5efc no contiene la nueva revisión local ni el paper.
+1. Esperar autorización expresa NUEVA para UN commit humano de23rutas del plan
+   outputs/publication/country_combined_update_plan.md, UN push a origin/main y
+   UN despliegue manual; cuatro403editoriales y muestreo339/36872 requieren
+   aceptación expresa para ESE push. Las autorizaciones anteriores se consumieron.
+2. Si autoriza: verificar candidato/gate exactos, identidad humana y ninguna
+   atribución automática; ejecutar cada acción UNA vez y seguir el workflow.
+   Después verificar30assets por tamaño/SHA y tres exclusiones404 en Pages,
+   revisar país/vista conjunta en Edge público. No repetir despliegue sin permiso.
+3. Tras publicación real, actualizar disponibilidad privada del paper al commit
+   publicado, regenerar Word/PDF y verificar todas las páginas por inspección o
+   identidad de imágenes previamente revisadas más revisión de páginas cambiadas.
+   Mantener sólo dos finales; actualizar recibos y continuidad sólo localmente.
+4. Mantener la PC encendida y preservar históricos. Sin release, correo, pago ni
+   envío editorial. La revisión/aprobación humana y tarifas se revalidan antes
+   de cualquier envío expresamente autorizado.
 
 ## Bitácora
+
+- 2026-11-06, cierre LOCAL de países/mapa conjunto y figuras:287936filas
+  con procedencia;2163IDsUSGScompartidos señalados sin reconciliación entre fuentes.
+  CSV/JSON reales auditados completos(10365696celdas),63Python/61JS pasan.
+  Word/PDF27p/ochofiguras/cuatrotablas, todas las páginas revisadas; tres capturas
+  actuales y plots científicos conservados. Gate552/548/cuatro403,30assets exactos,
+  muestra339/36872 declarada; plan23rutas cerrado y autorización NUEVA pendiente.
+  Ningún nuevo commit, push o despliegue; publicación vigente9a44a26. PC encendida.
+
+- 2026-11-06, resultado del reintento autorizado: workflow42306742747/commit9a44a26
+  confirmado success23:27:57UTC, deploy128215544013 y validate128215545684.
+  HTTPS público28/28assets idénticos y tres exclusiones404; CSV SSN HTTP200/hash
+  correcto y controles públicos comprobados en Edge, consola vacía. Autorización5
+  y reintento consumidos; ningún commit/push/dispatch adicional. Después Gabriel
+  solicitó filtros por país, vista conjunta y capturas más destacadas: NUEVA
+  revisión LOCAL en curso. Word/PDFprevio26p/7figs sigue verificado, pero la fuente
+  de8figs y la interfaz nueva requieren regeneración/QA final. PC encendida.
+
+- 2026-11-06, autorización5: commit9a44a26/push humanos correctos,33rutas exactas.
+  Dispatch42306742747 ejecutado una vez, validate success; Pages abortó por600000ms
+  sincronizando archivos y canceló la activación. Sin nuevo despliegue todavía;
+  pregunta de reintento sólo deploy pendiente. CSV público HTTP200/hash correcto,
+  Word/PDF finales intactos, sitio previo5efc795 conservado. PC encendida.
 
 - 2026-11-06, cierre local SSN nativo y PDF: CSV descargado personalmente por Gabriel
   auditado e integrado comocuarto catálogo / tercer distribuidor;402082raw y 242288M>=3.5,

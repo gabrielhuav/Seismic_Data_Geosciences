@@ -9,6 +9,9 @@ python scripts/audit_revisions.py
 python -m scripts.validate_evidence
 python -m unittest discover -s tests
 python scripts/build_catalogs.py --verify-only
+python scripts/build_country_index.py
+node tests/test_catalog_composition.cjs
+python -m unittest discover -s tests -p test_country_index.py
 python -m http.server 8787 --bind 127.0.0.1 --directory system/dist
 ```
 
@@ -46,6 +49,7 @@ python scripts/build_ssn_catalog.py
 python scripts/build_catalogs.py --download
 python scripts/fetch_map_assets.py
 python scripts/build_catalogs.py --verify-only
+python scripts/build_country_index.py
 python scripts/check_links.py --scope artifact
 ```
 
@@ -77,6 +81,43 @@ OpenStreetMap, humanitarian OSM, USGS Topo and static NASA Blue Marble
 backgrounds are runtime services selected by the
 reader; builds do not fetch their tiles. Their coverage and attribution are
 documented in [CATALOGS.md](CATALOGS.md).
+
+The local country/combined-view revision adds a sidecar, not a fifth source
+catalogue. `build_country_index.py` uses only the standard library, reads the
+hash-verified four event packages and pinned local Natural Earth geometry, and
+writes `system/dist/data/country-index.json`. The index retains one label per
+package row and records the package/geometry hashes; rebuilding it leaves all
+eight existing event/manifest hashes unchanged. Regenerate the index after any
+intentional change to those inputs. Its point-in-polygon labels represent
+coarse terrestrial country/territory containment, not nationality, nearest-place
+assignment or offshore/EEZ jurisdiction. Outside, boundary/ambiguous and invalid
+coordinate categories remain explicit. See [coverage and limitations](CATALOGS.md).
+
+`system/dist/catalog-composition.js` constructs a browser-local union preserving
+all 287,936 source rows and qualifying each key by its catalogue. The 2,163
+identical ComCat IDs shared by the USGS packages are flagged on 4,326 rows; they
+are not removed, and no fuzzy or cross-provider event matching is inferred.
+Tests exercise real-package counts and hashes, source order, key collisions,
+unknown fields and units, and source-specific provenance. Run:
+
+```text
+node tests/test_catalog_composition.cjs
+python -m unittest discover -s tests -p test_country_index.py
+node tests/test_view_state.cjs
+node tests/test_catalog_frontend.cjs
+node tests/test_system_labels.cjs
+```
+
+For country-filtered or combined views, v4 URLs and `seismic-local-query/4`
+record each input's event/manifest hashes plus registry, geometry and country
+index hashes. The selected source-record keys are ordered exactly as exported.
+Unfiltered single-catalogue v3 views and v1/v2 restoration remain supported.
+CSV adds `country_id` to single-source fields; a native SSN CSV therefore has
+28 columns without rewriting its original 27-field package. Combined exports
+also retain per-row source catalogue, distributor, snapshot, packaged key,
+identifier semantics, depth unit and exact-USGS overlap flags. This local
+revision must be reviewed and explicitly authorized for publication before
+being described as present on the public site.
 
 The optional historical SSN diagnostic requires its separately identified
 upstream input and is not needed for the explorer, revision analysis or
@@ -131,8 +172,8 @@ The overview records the active source, filters and map;
 the second capture records source-specific inspection. The generator verifies
 the capture hash and rejects an unsuitable tall layout. Native capture dimensions
 are retained in its receipt; PNG packaging at 300dpi does not add native detail.
-`paper/figures/system_figures_manifest.json` records the two captures, diagram and
-SSN descriptive coverage plot; `paper/figures/manuscript_figures.json` fixes the seven-image document order and
+`paper/figures/system_figures_manifest.json` records the genuine captures, diagram and
+SSN descriptive coverage plot; `paper/figures/manuscript_figures.json` fixes the document image order and
 SHA-256 values. The three original scientific figures and their audited data
 are preserved. The DOCX builder requires one correctly numbered caption per
 verified image and preserves 17 unrelated template package parts byte for byte.

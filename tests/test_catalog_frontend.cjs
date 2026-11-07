@@ -4,6 +4,7 @@ const vm = require('node:vm');
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const V = require('../system/dist/view-state.js');
+const C = require('../system/dist/catalog-composition.js');
 const registry = JSON.parse(fs.readFileSync('system/dist/data/catalogs.json','utf8'));
 const catalogs = registry.catalogs;
 const options = {catalogs, defaultCatalog:registry.default_catalog_id};
@@ -95,8 +96,8 @@ async function main() {
     const buffer=url===tamper ? Buffer.from(bytes.toString().replace('3.5','3.6')) : bytes;
     return {ok:true,arrayBuffer:async()=>buffer.buffer.slice(buffer.byteOffset,buffer.byteOffset+buffer.byteLength)};
   };
-  const context={window:{SeismicViewState:V,addEventListener(){}},document,location,history:{replaceState(_,__,url){location.href=url;}},navigator:{},fetch,
-    crypto:crypto.webcrypto,TextDecoder,URL,Intl,Blob,setTimeout,clearTimeout,requestAnimationFrame:callback=>callback(),createSeismicMap:()=>map};
+  const context={window:{SeismicViewState:V,SeismicCatalogComposition:C,addEventListener(){}},document,location,history:{replaceState(_,__,url){location.href=url;}},navigator:{},fetch,
+    crypto:crypto.webcrypto,TextDecoder,TextEncoder,URL,Intl,Blob,setTimeout,clearTimeout,requestAnimationFrame:callback=>callback(),createSeismicMap:()=>map};
   vm.createContext(context);vm.runInContext(fs.readFileSync('system/dist/i18n.js','utf8'),context);
   context.window.document=document;context.window.localStorage={getItem:()=>null,setItem(){}};
   vm.runInContext(fs.readFileSync('system/dist/preferences.js','utf8'),context);
@@ -168,11 +169,11 @@ async function main() {
   assert.equal(vm.runInContext('state.ready',context),false);assert.equal(elements.get('download').disabled,true);assert.equal(elements.get('retry').hidden,false);
   tamper='';await vm.runInContext("loadCatalog('usgs-mx-historical')",context);
   assert.equal(vm.runInContext('state.events.length',context),24994);assert.equal(elements.get('depthMax').disabled,false);checks++;console.log('PASS integrity failure disables exports and another catalog recovers');
-  vm.runInContext("writeFilters({...V.defaults,search:'Oaxaca',yearFrom:2000,yearTo:2025,magMin:4,magMax:8,magType:'mww',originSource:'us',depthMax:100,missingOnly:true,unmOnly:true});applyFilters()",context);
+  vm.runInContext("writeFilters({...V.defaults,search:'Oaxaca',yearFrom:2000,yearTo:2025,magMin:4,magMax:8,magType:'mww',originSource:'us',depthMax:100,missingOnly:true,unmOnly:true,country:'MEX'});applyFilters()",context);
   for(const key of Object.keys(V.defaults))assert(elements.get('activeFilters').innerHTML.includes('data-remove-filter="'+key+'"'),'Missing active filter chip '+key);
   vm.runInContext("removeFilter('search')",context);assert.equal(vm.runInContext('state.applied.search',context),'');
   vm.runInContext("writeFilters(V.catalogDefaults(state.catalog));applyFilters()",context);
-  assert.equal(elements.get('activeFilters').hidden,true);checks++;console.log('PASS all ten active filter controls have removable chips and reset cleanly');
+  assert.equal(elements.get('activeFilters').hidden,true);checks++;console.log('PASS all eleven active filter controls have removable chips and reset cleanly');
   const count=vm.runInContext('state.filtered.length',context), selected=vm.runInContext('state.filtered[41].id',context);
   vm.runInContext('showOnMap('+JSON.stringify(selected)+')',context);
   assert.equal(map.highlighted,selected);assert.equal(vm.runInContext('state.page',context),1);assert.equal(vm.runInContext('state.filtered.length',context),count);
@@ -283,6 +284,68 @@ async function main() {
   vm.runInContext("writeFilters({...V.catalogDefaults(state.catalog),search:'no-match-native-ssn-fixture'});applyFilters();exportQuery()",context);
   const emptyNativeQuery=JSON.parse(await context.savedDownload.blob.text());assert.equal(emptyNativeQuery.result.row_count,0);assert.deepEqual(emptyNativeQuery.input.raw_fields,nativeQuery.input.raw_fields);
   checks++;console.log('PASS native SSN CSV/JSON preserve raw UTC/local/status fields and hashes, with v3 restoration distinct from UNM via USGS');
+
+  await chooseSource('all');
+  assert.equal(vm.runInContext('state.catalog.id',context),'all-catalogs');
+  assert.equal(vm.runInContext('state.filtered.length',context),287936);
+  assert.equal(vm.runInContext('state.composition.usgs_shared_event_ids',context),2163);
+  assert.equal(new URL(location.href).searchParams.get('v'),'4');
+  assert.equal(elements.get('combinedNotice').hidden,false);
+  assert(!elements.get('datasetDescription').textContent.includes('0 CSV'));
+  assert.equal(elements.get('manifestLink').href,'data/catalogs.json');
+  assert.equal(elements.get('country').children.length,51);
+  checks++;console.log('PASS all sources load 287936 preserved rows with per-source provenance and flagged shared USGS IDs');
+  const geography=JSON.parse(fs.readFileSync('system/dist/data/country-index.json','utf8'));
+  const countryCount=id=>Object.values(geography.catalogs).reduce((n,c)=>n+(c.counts[id]||0),0);
+  for(const country of ['MEX','USA','CAN','outside','boundary']) {
+    vm.runInContext('writeFilters({...V.catalogDefaults(state.catalog),country:'+JSON.stringify(country)+'});applyFilters()',context);
+    assert.equal(vm.runInContext('state.filtered.length',context),countryCount(country));
+    assert.equal(vm.runInContext('state.filtered.every(e=>e.country_id==='+JSON.stringify(country)+')',context),true);
+    assert.equal(new URL(location.href).searchParams.get('country'),country);
+    assert.equal(elements.get('download').disabled,false);
+  }
+  checks++;console.log('PASS country and outside/boundary filters match the independent sidecar counts across all four catalogs');
+  const expectedGeoHash=crypto.createHash('sha256').update(fs.readFileSync('system/dist/data/country-index.json')).digest('hex');
+  vm.runInContext("writeFilters({...V.catalogDefaults(state.catalog),country:'CAN'});applyFilters();exportQuery()",context);
+  const combinedQuery=JSON.parse(await context.savedDownload.blob.text());
+  assert.equal(combinedQuery.schema,'seismic-local-query/4');assert.equal(combinedQuery.input_catalogs.length,4);
+  assert.equal(combinedQuery.inputs.length,4);assert.equal(combinedQuery.geography.index_sha256,expectedGeoHash);
+  assert.equal(combinedQuery.geography.geometry_sha256,geography.geometry_sha256);
+  assert.equal(combinedQuery.result.row_count,countryCount('CAN'));
+  assert.deepEqual(combinedQuery.result.ordered_event_ids,JSON.parse(vm.runInContext('JSON.stringify(state.filtered.map(e=>e.id))',context)));
+  for(const input of combinedQuery.input_catalogs){const c=catalogs.find(c=>c.id===input.id);assert.equal(input.events_sha256,c.sha256);assert.equal(input.manifest_sha256,c.manifest_sha256);}
+  vm.runInContext('exportCsv()',context);const combinedCsv=await context.savedDownload.blob.text();
+  const combinedColumns=combinedCsv.replace(/^\uFEFF/,'').split('\r\n')[0].split(',');
+  for(const name of ['id','source_event_id','catalog_id','data_provider','source_identifier_kind','country_id','depth_unit'])assert(combinedColumns.includes(name));
+  assert.equal(combinedCsv.split('\r\n').length-1,countryCount('CAN'));
+  const savedCombined=location.href;
+  checks++;console.log('PASS combined CSV and JSON retain actual ordered composite keys, four source inputs/eight hashes and spatial evidence');
+  vm.runInContext('writeFilters(V.catalogDefaults(state.catalog));applyFilters()',context);
+  for(const provider of ['ssn','nrcan','usgs']) {
+    const e=JSON.parse(vm.runInContext('JSON.stringify(state.events.find(e=>e.data_provider==='+JSON.stringify(provider)+'))',context));
+    const c=catalogs.find(c=>c.id===e.catalog_id);
+    vm.runInContext('detail('+JSON.stringify(e.id)+')',context);
+    const content=elements.get('detailContent').innerHTML;
+    assert(content.includes(e.source_event_id));assert(content.includes(c.provider_name));assert(content.includes(c.manifest_url));
+    const m=JSON.parse(fs.readFileSync('system/dist/'+c.manifest_url,'utf8')),spec=m.files.find(f=>f.path===e.file);assert(content.includes(spec.sha256));
+    if(provider!=='usgs')assert(!content.includes('earthquake.usgs.gov/earthquakes/eventpage/'));
+    if(provider==='nrcan')assert(content.includes(context.window.SeismicI18n.t('reportedDepth')));
+    if(provider==='ssn')assert(content.includes('raw_utc_date'));
+  }
+  checks++;console.log('PASS each combined record resolves its own provider, raw-file hash, units and source routes');
+  await chooseSource('ssn');location.href=savedCombined;await vm.runInContext('restoreLocation()',context);
+  assert.equal(vm.runInContext('state.catalog.id',context),'all-catalogs');assert.equal(vm.runInContext('state.filtered.length',context),countryCount('CAN'));
+  assert.equal(elements.get('country').value,'CAN');assert.equal(elements.get('providerSelect').value,'all');
+  await chooseSource('usgs');assert.equal(elements.get('country').value,'CAN');
+  assert.equal(vm.runInContext('state.filtered.every(e=>e.country_id==="CAN")',context),true);
+  vm.runInContext("removeFilter('country')",context);assert.equal(vm.runInContext('state.filtered.length',context),14041);
+  delayed=nativeSsn.events_url;vm.runInContext('state.cache.clear()',context);
+  await Promise.all([chooseSource('all'),chooseSource('nrcan')]);assert.equal(vm.runInContext('state.catalog.provider',context),'nrcan');
+  assert.equal(vm.runInContext('state.ready',context),true);assert.equal(vm.runInContext('state.filtered.length',context),6613);
+  delayed='';tamper=nativeSsn.events_url;vm.runInContext('state.cache.clear()',context);await chooseSource('all');
+  assert.equal(vm.runInContext('state.ready',context),false);assert.equal(elements.get('download').disabled,true);
+  tamper='';await Promise.all(elements.get('retry').listeners.click.map(callback=>callback()));assert.equal(vm.runInContext('state.filtered.length',context),287936);
+  checks++;console.log('PASS v4 combined/country restoration, retained country across source switches, last selection wins, failed combined integrity and retry');
   console.log(JSON.stringify({passed:checks},null,2));
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

@@ -1,10 +1,11 @@
 'use strict';
 const $ = id => document.getElementById(id);
-const I = window.SeismicI18n, V = window.SeismicViewState;
+const I = window.SeismicI18n, V = window.SeismicViewState, C = window.SeismicCatalogComposition;
 const t = (key, values) => I.t(key, values);
 const state = {events: [], fields: [], filtered: [], manifest: null, registry: null, catalog: null, page: 0, size: 40, revisions: null,
   applied: {...V.defaults}, tab: 'catalog', selectedEvent: '', ready: false, restoring: false,
-  formValid: true, invalidLink: [], hashes: {}, action: '', loadError: null, request: 0, cache: new Map(), baseStatus: 'baseLocalNote', highlightedEvent:'', expanded:false};
+  formValid: true, invalidLink: [], hashes: {}, action: '', loadError: null, request: 0, cache: new Map(), baseStatus: 'baseLocalNote', highlightedEvent:'', expanded:false,
+  geography:null, geographyHash:'', activePacks:[], composition:null};
 const fmt = n => new Intl.NumberFormat(I.language).format(n);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const value = (n, dec = 2) => n === null || n === undefined || n === '' ? t('notReported') : Number(n).toLocaleString(I.language, {maximumFractionDigits: dec});
@@ -17,7 +18,12 @@ const loadingText = c => c ? t('loadingCatalog', {label:catalogLabel(c)})
 const snapshot = () => String(state.manifest?.snapshot_commit || state.catalog?.snapshot || '');
 const derivedKey = () => state.catalog?.identifier_kind === 'derived_row_key' || state.manifest?.identifier_kind === 'derived_row_key';
 const depthKnown = () => state.catalog?.depth_unit_status !== 'not_documented_in_source' && state.manifest?.depth_unit_status !== 'not_documented_in_source'
-  && (state.catalog?.depth_unit === 'km' || state.manifest?.depth_unit === 'km' || state.catalog?.provider === 'usgs');
+  && (state.catalog?.depth_unit === 'km' || state.manifest?.depth_unit === 'km' || state.catalog?.provider === 'usgs' || state.catalog?.provider === 'all');
+const packFor = event => state.activePacks.find(p=>p.catalog.id===(event?._catalog_id || state.catalog?.id));
+const eventDepthKnown = event => {const c=packFor(event)?.catalog || state.catalog;return c?.provider==='usgs' || c?.depth_unit==='km';};
+const regionLabel = id => {const r=state.geography?.regions.find(r=>r.id===id);return r?.label?.[I.language] || r?.label?.en || id || t('notReported');};
+const combinedDefinition = () => ({id:'all-catalogs',provider:'all',provider_name:t('allSources'),label:{es:'Todos los catálogos disponibles',en:'All available catalogs'},years:[1900,2026],minimum_magnitude:3.5,bounds:[[3,-195],[85,-40]],events_bytes:state.registry?.catalogs.every(c=>Number.isFinite(c.events_bytes)) ? state.registry.catalogs.reduce((sum,c)=>sum+c.events_bytes,0) : null});
+const geographyEvidence = () => ({index_path:'data/country-index.json',index_sha256:state.geographyHash,geometry_path:state.geography.geometry_path,geometry_sha256:state.geography.geometry_sha256,method:state.geography.method,selected_country:state.applied.country || null});
 const safeURL = raw => {if (!raw) return '';try {const u = new URL(raw, location.href);return ['http:', 'https:'].includes(u.protocol) ? u.href : '';} catch (_) {return '';}};
 const color = (name, fallback) => window.getComputedStyle?.(document.documentElement).getPropertyValue(name).trim() || fallback;
 let debounce;
@@ -26,14 +32,15 @@ function choices() {
   return {magTypes: [...new Set(state.events.map(e => e.magType).filter(Boolean)), '__missing__'],
     originSources: [...new Set(state.events.map(e => e.locationSource))].filter(Boolean),
     revisions: (state.revisions?.events || []).map(e => e.id), events: state.events.map(e => e.id),
-    snapshot: snapshot(), catalogs: state.registry?.catalogs, defaultCatalog: state.registry?.default_catalog_id, catalog: state.catalog};
+    snapshot: snapshot(), catalogs: state.registry?.catalogs, defaultCatalog: state.registry?.default_catalog_id, catalog: state.catalog,
+    countries:state.geography?.regions.map(r=>r.id),geographyHash:state.geographyHash};
 }
 function readFilters() {return Object.fromEntries(controls.map(k => [k, typeof V.defaults[k] === 'boolean' ? $(k).checked : $(k).value]));}
 function writeFilters(filters) {for (const k of controls) if (typeof V.defaults[k] === 'boolean') $(k).checked = filters[k]; else $(k).value = filters[k];}
 function currentView() {
   return {filters: {...state.applied}, sort: $('sort').value, lang: I.language, tab: state.tab,
     revision: $('revisionEvent').value || '', event: state.selectedEvent || state.highlightedEvent, map: state.map?.getView() || null,
-    snapshot: snapshot(), catalog: state.catalog?.id, base: state.map?.getBase() || 'local'};
+    snapshot: snapshot(), catalog: state.catalog?.id, base: state.map?.getBase() || 'local',geography:state.geographyHash};
 }
 function syncURL() {
   if (!state.ready || state.restoring || !state.formValid) return;
@@ -60,12 +67,23 @@ function populateFilters() {
   }
   populate('magType', choices().magTypes);populate('originSource', choices().originSources);
   const missing = $('magType').querySelector('option[value="__missing__"]');if (missing) missing.textContent = t('notReported');
+  populateCountries();
+}
+function populateCountries() {
+  const selected=state.applied.country || $('country').value || '';
+  $('country').replaceChildren();const all=document.createElement('option');all.value='';all.textContent=t('allCountries');$('country').append(all);
+  const counts=new Map();for(const e of state.events)counts.set(e.country_id,(counts.get(e.country_id)||0)+1);
+  const priority=['MEX','USA','CAN','outside'];
+  const regions=[...(state.geography?.regions || [])].sort((a,b)=>(priority.includes(a.id) ? priority.indexOf(a.id) : 99)-(priority.includes(b.id) ? priority.indexOf(b.id) : 99) || regionLabel(a.id).localeCompare(regionLabel(b.id),I.language));
+  for(const r of regions){const option=document.createElement('option');option.value=r.id;option.textContent=regionLabel(r.id)+' · '+fmt(counts.get(r.id)||0);$('country').append(option);}
+  $('country').value=selected;
 }
 function localizeFilterOptions() {
   for(const [id,key] of [['magType','allTypes'],['originSource','allOrigins']]) {
     const empty=$(id).querySelector('option[value=""]');if(empty)empty.textContent=t(key);
   }
   const missing=$('magType').querySelector('option[value="__missing__"]');if(missing)missing.textContent=t('notReported');
+  populateCountries();
 }
 function describeSsn(catalog) {
   $('ssnNotice').hidden = catalog.provider !== 'ssn';if (catalog.provider !== 'ssn') return;
@@ -83,9 +101,11 @@ function populateCatalogControls() {
   const append = (id, value, text) => {const option = document.createElement('option');option.value = value;option.textContent = text;$(id).append(option);};
   const ssnActive = selected.id === V.legacyCatalog && state.applied.unmOnly === true;
   $('providerSelect').replaceChildren();for (const [id, name] of new Map(state.registry.catalogs.map(c => [c.provider,c.provider_name]))) append('providerSelect', id, name);
+  append('providerSelect', 'all', t('allSources'));
   append('providerSelect', 'ssn-unam', t('ssnSource'));
   $('providerSelect').value = ssnActive ? 'ssn-unam' : selected.provider;$('catalogSelect').replaceChildren();
   for (const c of state.registry.catalogs.filter(c => ssnActive ? c.id === V.legacyCatalog : c.provider === selected.provider)) append('catalogSelect', c.id, catalogLabel(c));
+  if(selected.id==='all-catalogs')append('catalogSelect',selected.id,t('allCatalogs'));
   $('catalogSelect').value = selected.id;$('providerSelect').disabled = false;$('catalogSelect').disabled = false;
   $('unmNotice').hidden = !ssnActive;
   describeSsn(selected);
@@ -108,8 +128,10 @@ function applyFilters(persist = true) {
   const checked = V.validateFilters(readFilters(), choices()); state.formValid = checked.valid;buttons();
   $('filterError').textContent = checked.valid ? '' : t('invalidFilters');
   if (!checked.valid) return;
+  const countryChanged=state.applied.country!==checked.filters.country;
   state.applied = checked.filters;state.page = 0;
   state.filtered = V.filterEvents(state.events, state.applied, $('sort').value);populateCatalogControls();render();
+  if(countryChanged)state.map?.fitRecords();
   if (persist) {state.invalidLink = [];showWarnings();actionStatus('');syncURL();}
 }
 function render() {
@@ -118,14 +140,21 @@ function render() {
   $('missingCount').textContent = fmt(rows.filter(e => e.horizontalError === null).length);
   $('typeCount').textContent = fmt(new Set(rows.map(e => e.magType).filter(Boolean)).size);
   $('filterSummary').textContent = t('filterSummary', {n: fmt(rows.length), total: fmt(state.events.length), from: state.applied.yearFrom, to: state.applied.yearTo, min: value(state.applied.magMin,1)});
+  $('mapSelection').textContent=catalogLabel(state.catalog)+' · '+(state.applied.country ? regionLabel(state.applied.country) : t('allCountries'))+' · '+state.applied.yearFrom+'–'+state.applied.yearTo+' · M ≥ '+value(state.applied.magMin,1);
   renderFilterChips();drawMap();drawHistogram();renderTable();
+  $('combinedNotice').hidden=state.catalog.id!=='all-catalogs';
+  if(state.catalog.id==='all-catalogs'){
+    const groups=state.activePacks.map(p=>catalogLabel(p.catalog)+': '+fmt(rows.filter(e=>e._catalog_id===p.catalog.id).length)).join(' · ');
+    const ids=new Map();for(const e of rows)if(e.data_provider==='usgs')ids.set(e.source_event_id,(ids.get(e.source_event_id)||0)+1);
+    $('combinedNotice').textContent=t('combinedHelp',{groups,shared:fmt([...ids.values()].filter(n=>n>1).length)});
+  }
 }
 function renderFilterChips() {
   const initial=V.catalogDefaults(state.catalog), active=controls.filter(key=>state.applied[key]!==initial[key]);
   $('activeFilters').hidden=!active.length;
-  const names={search:'search',yearFrom:'from',yearTo:'to',magMin:'magMin',magMax:'magMax',magType:'magType',originSource:'originSource',depthMax:'maxDepth',missingOnly:'missingOnly',unmOnly:'unmOnly'};
+  const names={search:'search',yearFrom:'from',yearTo:'to',magMin:'magMin',magMax:'magMax',magType:'magType',originSource:'originSource',depthMax:'maxDepth',missingOnly:'missingOnly',unmOnly:'unmOnly',country:'countryFilter'};
   $('activeFilters').innerHTML=active.map(key=>{
-    const raw=state.applied[key], text=typeof V.defaults[key]==='boolean' ? t(names[key]) : t(names[key])+': '+(raw==='__missing__' ? t('notReported') : raw);
+    const raw=state.applied[key], text=typeof V.defaults[key]==='boolean' ? t(names[key]) : t(names[key])+': '+(key==='country' ? regionLabel(raw) : raw==='__missing__' ? t('notReported') : raw);
     return `<button type="button" data-remove-filter="${key}" aria-label="${esc(t('removeFilter',{filter:text}))}">${esc(text)}<span aria-hidden="true">×</span></button>`;
   }).join('');
 }
@@ -171,7 +200,7 @@ function appearanceChanged() {
 }
 function renderTable() {
   const start = state.page * state.size, rows = state.filtered.slice(start, start + state.size);
-  $('records').innerHTML = rows.length ? rows.map(e => `<tr class="${e.id===state.highlightedEvent ? 'record-selected' : ''}"><td>${esc(date(e.time))}</td><td><span class="mag">${value(e.mag, 1)}</span><span class="type">${esc(e.magType || '?')}</span></td><td>${depthKnown() ? value(e.depth, 1) : esc(e.raw_depth || t('notReported'))}</td><td>${esc(e.place)}<small>${esc(e.id)}</small></td><td>${esc(e.locationSource || t('notReported'))}</td><td><div class="record-actions"><button data-event="${esc(e.id)}" aria-label="${esc(t('inspectId', {id: e.id}))}">${esc(t('inspect'))}</button><button data-locate-event="${esc(e.id)}" aria-label="${esc(t('locateId',{id:e.id}))}">${esc(t('seeOnMap'))}</button></div></td></tr>`).join('') : `<tr><td colspan="6">${esc(t('noRecords'))}</td></tr>`;
+  $('records').innerHTML = rows.length ? rows.map(e => `<tr class="${e.id===state.highlightedEvent ? 'record-selected' : ''}"><td>${esc(date(e.time))}</td><td><span class="mag">${value(e.mag, 1)}</span><span class="type">${esc(e.magType || '?')}</span></td><td>${eventDepthKnown(e) ? value(e.depth, 1) : esc(e.raw_depth || t('notReported'))}</td><td>${esc(e.place)}<small>${esc(e.id)}</small><small>${esc(regionLabel(e.country_id))}</small></td><td>${esc(packFor(e)?.catalog.provider_name || state.catalog.provider_name)}<small>${esc(e.locationSource || t('notReported'))}</small>${e.shared_event_id ? '<small>'+esc(t('sharedUsgsId'))+'</small>' : ''}</td><td><div class="record-actions"><button data-event="${esc(e.id)}" aria-label="${esc(t('inspectId', {id: e.id}))}">${esc(t('inspect'))}</button><button data-locate-event="${esc(e.id)}" aria-label="${esc(t('locateId',{id:e.id}))}">${esc(t('seeOnMap'))}</button></div></td></tr>`).join('') : `<tr><td colspan="6">${esc(t('noRecords'))}</td></tr>`;
   $('pageLabel').textContent = rows.length ? t('page', {first: fmt(start + 1), last: fmt(start + rows.length), total: fmt(state.filtered.length)}) : t('zeroRecords');
   $('prev').disabled = state.page === 0;$('next').disabled = start + state.size >= state.filtered.length;
 }
@@ -188,22 +217,26 @@ function drawHistogram() {
 }
 function detail(id, persist = true) {
   const e = state.events.find(e => e.id === id);if (!e) return;
-  const spec = state.manifest.files.find(f => f.path === e.file);state.selectedEvent = id;$('detailTitle').textContent = e.place;
+  const pack=packFor(e), sourceCatalog=pack?.catalog || state.catalog, sourceManifest=pack?.manifest || state.manifest;
+  const sourceId=e.source_event_id || e.id;
+  const sourceDerived=sourceCatalog.identifier_kind==='derived_row_key' || sourceManifest.identifier_kind==='derived_row_key';
+  const sourceDepth=eventDepthKnown(e);
+  const spec = sourceManifest.files.find(f => f.path === e.file);state.selectedEvent = id;$('detailTitle').textContent = e.place;
   state.highlightedEvent=id;state.map?.highlight?.(id);renderTable();
-  const nativeSsn = state.catalog.provider === 'ssn';
-  const fields = [[derivedKey() ? 'localRecordKey' : 'eventId',e.id],['dataProvider',state.catalog.provider_name],['dataCatalog',catalogLabel(state.catalog)],['originTime',date(e.time)],['reportedMagnitude',value(e.mag,2) + ' ' + (e.magType || t('unknownType'))],['eventType',e.event_type || (state.catalog.provider === 'usgs' ? 'earthquake' : t('notReported'))],['latLon',value(e.latitude,4) + ' / ' + value(e.longitude,4)],[depthKnown() ? 'depthKm' : 'reportedDepth',depthKnown() ? value(e.depth,3) : e.raw_depth],['network',e.net],['originAuthor',e.locationSource],['magAuthor',e.magSource],['horizontalError',value(e.horizontalError)],['depthError',value(e.depthError)],['magnitudeError',value(e.magError)],[nativeSsn ? 'sourceStatus' : 'reviewStatus',e.status],['summaryUpdated',date(e.updated)],...(e.source_record !== undefined ? [['sourceRow',e.source_record]] : []),['sourceFile',e.file],['rawHash',spec?.sha256 || t('notReported')]];
-  const eventURL = safeURL(e.event_url || (state.catalog.provider === 'usgs' ? 'https://earthquake.usgs.gov/earthquakes/eventpage/' + encodeURIComponent(e.id) : ''));
-  const rawURL = safeURL(spec?.url), sourceURL = nativeSsn ? safeURL(state.catalog.provider_url || state.manifest.official_catalogue?.url) : '';
-  const doi = state.manifest.official_catalogue?.doi || '', doiURL = nativeSsn ? safeURL(/^10\.\d{4,9}\/\S+$/.test(doi) ? 'https://doi.org/'+doi : /^https?:\/\//.test(doi) ? doi : '') : '';
+  const nativeSsn = sourceCatalog.provider === 'ssn';
+  const fields = [[sourceDerived ? 'localRecordKey' : 'eventId',sourceId],...(state.catalog.id==='all-catalogs' ? [['internalRecordKey',e.id]] : []),['countryLocation',regionLabel(e.country_id)],['dataProvider',sourceCatalog.provider_name],['dataCatalog',catalogLabel(sourceCatalog)],['originTime',date(e.time)],['reportedMagnitude',value(e.mag,2) + ' ' + (e.magType || t('unknownType'))],['eventType',e.event_type || (sourceCatalog.provider === 'usgs' ? 'earthquake' : t('notReported'))],['latLon',value(e.latitude,4) + ' / ' + value(e.longitude,4)],[sourceDepth ? 'depthKm' : 'reportedDepth',sourceDepth ? value(e.depth,3) : e.raw_depth],['network',e.net],['originAuthor',e.locationSource],['magAuthor',e.magSource],['horizontalError',value(e.horizontalError)],['depthError',value(e.depthError)],['magnitudeError',value(e.magError)],[nativeSsn ? 'sourceStatus' : 'reviewStatus',e.status],['summaryUpdated',date(e.updated)],...(e.source_record !== undefined ? [['sourceRow',e.source_record]] : []),['sourceFile',e.file],['rawHash',spec?.sha256 || t('notReported')]];
+  const eventURL = safeURL(e.event_url || (sourceCatalog.provider === 'usgs' ? 'https://earthquake.usgs.gov/earthquakes/eventpage/' + encodeURIComponent(sourceId) : ''));
+  const rawURL = safeURL(spec?.url), sourceURL = nativeSsn ? safeURL(sourceCatalog.provider_url || sourceManifest.official_catalogue?.url) : '';
+  const doi = sourceManifest.official_catalogue?.doi || '', doiURL = nativeSsn ? safeURL(/^10\.\d{4,9}\/\S+$/.test(doi) ? 'https://doi.org/'+doi : /^https?:\/\//.test(doi) ? doi : '') : '';
   const publicCopy = nativeSsn && /^research-data\/catalogs\/ssn-mx\/[A-Za-z0-9_.-]+\.csv$/.test(spec?.public_copy_path || '') ? spec.public_copy_path : '';
   const publicRawURL = publicCopy ? 'https://github.com/gabrielhuav/Seismic_Data_Geosciences/blob/main/'+publicCopy.split('/').map(encodeURIComponent).join('/') : '';
   const rawDirect = rawURL && spec?.url_kind !== 'catalogue_landing';
-  const links = [eventURL ? `<a target="_blank" rel="noopener" href="${esc(eventURL)}">${esc(t(derivedKey() ? 'sourcePage' : 'currentEvent'))}</a>` : '', sourceURL ? `<a target="_blank" rel="noopener" href="${esc(sourceURL)}">${esc(t('ssnCatalogue'))}</a>` : '', doiURL ? `<a target="_blank" rel="noopener" href="${esc(doiURL)}">${esc(t('sourceDoi'))}</a>` : '', publicRawURL ? `<a target="_blank" rel="noopener" href="${esc(publicRawURL)}">${esc(t('preservedCsv'))}</a>` : '', rawDirect ? `<a target="_blank" rel="noopener" href="${esc(rawURL)}">${esc(t('rawCsv'))}</a>` : '', `<a href="${esc(safeURL(state.catalog.manifest_url))}" download>${esc(t('recordManifest'))}</a>`].filter(Boolean).join(' · ');
+  const links = [eventURL ? `<a target="_blank" rel="noopener" href="${esc(eventURL)}">${esc(t(sourceDerived ? 'sourcePage' : 'currentEvent'))}</a>` : '', sourceURL ? `<a target="_blank" rel="noopener" href="${esc(sourceURL)}">${esc(t('ssnCatalogue'))}</a>` : '', doiURL ? `<a target="_blank" rel="noopener" href="${esc(doiURL)}">${esc(t('sourceDoi'))}</a>` : '', publicRawURL ? `<a target="_blank" rel="noopener" href="${esc(publicRawURL)}">${esc(t('preservedCsv'))}</a>` : '', rawDirect ? `<a target="_blank" rel="noopener" href="${esc(rawURL)}">${esc(t('rawCsv'))}</a>` : '', `<a href="${esc(safeURL(sourceCatalog.manifest_url))}" download>${esc(t('recordManifest'))}</a>`].filter(Boolean).join(' · ');
   const rawNames = {raw_utc_date:'rawUtcDate',raw_utc_time:'rawUtcTime',raw_local_date:'rawLocalDate',raw_local_time:'rawLocalTime',raw_magnitude:'rawMagnitude',raw_depth:'rawDepth',raw_status:'rawStatus'};
   const rawFields = nativeSsn ? Object.entries(e).filter(([key])=>key.startsWith('raw_')) : [];
   const rawDetails = rawFields.length ? `<details><summary>${esc(t('sourceRawFields'))}</summary><dl>${rawFields.map(([key,v])=>`<dt>${esc(rawNames[key] ? t(rawNames[key]) : key)} <small>(${esc(key)})</small></dt><dd>${esc(v ?? t('notReported'))}</dd>`).join('')}</dl></details>` : '';
   const included=state.filtered.some(row=>row.id===id);
-  $('detailContent').innerHTML = '<dl>' + fields.map(([k,v]) => `<dt>${esc(t(k))}</dt><dd class="${k === 'rawHash' ? 'hash' : ''}">${esc(v || t('notReported'))}</dd>`).join('') + '</dl>' + rawDetails + `<p class="detail-actions"><button data-locate-event="${esc(id)}" ${included ? '' : 'disabled'}>${esc(t('seeOnMap'))}</button>${links}</p>` + (!included ? `<p class="small">${esc(t('outsideFilters'))}</p>` : '') + `<p class="small">${esc(t(derivedKey() ? 'derivedKeyNote' : 'detailNote'))}</p>` + (nativeSsn ? `<p class="small">${esc(t('ssnStatusNote'))}</p>` : '');
+  $('detailContent').innerHTML = '<dl>' + fields.map(([k,v]) => `<dt>${esc(t(k))}</dt><dd class="${k === 'rawHash' ? 'hash' : ''}">${esc(v || t('notReported'))}</dd>`).join('') + '</dl>' + rawDetails + `<p class="detail-actions"><button data-locate-event="${esc(id)}" ${included ? '' : 'disabled'}>${esc(t('seeOnMap'))}</button>${links}</p>` + (!included ? `<p class="small">${esc(t('outsideFilters'))}</p>` : '') + `<p class="small">${esc(t(sourceDerived ? 'derivedKeyNote' : 'detailNote'))}</p>` + (nativeSsn ? `<p class="small">${esc(t('ssnStatusNote'))}</p>` : '');
   if (!$('detail').open) $('detail').showModal();if (persist) syncURL();
 }
 function download(blob, name) {
@@ -220,7 +253,7 @@ function exportQuery() {
   if (!state.ready || !state.formValid) return;
   try {
     const view = currentView(), query = V.queryDocument({view, catalog: state.catalog, manifest: state.manifest, assetHashes: state.hashes, fields:state.fields,
-      rows: state.filtered, pageURL: V.serialize(view, location.href), createdUTC: new Date().toISOString()});
+      rows: state.filtered, pageURL: V.serialize(view, location.href), createdUTC: new Date().toISOString(),inputs:state.activePacks,geography:geographyEvidence()});
     download(new Blob([JSON.stringify(query, null, 2) + '\n'], {type:'application/json;charset=utf-8'}), state.catalog.id + '_local_query.json');actionStatus('querySaved');
   } catch (error) {actionStatus('queryFailed');}
 }
@@ -253,11 +286,11 @@ function describeDataset() {
   $('catalogCoverage').textContent = t('catalogCoverage', {label: catalogLabel(c), from: c.years[0], to: c.years[1], min: value(c.minimum_magnitude,1), south: b[0], west: b[1], north: b[2], east: b[3]});
   if (!state.ready) return;
   $('loadStatus').textContent = t('loaded', {n: fmt(state.events.length), commit: snapshot().slice(0,12)});
-  $('datasetDescription').textContent = t('datasetText', {n: fmt(state.events.length), files: fmt(state.manifest.files.length), latest: state.latest}) + ' ' + $('catalogCoverage').textContent;
+  $('datasetDescription').textContent = t(c.id==='all-catalogs' ? 'combinedDataset' : 'datasetText', {n: fmt(state.events.length), files: fmt(state.activePacks.reduce((n,p)=>n+p.manifest.files.length,0)), latest: state.latest}) + ' ' + $('catalogCoverage').textContent;
   describeSsn(c);
-  $('manifestLink').href = c.manifest_url;
+  $('manifestLink').href = c.id==='all-catalogs' ? 'data/catalogs.json' : c.manifest_url;
   $('depthMax').disabled = !depthKnown();$('depthNotice').hidden = depthKnown();$('depthLegend').hidden = !depthKnown();
-  $('depthHeader').textContent = t(depthKnown() ? 'depthKm' : 'reportedDepthShort');
+  $('depthHeader').textContent = t(c.id==='all-catalogs' ? 'mixedDepth' : depthKnown() ? 'depthKm' : 'reportedDepthShort');
   $('placeHeader').textContent = t(derivedKey() ? 'placeLocalKey' : 'placeId');
 }
 function changeLanguage(lang, persist = true) {
@@ -294,12 +327,14 @@ for (const id of controls) {
 $('searchForm').addEventListener('submit', event => {event.preventDefault();if (!state.ready) return;clearTimeout(debounce);applyFilters();});
 $('reset').addEventListener('click', () => {if (state.ready) {clearTimeout(debounce);writeFilters(V.catalogDefaults(state.catalog));applyFilters();}});
 function selectDataSource(source) {
-  if (source === 'ssn-unam') return loadCatalog(V.legacyCatalog, false, {unmOnly:true});
+  const preset={country:state.applied.country};
+  if(source==='all')return loadCatalog('all-catalogs',false,preset);
+  if (source === 'ssn-unam') return loadCatalog(V.legacyCatalog, false, {...preset,unmOnly:true});
   const c = state.catalog?.provider === source ? state.catalog : state.registry.catalogs.find(c => c.provider === source);
-  if (c) return loadCatalog(c.id);
+  if (c) return loadCatalog(c.id,false,preset);
 }
 $('providerSelect').addEventListener('change', () => selectDataSource($('providerSelect').value));
-$('catalogSelect').addEventListener('change', () => loadCatalog($('catalogSelect').value));
+$('catalogSelect').addEventListener('change', () => loadCatalog($('catalogSelect').value,false,{country:state.applied.country}));
 $('mapBase').addEventListener('change', () => state.map?.setBase($('mapBase').value));
 $('retry').addEventListener('click', () => state.registry && state.map ? loadCatalog(state.catalog.id, state.pendingRestore, state.pendingFilters) : initialize());
 $('sort').addEventListener('change', () => applyFilters());
@@ -334,36 +369,49 @@ async function fetchAsset(url) {
   const digest = await crypto.subtle.digest('SHA-256', bytes);
   return {data, hash: Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2,'0')).join('')};
 }
+async function loadPackage(c) {
+  let pack=state.cache.get(c.id);if(pack)return pack;
+  const [events,manifest]=await Promise.all([fetchAsset(c.events_url),fetchAsset(c.manifest_url)]);
+  if(events.hash!==c.sha256 || manifest.data.derived_asset_sha256!==events.hash || (c.manifest_sha256 && c.manifest_sha256!==manifest.hash))throw Error(t('hashMismatch'));
+  const index=state.geography.catalogs[c.id];
+  if(!Array.isArray(events.data.fields) || !Array.isArray(events.data.rows) || !index || index.events_sha256!==events.hash || index.row_count!==events.data.rows.length || index.country_ids.length!==index.row_count)throw Error(t('invalidPackage'));
+  const allowed=new Set(state.geography.regions.map(r=>r.id));
+  const rows=events.data.rows.map((row,n)=>{const e=Object.fromEntries(events.data.fields.map((key,i)=>[key,row[i]]));e.year=Number(e.time.slice(0,4));e.country_id=index.country_ids[n];return e;});
+  if(rows.some(e=>!Number.isFinite(e.latitude) || !Number.isFinite(e.longitude) || !Number.isFinite(e.mag) || !Number.isInteger(e.year) || !allowed.has(e.country_id)))throw Error(t('invalidPackage'));
+  pack={catalog:c,events:rows,fields:[...events.data.fields,'country_id'],manifest:manifest.data,hashes:{events:events.hash,manifest:manifest.hash}};
+  state.cache.set(c.id,pack);return pack;
+}
 async function loadCatalog(id, restore = false, preset = {}) {
-  const c = state.registry.catalogs.find(c => c.id === id);if (!c) return;
+  const c = id==='all-catalogs' ? combinedDefinition() : state.registry.catalogs.find(c => c.id === id);if (!c) return;
   const request = ++state.request;clearTimeout(debounce);state.restoring = true;state.ready = false;state.loadError = null;state.catalog = c;state.pendingRestore = restore;
   const initial = {...V.catalogDefaults(c), ...preset};
   if (c.id !== V.legacyCatalog) initial.unmOnly = false;
   state.pendingFilters = {...initial};
   state.applied = restore ? V.parseURL(location.href, {catalogs:state.registry.catalogs,defaultCatalog:state.registry.default_catalog_id,catalog:c}).view.filters : {...initial};
-  state.selectedEvent = '';state.highlightedEvent='';if ($('detail').open) $('detail').close();state.events = [];state.fields = [];state.filtered = [];state.manifest = null;
+  state.selectedEvent = '';state.highlightedEvent='';if ($('detail').open) $('detail').close();state.events = [];state.fields = [];state.filtered = [];state.manifest = null;state.activePacks=[];state.composition=null;
   $('activeFilters').replaceChildren();$('activeFilters').hidden=true;
   state.map?.setRecords([]);$('records').replaceChildren();$('histogram').replaceChildren();
   for (const id of ['eventCount','unmCount','missingCount','typeCount']) $(id).textContent = '—';
   $('mapStatus').textContent = '';$('filterSummary').textContent = '';$('loadStatus').textContent = loadingText(c);$('retry').hidden = true;
   buttons();populateCatalogControls();describeDataset();
   try {
-    let pack = state.cache.get(c.id);
-    if (!pack) {
-      const [events, manifest] = await Promise.all([fetchAsset(c.events_url),fetchAsset(c.manifest_url)]);
-      if (events.hash !== c.sha256 || manifest.data.derived_asset_sha256 !== events.hash || (c.manifest_sha256 && c.manifest_sha256 !== manifest.hash)) throw Error(t('hashMismatch'));
-      if (!Array.isArray(events.data.fields) || !Array.isArray(events.data.rows)) throw Error(t('invalidPackage'));
-      const rows = events.data.rows.map(row => {const e = Object.fromEntries(events.data.fields.map((key,i) => [key,row[i]]));e.year = Number(e.time.slice(0,4));return e;});
-      if (rows.some(e => !Number.isFinite(e.latitude) || !Number.isFinite(e.longitude) || !Number.isFinite(e.mag) || !Number.isInteger(e.year))) throw Error(t('invalidPackage'));
-      pack = {events: rows, fields:events.data.fields, manifest: manifest.data, hashes: {events: events.hash, manifest: manifest.hash}};state.cache.set(c.id, pack);
-    }
+    const active=id==='all-catalogs' ? await Promise.all(state.registry.catalogs.map(loadPackage)) : [await loadPackage(c)];
     if (request !== state.request) return;
+    const pack=id==='all-catalogs' ? C.combine(active) : active[0];
+    if(id==='all-catalogs'){
+      const descriptor=JSON.stringify(active.map(p=>[p.catalog.id,p.hashes.events,p.hashes.manifest]));
+      const bytes=new TextEncoder().encode(descriptor),hash=await crypto.subtle.digest('SHA-256',bytes);
+      if(request!==state.request)return;
+      c.snapshot='sha256:'+Array.from(new Uint8Array(hash),b=>b.toString(16).padStart(2,'0')).join('');
+      pack.manifest.snapshot_commit=c.snapshot;state.composition=pack.stats;
+    }
+    state.activePacks=active;
     state.events = pack.events;state.fields = pack.fields;state.manifest = pack.manifest;state.hashes = {...pack.hashes, registry: state.registryHash};
     state.latestUTC = state.events.reduce((latest,e) => e.time > latest ? e.time : latest, '');state.latest = state.latestUTC.slice(0,10);
     populateFilters();state.ready = true;state.formValid = true;state.invalidLink = [];state.restoring = false;
     if (restore) restoreFromURL();else {
       state.restoring = true;writeFilters(initial);$('sort').value = 'recent';state.page = 0;
-      state.map.setRegion(c.bounds);state.map.reset();applyFilters(false);describeDataset();showWarnings();actionStatus('');
+      state.map.setRegion(c.bounds);state.map.reset();applyFilters(false);if(initial.country)state.map.fitRecords();describeDataset();showWarnings();actionStatus('');
       state.restoring = false;syncURL();buttons();
     }
   } catch (error) {
@@ -378,8 +426,10 @@ async function restoreLocation() {
 async function initialize() {
   $('retry').hidden = true;$('loadStatus').textContent = t('loading');buttons();
   try {
-    const [registry,revisions,basemap] = await Promise.all(['data/catalogs.json','data/revisions.json','data/basemap.geojson'].map(fetchAsset));
+    const [registry,revisions,basemap,geography] = await Promise.all(['data/catalogs.json','data/revisions.json','data/basemap.geojson','data/country-index.json'].map(fetchAsset));
     if (!Array.isArray(registry.data.catalogs) || !registry.data.catalogs.length) throw Error(t('invalidPackage'));
+    if(geography.data.schema!=='seismic-country-index/1' || geography.data.geometry_sha256!==basemap.hash || geography.data.registry_sha256!==registry.hash || !Array.isArray(geography.data.regions))throw Error(t('hashMismatch'));
+    state.geography=geography.data;state.geographyHash=geography.hash;
     state.registry = registry.data;state.registryHash = registry.hash;state.revisions = revisions.data;showRevisions();
     state.map = createSeismicMap({element: $('map'),basemap: basemap.data,onSelect: detail,onViewChange: syncURL,translate: t,formatNumber: fmt,
       onHighlight:id=>{state.highlightedEvent=id;renderTable();},

@@ -1,10 +1,12 @@
 # Exploratory catalogues and map backgrounds
 
-The explorer distinguishes a selected data catalogue from its map background.
-Only one catalogue is active at a time. Switching backgrounds preserves its
-records and filters; switching catalogues loads a separately identified source.
-Reports from different catalogues are not silently merged or treated as
-independent earthquakes.
+The explorer distinguishes data distributor, catalogue, geographic
+country/territory overlay and map background. A local revision adds country
+selection and an explicit combined view; this document does not assert that
+the revision is already published. Switching backgrounds preserves records and
+filters. Individually selected catalogues retain their separate source evidence;
+the combined view preserves that evidence per row. Reports from different
+catalogues are not silently deduplicated or treated as independent earthquakes.
 
 ## Data catalogues
 
@@ -60,6 +62,54 @@ are not USGS identifiers or new observations. Repeated source rows remain
 identifiable and are not claimed to represent independent physical events.
 Depth values whose units cannot be documented remain raw values outside the
 common kilometre field, rather than being silently converted or labelled.
+
+## Geographic country/territory selection and combined view — local revision
+
+`data/country-index.json` contains one geographic label per source-package row,
+in the same order. Its catalogue descriptors retain the event-package SHA-256;
+the sidecar also identifies the pinned local `data/basemap.geojson` by SHA-256.
+Rebuild it after rebuilding both catalogues and map assets with
+`python scripts/build_country_index.py`. It does not rewrite catalogue bytes,
+source identifiers, coordinates, magnitudes or source manifests.
+
+The predicate tests epicentre containment in the 47 retained Natural Earth
+1:50 million terrestrial country/territory features. Stable region keys use
+validated ISO codes or a Natural Earth-derived fallback. It is a coarse map
+overlay, not a claim of earthquake nationality, authoritative political
+boundaries, territorial seas or exclusive economic zones. The category
+`outside` includes sea and any land outside the retained polygons; `boundary`
+keeps polygon-edge and ambiguous multiple matches separate; `invalid` preserves
+invalid-coordinate classification explicitly. The all-country setting retains
+every category. Generalized coastlines can affect near-shore classification.
+No country is inferred from a reported nearby locality, source agency or the
+nearest coast, and a country filter does not silently capture that country's
+offshore seismicity.
+
+The all-catalogue view retains **287,936 rows**: 14,041 USGS North America,
+24,994 USGS Mexico, 6,613 NRCan and 242,288 direct SSN. These are source-record
+counts, not a unique earthquake count. The two USGS packages contain 39,035
+rows with 36,872 distinct ComCat identifiers: 2,163 identifiers occur in both
+packages and their 4,326 rows receive exact-ID overlap flags. All rows remain
+available. No cross-provider spatial/temporal linkage or fuzzy deduplication is
+performed; unflagged records can still describe the same physical event.
+
+A composite `id` qualifies each package key by catalogue using `~`. The original
+package key remains `source_event_id`, with `source_identifier_kind` identifying
+official ComCat IDs versus derived SSN/NRCan row keys. Each row retains its
+`catalog_id`, `data_provider`, `source_snapshot`, per-record `depth_unit` and
+`country_id`; source-specific raw fields and unknowns are preserved. Inspectors
+and source links use the original catalogue rather than fabricating USGS routes
+from derived or composite keys. Files with the same name in different manifests
+remain separate provenance records, with separate rights and hashes.
+
+Country-filtered or combined shared views use v4 URLs and
+`seismic-local-query/4`. Their JSON identifies the registry, geometry, geographic
+index and each source's event/manifest hashes, predicates, ordered result keys
+and field semantics. Unfiltered single-catalogue v3 views and legacy v1/v2 links
+remain supported. Single-catalogue CSV adds `country_id` without modifying the
+source package (28 exported fields for native SSN, including its original 27).
+The combined CSV additionally exposes per-row provenance and exact-USGS overlap
+flags. Changing a base map has no effect on these predicates or exports.
 
 ## Direct SSN source, provenance and reproducibility
 

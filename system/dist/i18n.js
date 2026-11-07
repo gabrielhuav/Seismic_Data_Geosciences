@@ -137,6 +137,26 @@
     expandMap:'Expand map', collapseMap:'Return to system (Esc)', outsideFilters:'This record is outside the current filters. Adjust the filters to display it on the map; inspecting its details does not change the selection.',
     'country.Greenland':'Greenland', 'country.Russia':'Russia'
   });
+  Object.assign(messages.es, {
+    allSources:'Todas las fuentes · mapa conjunto',allCatalogs:'Todos los catálogos disponibles',
+    oneCatalog:'Elige un catálogo o todos juntos. El distribuidor, la agencia del origen y el país cartográfico son campos distintos. Los registros de catálogos relacionados pueden coincidir; sus conteos no representan terremotos independientes.',
+    combinedDataset:'{n} filas de cuatro catálogos, con {files} referencias a archivos fijados (pueden repetirse entre paquetes). Último origen observado: {latest}. Cada catálogo conserva sus propios bytes, hashes, fechas y límites en la consulta JSON; el enlace de manifiestos abre el registro de los cuatro catálogos.',
+    allCountries:'Todos · incluye mar / sin polígono',countryFilter:'País / territorio del epicentro',
+    countryHelp:'Filtro de ubicación en polígonos terrestres Natural Earth 1:50 millones. Fuera de polígonos (incluido mar) y bordes ambiguos quedan separados. No asigna nacionalidad ni jurisdicción marítima; no usa proveedor ni nombre del lugar.',
+    combinedHelp:'Registros por catálogo en esta selección: {groups}. {shared} IDs USGS aparecen en ambos paquetes y están señalados. Se conservan todas las filas; otras coincidencias entre fuentes no están resueltas. El total no es un conteo de terremotos únicos o independientes.',
+    sharedUsgsId:'ID USGS presente en ambos catálogos',internalRecordKey:'Clave compuesta del registro',countryLocation:'Ubicación cartográfica derivada',mixedDepth:'Profundidad km / cruda sin unidad',originSourceShort:'Distribuidor / agencia del origen',
+    earthquakeOnly:'USGS selecciona eventos earthquake. SSN directo y NRCan no suministran tipo de evento ni IDs originales: se conservan claves derivadas y ausencias explícitas. Puedes consultar un catálogo o todos juntos. La vista conjunta conserva las filas y su procedencia; marca IDs USGS compartidos sin resolver coincidencias entre proveedores ni tratarlas como observaciones independientes. No se usa el almacén histórico derivado SSN.'
+  });
+  Object.assign(messages.en, {
+    allSources:'All sources · combined map',allCatalogs:'All available catalogs',
+    oneCatalog:'Choose one catalog or all together. Distributor, origin agency and cartographic country are different fields. Related catalogs can contain matching records; their counts do not represent independent earthquakes.',
+    combinedDataset:'{n} rows from four catalogs, with {files} references to pinned files (references may recur across packages). Latest observed origin: {latest}. Each catalog retains its own bytes, hashes, dates and limits in query JSON; the manifest link opens the four-catalog registry.',
+    allCountries:'All · includes offshore / no polygon',countryFilter:'Epicenter country / territory',
+    countryHelp:'Location filter using Natural Earth 1:50 million land polygons. Outside polygons (including offshore) and ambiguous boundaries remain separate. This does not assign nationality or maritime jurisdiction; provider and place names are not used.',
+    combinedHelp:'Records by catalog in this selection: {groups}. {shared} USGS IDs occur in both packages and are flagged. Every row is retained; other cross-provider matches remain unresolved. The total is not a count of unique or independent earthquakes.',
+    sharedUsgsId:'USGS ID present in both catalogs',internalRecordKey:'Composite record key',countryLocation:'Derived cartographic location',mixedDepth:'Depth km / raw with unknown unit',originSourceShort:'Distributor / origin agency',
+    earthquakeOnly:'USGS selects earthquake events. Direct SSN and NRCan supply no event type or original event IDs: derived keys and explicit missing values are retained. Query one catalog or all together. The combined view retains rows and provenance and flags shared USGS IDs, without resolving cross-provider matches or treating them as independent observations. No historical derived SSN warehouse data are used.'
+  });
   let language = 'es';
   function t(key, values = {}) {
     return String(messages[language][key] ?? messages.en[key] ?? key).replace(/\{(\w+)\}/g, (_, k) => String(values[k] ?? ''));

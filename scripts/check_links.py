@@ -79,6 +79,8 @@ def collect_links(scope):
             line = text[line_start:line_end if line_end >= 0 else len(text)]
             if url == "https://local.invalid/" and name == "system/dist/view-state.js" and "new URL(" in line:
                 non_navigation.append({"url": url, "source": name, "classification": "reserved parser base, never a navigable link", "line": text.count("\n", 0, match.start()) + 1})
+            elif name in {"README.md", "system/README.md"} and urlsplit(url).hostname in {"127.0.0.1", "localhost", "::1"}:
+                non_navigation.append({"url": url, "source": name, "classification": "local preview example in developer instructions; not a public deployment destination", "line": text.count("\n", 0, match.start()) + 1})
             elif text[match.end():match.end()+2] == "${":
                 templates.append({"source": name, "prefix": url, "status": "resolved separately from typed packaged event IDs"})
             elif text[match.end():match.end()+1] == "{":

@@ -26,11 +26,14 @@ jobs:
         run: python -m unittest discover -s tests
       - name: Verify catalogue registry and packaged source hashes
         run: python scripts/build_catalogs.py --verify-only
+      - name: Verify country index against the pinned catalogue rows and map polygons
+        run: python scripts/build_country_index.py --verify-only
       - name: Check shared views, filters and bilingual labels
         run: |
           node tests/test_view_state.cjs
           node tests/test_system_labels.cjs
           node tests/test_catalog_frontend.cjs
+          node tests/test_catalog_composition.cjs
           node tests/test_preferences.cjs
           node tests/test_map_basemaps.cjs
       - name: Reproduce the independent retained-product validation

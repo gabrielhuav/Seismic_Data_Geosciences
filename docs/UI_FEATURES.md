@@ -1,8 +1,10 @@
 # Explorer interaction contract
 
-The research explorer uses one pinned catalogue at a time. Interface preferences,
-map extent, record selection and expanded-map mode do not change the filter,
-reported coordinates, CSV, row counts or underlying evidence.
+The explorer supports a single pinned catalogue or an explicit combined view.
+The country and combined-view features described below are a local revision;
+their presence in the source does not establish deployment to the public site.
+Interface preferences, map extent, record selection and expanded-map mode do not
+change the filter, reported coordinates, CSV, row counts or underlying evidence.
 
 ## Appearance
 
@@ -25,7 +27,8 @@ reported coordinates, CSV, row counts or underlying evidence.
 
 - Every filter differing from the active catalogue's defaults has a removable
   chip: search, both year bounds, both magnitude bounds, magnitude type, origin
-  agency, maximum depth, missing-horizontal-error selection and SSN/UNAM attribution.
+  agency, maximum depth, missing-horizontal-error selection, SSN/UNAM attribution
+  and country/territory overlay selection.
 - Removing a chip restores that control's catalogue default. If restoring one
   range bound would invert the range, both bounds of that range are restored.
 - Search and filters remain unavailable while a catalogue is loading. Provider
@@ -42,8 +45,9 @@ reported coordinates, CSV, row counts or underlying evidence.
 ## Data sources and SSN/UNAM attribution
 
 The **Data source / Fuente de datos** selector offers three distributors: USGS,
-NRCan and direct SSN/UNAM. Four catalogues remain separate; their counts are not
-added together. The initial selection remains USGS North America. Selecting
+NRCan and direct SSN/UNAM. Four catalogues remain individually selectable;
+the combined option displays their source records together without treating the
+sum as independent earthquakes. The initial selection remains USGS North America. Selecting
 SSN requests and verifies its larger package on demand; its exact byte size is
 reported during loading when supplied by the registry. Scientific controls and
 exports remain disabled until the hash-checked package is ready.
@@ -99,7 +103,8 @@ resetting filters also clears the attribution selection. During loading,
 controls and exports stay unavailable; a failed package can be retried with
 the intended attribution selection, and a later source choice wins a load race.
 
-Scientific links now write protocol `v=3`, with `unmOnly=1` only when active.
+Single-catalogue scientific links without a country predicate write protocol
+`v=3`, with `unmOnly=1` only when active.
 Version-1 links retain Mexico and version-2 links retain their selected
 catalogue. Neither older protocol can activate the new predicate, even if an
 `unmOnly` parameter is supplied. A v3 attribution request for a different
@@ -110,6 +115,62 @@ all three asset hashes, and records the two-field OR and literal codes under
 `unmOnly: false`; it is restored independently through the same v3 protocol and
 query schema. Neither the scientific query nor a map background implies
 independent observations or author identity across these related catalogues.
+
+## Country selection and combined records — local revision
+
+Data distributor, catalogue, geographic country/territory overlay and map
+background are separate choices. Selecting a country does not select the
+country's national agency: a USGS record can lie in Mexico, and an NRCan record
+can lie outside Canada. The country predicate applies to the active catalogue
+or to every source record in the combined view, using the same reported
+epicentre coordinates as the map.
+
+`data/country-index.json` is a reproducible sidecar tied to the unchanged event
+package SHA-256 and row order of each catalogue. It uses the pinned local
+Natural Earth 1:50 million terrestrial polygons, comprising 47 country/territory
+features. Valid unique ISO codes are used where available, with stable Natural
+Earth-derived fallback keys for unavailable or unsuitable ISO values. It is a
+cartographic containment classification, not event nationality, political
+recognition, an exclusive economic zone, territorial waters or authoritative
+border adjudication. Generalized coasts can classify a near-shore epicentre
+differently from a higher-resolution shoreline. No nearest locality, nearest
+country or reporting-agency inference assigns offshore records to a country.
+
+The selector retains explicit `outside`, `boundary` and `invalid` categories:
+outside the retained land polygons (including sea and unrepresented land),
+polygon boundaries or ambiguous multiple containment, and invalid coordinates.
+The all-country choice includes those categories. A land-country selection
+does not silently include offshore records. Empty selections remain visible as
+zero selected source records; the underlying package is not truncated.
+
+The combined option retains all **287,936 source rows** from the four packages.
+There is no spatial/temporal fuzzy matching or deduplication. The two USGS
+packages have **2,163 identical ComCat identifiers** in common; their **4,326
+rows** are flagged with `shared_event_id` and `duplicate_group`, while remaining
+separate records. That flag does not determine whether native SSN, NRCan or
+other unflagged rows refer to the same physical earthquake. Counts, histogram
+bars and plotted markers describe the selected source records.
+
+Composite row keys use `catalogue-id~packaged-key`. The inspector resolves the
+original catalogue, original packaged key, manifest, source file and source
+rights rather than generating links from the composite key. CSV includes
+`catalog_id`, `data_provider`, `source_snapshot`, `source_event_id`,
+`source_identifier_kind`, per-record `depth_unit`, `country_id` and the exact-USGS
+overlap flags. `source_event_id` is the retained package key; for SSN and NRCan,
+`source_identifier_kind: derived_row_key` makes clear that it is not an original
+agency event identifier. Missing source fields remain null. Canadian depths
+with undocumented units do not become kilometres in a mixed-source view.
+
+Country-filtered and combined views use URL protocol **v4** and query schema
+`seismic-local-query/4`. Single-catalogue views without the country predicate
+retain their existing v3 form; v1/v2/v3 restoration remains supported. Query
+JSON records the geographic predicate, registry/geometry/index hashes and each
+input catalogue's event and manifest hashes, coverage and field semantics. Its
+ordered result keys match the selected map/table/CSV rows. A single SSN CSV adds
+`country_id` to its 27 source-package fields; the original packaged bytes and
+their hashes remain unchanged. Mixed-source exports retain source-specific
+raw fields rather than harmonizing clocks, status vocabularies or magnitude
+types.
 
 ## Expanded map and keyboard access
 
@@ -160,11 +221,13 @@ Run from the repository root:
 node tests/test_preferences.cjs
 node tests/test_view_state.cjs
 node tests/test_catalog_frontend.cjs
+node tests/test_catalog_composition.cjs
 node tests/test_map_basemaps.cjs
 node tests/test_system_labels.cjs
+python -m unittest discover -s tests -p test_country_index.py
 ```
 
-The four behavior scripts currently provide 45 checks, including blocked storage,
+The behavior scripts cover blocked storage,
 system-mode changes, six theme/mode contrast combinations, immutable scientific
 selection under appearance changes, all removable filters, linked record location,
 expanded-map Escape/focus restoration, ES/EN filter-option localisation without
@@ -179,6 +242,13 @@ separately in the real browser. Contrast
 checks cover principal text pairs at 4.5:1 and focus/marker pairs at 3:1; these
 checks do not constitute a full accessibility conformance audit. The label check
 covers both interface languages and referenced HTML identifiers.
+
+Composition tests additionally verify collision-free qualified keys, unchanged
+source fields, per-source hashes, source-row order, explicit nulls and exact
+USGS overlap flags against the real packages. Country-index tests cover
+geometric edge cases and the index's association with the original package
+bytes and row order. Neither set of tests establishes source accuracy or
+independent physical earthquakes.
 
 Final visual review and manuscript screenshots use the completed interface in a
 real browser. The historical water and public-works projects were inspected as

@@ -110,4 +110,100 @@ test('native SSN URLs and query metadata retain source clocks, raw fields and st
  assert(query.limits.some(limit=>limit.includes('verified is not converted')));assert(query.limits.some(limit=>limit.includes('Coverage does not establish completeness')));
  assert.equal(JSON.stringify({manifest,row}),unchanged);assert.equal(V.filterEvents([row],view.filters).length,1);assert.equal(V.filterEvents([row],{...view.filters,magType:'__missing__'}).length,1);
 });
+test('v4 country views restore exact land/special labels while preserving legacy selections', () => {
+ const registry=JSON.parse(fs.readFileSync('system/dist/data/catalogs.json','utf8'));
+ const index=JSON.parse(fs.readFileSync('system/dist/data/country-index.json','utf8'));
+ const c=registry.catalogs.find(c=>c.id==='ssn-mx-historical');
+ const geographyHash='a'.repeat(64);
+ const opts={catalogs:registry.catalogs,defaultCatalog:registry.default_catalog_id,catalog:c,countries:index.regions.map(r=>r.id),snapshot:c.snapshot,geographyHash};
+ for(const country of ['MEX','USA','CAN','outside','boundary','invalid']) {
+  const view={catalog:c.id,filters:{...V.catalogDefaults(c),country},sort:'oldest',lang:'es',tab:'catalog',snapshot:c.snapshot,base:'nasa-blue-marble',geography:geographyHash};
+  const url=V.serialize(view,'https://example.org/');assert.equal(new URL(url).searchParams.get('v'),'4');
+  assert.equal(new URL(url).searchParams.get('geo'),geographyHash);
+  const parsed=V.parseURL(url,opts);assert.deepEqual(parsed.invalid,[]);assert.deepEqual(parsed.view.filters,view.filters);
+  assert.equal(parsed.view.base,'nasa-blue-marble');assert.equal(parsed.view.catalog,c.id);
+  const stale=new URL(url);stale.searchParams.set('geo','b'.repeat(64));
+  const mismatch=V.parseURL(stale.href,opts);assert(mismatch.invalid.includes('geo'));assert.equal(mismatch.view.filters.country,country);
+ }
+ for(const version of ['1','2','3']) {
+  const params=`?v=${version}&catalog=usgs-mx-historical&from=2017&to=2017&country=MEX`;
+  const parsed=V.parseURL('https://example.org/'+params,{...opts,catalog:registry.catalogs.find(c=>c.id===V.legacyCatalog),snapshot:manifest.snapshot_commit});
+  assert(parsed.invalid.includes('country'));assert.equal(parsed.view.catalog,V.legacyCatalog);
+  assert.equal(parsed.view.filters.country,'');assert.equal(parsed.view.filters.yearFrom,2017);
+  assert.deepEqual(V.filterEvents(events,parsed.view.filters).map(e=>e.id),V.filterEvents(events,{...V.defaults,yearFrom:2017,yearTo:2017}).map(e=>e.id));
+ }
+ const noCountry=V.serialize({catalog:c.id,filters:V.catalogDefaults(c),sort:'recent',lang:'en',tab:'catalog'},'https://example.org/');
+ assert.equal(new URL(noCountry).searchParams.get('v'),'3');
+});
+test('country filters use only explicit index labels, including outside/boundary, never place or provider', () => {
+ const fixture=[
+  {id:'usgs-mexico',country_id:'MEX',data_provider:'usgs',place:'USA'},
+  {id:'ssn-outside',country_id:'outside',data_provider:'ssn',place:'México'},
+  {id:'nrcan-usa',country_id:'USA',data_provider:'nrcan',place:'Canada'},
+  {id:'border',country_id:'boundary',data_provider:'ssn',place:'Mexico'},
+  {id:'unclassified',country_id:'invalid',data_provider:'usgs',place:'Canada'}
+ ].map(e=>({year:2020,mag:4,depth:null,horizontalError:null,time:'2020-01-01T00:00:00Z',...e}));
+ const unchanged=JSON.stringify(fixture);
+ for(const [country,id] of [['MEX','usgs-mexico'],['USA','nrcan-usa'],['outside','ssn-outside'],['boundary','border'],['invalid','unclassified']]) {
+  assert.deepEqual(V.filterEvents(fixture,{...V.defaults,country}).map(e=>e.id),[id]);
+ }
+ assert.equal(V.filterEvents(fixture,V.defaults).length,5);assert.equal(V.filterEvents(fixture,{...V.defaults,country:'CAN'}).length,0);
+ assert.equal(JSON.stringify(fixture),unchanged);
+});
+test('v4 combined keys and country predicates round-trip; malformed labels and unsupported combined URLs fail safely', () => {
+ const registry=JSON.parse(fs.readFileSync('system/dist/data/catalogs.json','utf8'));
+ const opts={catalogs:registry.catalogs,defaultCatalog:registry.default_catalog_id,countries:['MEX','USA','CAN','outside','boundary','invalid'],events:['usgs-a~same-id','ssn-a~same-id'],snapshot:'compound-fixture',geographyHash:'c'.repeat(64)};
+ const view={catalog:'all-catalogs',filters:{...V.defaults,country:'CAN',yearFrom:2000,yearTo:2025,magMin:4,depthMax:70},sort:'mag',lang:'en',tab:'catalog',event:'ssn-a~same-id',snapshot:'compound-fixture',map:[60,-120,3],geography:opts.geographyHash};
+ const url=V.serialize(view,'https://example.org/'),parsed=V.parseURL(url,opts);
+ assert.equal(new URL(url).searchParams.get('v'),'4');assert.equal(new URL(url).searchParams.get('geo'),opts.geographyHash);assert.deepEqual(parsed.invalid,[]);
+ assert.deepEqual(parsed.view.filters,view.filters);assert.equal(parsed.view.catalog,'all-catalogs');assert.equal(parsed.view.event,view.event);
+ const all=V.serialize({...view,filters:V.defaults},'https://example.org/');assert.equal(new URL(all).searchParams.get('v'),'4');
+ for(const country of ['MEx','unknown','<svg>','MEX/USA','USA~CAN','x'.repeat(81)]) {
+  const bad=V.parseURL('https://example.org/?v=4&catalog=all-catalogs&country='+encodeURIComponent(country),opts);
+  assert(bad.invalid.includes('country'));assert.equal(bad.view.filters.country,'');
+ }
+ for(const version of ['2','3']) {
+  const bad=V.parseURL(`https://example.org/?v=${version}&catalog=all-catalogs`,opts);
+  assert(bad.invalid.includes('catalog'));assert.equal(bad.view.catalog,registry.default_catalog_id);
+ }
+ assert(V.parseURL('https://example.org/?v=4&catalog=all-catalogs&event=unregistered~same-id',opts).invalid.includes('event'));
+ assert(V.parseURL('https://example.org/?v=4&catalog=all-catalogs&event=%3Cscript%3E',opts).invalid.includes('event'));
+ const unm=V.parseURL('https://example.org/?v=4&catalog=all-catalogs&unmOnly=1',opts);
+ assert(unm.invalid.includes('unmOnly'));assert.equal(unm.view.filters.unmOnly,false);
+ assert.throws(()=>V.serialize({...view,filters:{...view.filters,unmOnly:true}},'https://example.org/'));
+});
+test('v4 combined query preserves each source evidence and selected composite order without deduplication', () => {
+ const C=require('../system/dist/catalog-composition.js');
+ const make=(id,provider,row,extra={})=>{
+  const event={id:'shared-id',year:2020,time:'2020-01-01T00:00:00Z',latitude:20,longitude:-100,depth:null,mag:4,magType:null,horizontalError:null,country_id:'MEX',...row};
+  return {catalog:{id,provider,provider_name:provider,years:[2000,2025],bounds:[[10,-190],[84,-40]],minimum_magnitude:3.5,snapshot:'snapshot-'+id,...extra},
+   fields:Object.keys(event),events:[event],hashes:{events:'events-'+id,manifest:'manifest-'+id},
+   manifest:{files:[{path:'same.csv',sha256:'raw-'+id}],field_semantics:{status:'literal-'+provider},rights:{notice:'source-specific-'+provider},
+    time_basis:{rule:'source-clock-'+id},selection:{minimum_magnitude:3.5},identifier_kind:extra.identifier_kind}};
+ };
+ const packs=[make('usgs-a','usgs',{depth:10}),make('usgs-b','usgs',{depth:11}),
+  make('ssn-a','ssn',{raw_local_time:'18:00:00',status:'verificado'},{identifier_kind:'derived_row_key',depth_unit:'km'}),
+  make('nrcan-a','nrcan',{raw_depth:'6.0',country_id:'CAN'},{identifier_kind:'derived_row_key',depth_unit_status:'not_documented_in_source'})];
+ const combined=C.combine(packs),view={catalog:'all-catalogs',filters:{...V.defaults,country:'MEX'},sort:'recent',lang:'en',tab:'catalog'};
+ const rows=V.filterEvents(combined.events,view.filters,view.sort),geography={index_sha256:'index-fixture',geometry_sha256:'geometry-fixture',selected_country:'MEX'};
+ const query=V.queryDocument({view,catalog:combined.catalog,manifest:combined.manifest,assetHashes:{...combined.hashes,registry:'registry-fixture'},fields:combined.fields,inputs:packs,geography,rows,pageURL:'https://example.org/?v=4',createdUTC:'2026-11-06T00:00:00Z'});
+ assert.equal(query.schema,'seismic-local-query/4');assert.equal(query.catalog.provider,'all');assert.equal(query.registry_sha256,'registry-fixture');
+ assert.deepEqual(query.geography,geography);assert.equal(query.inputs.length,4);assert.equal(query.input_catalogs.length,4);
+ assert.equal(query.result.row_count,3);assert.deepEqual(query.result.ordered_event_ids,['usgs-a~shared-id','usgs-b~shared-id','ssn-a~shared-id']);
+ assert.deepEqual(query.result.ordered_source_keys,[{catalog:'usgs-a',id:'shared-id'},{catalog:'usgs-b',id:'shared-id'},{catalog:'ssn-a',id:'shared-id'}]);
+ for(let i=0;i<packs.length;i++) {
+  assert.equal(query.inputs[i].events_sha256,packs[i].hashes.events);assert.equal(query.inputs[i].manifest_sha256,packs[i].hashes.manifest);
+  assert.equal(query.inputs[i].registry_sha256,'registry-fixture');assert.deepEqual(query.inputs[i].source_files,packs[i].manifest.files);
+  assert.deepEqual(query.inputs[i].field_semantics,packs[i].manifest.field_semantics);assert.deepEqual(query.inputs[i].time_basis,packs[i].manifest.time_basis);
+  assert.deepEqual(query.inputs[i].rights,packs[i].manifest.rights);
+  assert.equal(query.input_catalogs[i].id,packs[i].catalog.id);assert.equal(query.input_catalogs[i].snapshot,packs[i].catalog.snapshot);
+ }
+ assert.equal(query.inputs[2].identifier_kind,'derived_row_key');assert.equal(query.inputs[2].depth_unit,'km');assert.deepEqual(query.inputs[2].raw_fields,['raw_local_time']);
+ assert.equal(query.inputs[3].depth_unit,null);assert.equal(query.inputs[3].packaged_event_type,null);
+ assert(query.predicate_rules.composition.includes('no cross-provider'));assert(query.limits.some(s=>s.includes('not unique or independent')));
+ assert.throws(()=>V.queryDocument({view,catalog:combined.catalog,manifest:combined.manifest,assetHashes:{},rows:[],pageURL:'https://example.org/'}),/require all source/);
+ const single=V.queryDocument({view:{...view,catalog:packs[2].catalog.id},...packs[2],assetHashes:packs[2].hashes,rows:packs[2].events,geography,pageURL:'https://example.org/?v=4'});
+ assert.equal(single.schema,'seismic-local-query/4');assert.deepEqual(single.geography,geography);
+ assert.equal(single.input.events_sha256,'events-ssn-a');assert.equal(single.result.row_count,1);
+});
 console.log(JSON.stringify({passed:checks.length,checks},null,2));

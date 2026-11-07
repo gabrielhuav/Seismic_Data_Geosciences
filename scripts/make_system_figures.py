@@ -90,8 +90,8 @@ def workflow():
     ax.plot([0, 1], [.49, .49], color="#A6B2B0", linewidth=.8, linestyle=(0, (4, 3)))
     row(.55, "A  Exploratory catalogue interface", [
         ("Data\ncatalogues", f"MX (USGS): {catalogue_counts['usgs-mx-historical']:,}\nNA (USGS): {catalogue_counts['usgs-na-2020-2025']:,}\nNRCan: {catalogue_counts['nrcan-ca-historical']:,}\nSSN: {catalogue_counts['ssn-mx-historical']:,}"),
-        ("Provenance\nboundary", "Active catalogue\nHashes, field limits\nNo automatic merge"),
-        ("Local selection", "ID, place, fields\nMap, record table\nCSV, query JSON"),
+        ("Provenance\nboundary", "Separate or together\nPer-source hashes\nShared IDs flagged"),
+        ("Local selection", "ID, place, country\nMap, record table\nCSV, query JSON"),
         ("Display\npreferences", "Theme, light mode\nBase map, viewport\nSelection unchanged"),
     ], "#F7F5ED")
     fig.subplots_adjust(left=.025, right=.99, bottom=.025, top=.96)
@@ -116,6 +116,10 @@ def interface(capture_receipt, *, figure_id, name):
     image = plt.imread(screenshot)
     if record(screenshot)["sha256"] != receipt["image"]["sha256"]:
         raise ValueError("Interface screenshot differs from its capture receipt")
+    for relative, expected in receipt.get("application_assets_sha256", {}).items():
+        asset = (ROOT / "system/dist" / relative).resolve()
+        if not asset.is_relative_to((ROOT / "system/dist").resolve()) or record(asset)["sha256"] != expected:
+            raise ValueError("Application bytes differ from the reviewed figure capture: " + relative)
     bounds = receipt.get("capture", {}).get("figure_crop_pixel_bounds", [0, 0, image.shape[1], image.shape[0]])
     x0, y0, x1, y1 = bounds
     if not (0 <= x0 < x1 <= image.shape[1] and 0 <= y0 < y1 <= image.shape[0]):
@@ -126,8 +130,8 @@ def interface(capture_receipt, *, figure_id, name):
     # Each figure derives from one immutable browser state. Enlarging the
     # overview's controls compares two regions of that same capture, so small
     # source labels can be read without combining independent interface states.
-    if figure_id == "interface":
-        fig = plt.figure(figsize=(6.5, 4.75))
+    if receipt.get("figure_panels"):
+        fig = plt.figure(figsize=receipt.get("figure_size_inches",[6.5, 4.75]))
         panels = receipt.get("figure_panels")
         if not panels:
             raise ValueError("The current overview requires reviewed source frames and selection labels in its receipt")
@@ -232,14 +236,17 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--architecture-only", action="store_true")
     parser.add_argument("--capture-receipt", type=Path,
-                        default=ROOT / "outputs/ssn_recent_2026-11-06/captures/interface_receipt.json")
+                        default=ROOT / "outputs/visual_2026-11-06/captures/interface_receipt.json")
+    parser.add_argument("--expanded-receipt", type=Path,
+                        default=ROOT / "outputs/visual_2026-11-06/captures/expanded_receipt.json")
     parser.add_argument("--inspector-receipt", type=Path,
-                        default=ROOT / "outputs/ssn_recent_2026-11-06/captures/inspector_receipt.json")
+                        default=ROOT / "outputs/visual_2026-11-06/captures/inspector_receipt.json")
     args = parser.parse_args()
     base.style()
     architecture = workflow()
     figures = [architecture] if args.architecture_only else [
         interface(args.capture_receipt, figure_id="interface", name="figure_interface"),
+        interface(args.expanded_receipt, figure_id="expanded", name="figure_expanded"),
         architecture,
         interface(args.inspector_receipt, figure_id="inspector", name="figure_inspector"),
     ]

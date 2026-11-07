@@ -61,6 +61,15 @@ class CatalogueLinkTests(unittest.TestCase):
     def registry(self):
         self.write_json(self.dist / "data/catalogs.json", {"catalogs": self.catalogs, "default_catalog_id": self.usgs["id"]})
 
+    def test_loopback_preview_examples_do_not_exempt_application_navigation(self):
+        readme = self.root / "README.md"
+        readme.write_text("Local preview: http://127.0.0.1:8787/\n", encoding="utf-8")
+        self.app.write_text("const wrongPublicLink='http://127.0.0.1:8787/';", encoding="utf-8")
+        with patch.object(check_links, "source_paths", return_value=[readme, self.app]):
+            external, _, _, _, notes = check_links.collect_links("all")
+        self.assertEqual(external["http://127.0.0.1:8787/"], {"system/dist/app.js"})
+        self.assertEqual([entry["source"] for entry in notes], ["README.md"])
+
     def test_canadian_derived_keys_never_generate_usgs_routes_in_any_mode(self):
         for mode in ["none", "sample", "all"]:
             with self.subTest(mode=mode):
