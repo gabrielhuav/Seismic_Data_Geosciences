@@ -5,6 +5,7 @@ const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const V = require('../system/dist/view-state.js');
 const C = require('../system/dist/catalog-composition.js');
+const A = require('../system/dist/analytics.js');
 const registry = JSON.parse(fs.readFileSync('system/dist/data/catalogs.json','utf8'));
 const catalogs = registry.catalogs;
 const options = {catalogs, defaultCatalog:registry.default_catalog_id};
@@ -96,7 +97,7 @@ async function main() {
     const buffer=url===tamper ? Buffer.from(bytes.toString().replace('3.5','3.6')) : bytes;
     return {ok:true,arrayBuffer:async()=>buffer.buffer.slice(buffer.byteOffset,buffer.byteOffset+buffer.byteLength)};
   };
-  const context={window:{SeismicViewState:V,SeismicCatalogComposition:C,addEventListener(){}},document,location,history:{replaceState(_,__,url){location.href=url;}},navigator:{},fetch,
+  const context={window:{SeismicViewState:V,SeismicCatalogComposition:C,SeismicAnalytics:A,addEventListener(){}},document,location,history:{replaceState(_,__,url){location.href=url;}},navigator:{},fetch,
     crypto:crypto.webcrypto,TextDecoder,TextEncoder,URL,Intl,Blob,setTimeout,clearTimeout,requestAnimationFrame:callback=>callback(),createSeismicMap:()=>map};
   vm.createContext(context);vm.runInContext(fs.readFileSync('system/dist/i18n.js','utf8'),context);
   context.window.document=document;context.window.localStorage={getItem:()=>null,setItem(){}};
@@ -346,6 +347,36 @@ async function main() {
   assert.equal(vm.runInContext('state.ready',context),false);assert.equal(elements.get('download').disabled,true);
   tamper='';await Promise.all(elements.get('retry').listeners.click.map(callback=>callback()));assert.equal(vm.runInContext('state.filtered.length',context),287936);
   checks++;console.log('PASS v4 combined/country restoration, retained country across source switches, last selection wins, failed combined integrity and retry');
+  const retainedIDs=vm.runInContext('state.filtered.map(e=>e.id).join()',context);
+  for(const tab of ['home','sources','analysis','catalog','revisions','methods']) {
+    vm.runInContext('setTab('+JSON.stringify(tab)+')',context);
+    assert.equal(elements.get(tab+'Panel').hidden,false);
+    for(const other of ['home','sources','analysis','catalog','revisions','methods'].filter(x=>x!==tab))assert.equal(elements.get(other+'Panel').hidden,true);
+    assert.equal(V.parseURL(location.href,options).view.tab,tab);
+    assert.equal(vm.runInContext('state.filtered.map(e=>e.id).join()',context),retainedIDs);
+  }
+  assert.equal((elements.get('sourceInventoryRows').innerHTML.match(/data-source-catalog=/g)||[]).length,4);
+  assert.equal(elements.get('homeRecordCount').textContent.replace(/[^0-9]/g,''),'287936');
+  checks++;console.log('PASS welcome, source inventory and analysis navigation round-trip without changing selected records');
+  await chooseSource('usgs');
+  vm.runInContext("writeFilters({...V.catalogDefaults(state.catalog),yearFrom:2025,yearTo:2025,magMin:4.5,magType:'mww'});applyFilters();setTab('analysis');exportAnalysisJson()",context);
+  const analysis=JSON.parse(await context.savedDownload.blob.text());
+  assert.equal(analysis.schema,'seismic-analysis-report/1');assert.equal(analysis.summary.record_count,analysis.query.result.row_count);
+  assert.deepEqual(analysis.query.result.ordered_event_ids,JSON.parse(vm.runInContext('JSON.stringify(state.filtered.map(e=>e.id))',context)));
+  assert.equal(analysis.query.input.events_sha256,catalogs[0].sha256);assert.equal(analysis.query.input.manifest_sha256,catalogs[0].manifest_sha256);
+  assert.equal(analysis.summary.groups.length,1);assert.equal(analysis.summary.groups[0].mag_type,'mww');
+  assert(Math.abs(analysis.summary.groups[0].magnitude.mean-vm.runInContext('state.filtered.reduce((n,e)=>n+e.mag,0)/state.filtered.length',context))<1e-12);
+  vm.runInContext('exportAnalysisCsv()',context);const summaryCsv=await context.savedDownload.blob.text();
+  assert(summaryCsv.includes('magnitude_mean'));assert(summaryCsv.includes('magnitude_depth_pearson_r'));assert(summaryCsv.includes('usgs-na-2020-2025'));
+  vm.runInContext('exportAnalysisReport()',context);const reportHtml=await context.savedDownload.blob.text();
+  assert(reportHtml.includes(catalogs[0].sha256));assert(reportHtml.includes(catalogs[0].manifest_sha256));assert(reportHtml.includes('2025'));assert(reportHtml.includes('seismic-analysis-report/1'));
+  assert(context.savedDownload.name.endsWith('_descriptive_report.html'));
+  checks++;console.log('PASS on-screen summary, CSV, JSON and printable HTML use the same filtered IDs and input hashes');
+  vm.runInContext("writeFilters({...V.catalogDefaults(state.catalog),search:'no-match-research-ui-fixture'});applyFilters();setTab('analysis')",context);
+  assert.equal(elements.get('analysisCount').textContent,'0');assert(elements.get('analysisGroupRows').innerHTML.includes('colspan'));
+  vm.runInContext('exportAnalysisJson()',context);const emptyAnalysis=JSON.parse(await context.savedDownload.blob.text());
+  assert.equal(emptyAnalysis.summary.record_count,0);assert.deepEqual(emptyAnalysis.query.result.ordered_event_ids,[]);
+  checks++;console.log('PASS empty descriptive queries retain explicit empty results instead of fabricated statistics');
   console.log(JSON.stringify({passed:checks},null,2));
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

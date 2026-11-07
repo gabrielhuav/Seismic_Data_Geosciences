@@ -8,7 +8,7 @@
   const defaults = Object.freeze({search: '', yearFrom: 1900, yearTo: 2026, magMin: 3.5, magMax: 10,
     magType: '', originSource: '', depthMax: 1000, missingOnly: false, unmOnly: false, country: ''});
   const keys = Object.keys(defaults);
-  const tabs = ['catalog', 'revisions', 'methods'];
+  const tabs = ['home', 'catalog', 'sources', 'analysis', 'revisions', 'methods'];
   const sorts = ['recent', 'oldest', 'mag'];
   const defaultCatalog = 'usgs-na-2020-2025', legacyCatalog = 'usgs-mx-historical';
   const bases = ['local', 'osm', 'osm-hot', 'usgs-topo', 'nasa-blue-marble'];
@@ -78,6 +78,7 @@
     const checked = validateFilters(raw, options);
     if (!checked.valid) invalid.push(...checked.errors);
     const view = {filters: checked.valid ? checked.filters : initial, lang: 'es', tab: 'catalog', sort: 'recent', revision: '', event: '', map: null, catalog, base: 'local'};
+    if (!params.size) view.tab = 'home';
     for (const [key, allowed] of [['lang', ['es', 'en']], ['tab', tabs], ['sort', sorts]]) {
       if (params.has(key)) {
         if (allowed.includes(params.get(key))) view[key] = params.get(key); else invalid.push(key);

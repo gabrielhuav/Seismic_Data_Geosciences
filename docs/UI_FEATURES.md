@@ -1,8 +1,56 @@
 # Explorer interaction contract
 
 The explorer supports a single pinned catalogue or an explicit combined view.
-The country and combined-view features described below are a local revision;
-their presence in the source does not establish deployment to the public site.
+Country and combined-view features are present in the published baseline
+`49372d02198a614a07dda1a3ecbb8a21d754ff68`. The additional research-workflow
+views below are a source-tree extension; their presence here does not establish
+deployment to the public site.
+
+## Research workflow views — local revision 7 November 2026
+
+The navigation adds **Home**, **Sources** and **Analysis** alongside the catalogue,
+retained revisions and evidence/methods views. A bare URL opens Home; existing
+version-1/2/3/4 links without a tab keep their catalogue behavior. New tab names
+round-trip through the same URL/query protocols and do not change source selection,
+filters, map extent, source values or result ordering.
+
+Home explains the source → query → analysis → export workflow and the actual static
+architecture. It identifies navigable historical snapshots rather than a real-time
+event feed. Sources lists the four packaged catalogues from three distributors,
+their counts, year coverage, reported-magnitude selection, key/unit semantics,
+package/manifest download links and package SHA-256. Selecting a row loads that
+catalogue into the existing map and record table. Its integration explanation
+distinguishes structural mapping from magnitude harmonization and event linkage:
+raw missing strings remain unchanged; absent common fields stay null; Canadian raw
+depth is not labelled kilometres; only exact shared ComCat IDs receive overlap flags.
+
+Analysis computes descriptive results from `state.filtered` using the pure
+`SeismicAnalytics` module. It shows selected source-record counts, annual bins,
+and arithmetic magnitude/depth summaries by catalogue and exact reported magnitude
+type. Unknown types remain a separate numerical group with an explicit limitation,
+not an inferred homogeneous scale. Pearson magnitude–depth coefficients require a
+known exact magnitude type, one catalogue, documented kilometre depths and at least
+three nonconstant pairs. Unknown/insufficient cases display no coefficient.
+Correlation does not reconcile events between sources or establish causality.
+
+The same selection produces five deliverable actions: the existing record CSV and
+local-query JSON, a descriptive-summary CSV, a `seismic-analysis-report/1` JSON,
+and an HTML report that can be opened and printed in a browser. Report JSON embeds
+the existing query document, retaining all source input hashes and ordered result
+keys, plus the numerical summary and interpretation limits. The HTML report carries
+the same tables, predicates, hashes and evidence document; it is not a fabricated
+PDF export or a hazard report. Browser computations do not replace the separately
+prepared retained-revision audit. No earthquake probabilities or occurrence
+forecasts are implemented in this revision.
+
+Scientific exports are disabled while source bytes are loading or predicates are
+invalid. In that state the analysis view clears stale values. Language, theme and
+appearance changes relabel/redraw the view without changing the selected records.
+
+The frontend checks exercise navigation/query preservation, source inventory,
+real-data summary agreement, matching report/query IDs and input hashes, CSV/JSON/
+HTML generation, and explicit empty-result behavior. Pure analytics tests verify
+the numerical methods and field/scale boundaries independently.
 Interface preferences, map extent, record selection and expanded-map mode do not
 change the filter, reported coordinates, CSV, row counts or underlying evidence.
 
@@ -116,7 +164,7 @@ all three asset hashes, and records the two-field OR and literal codes under
 query schema. Neither the scientific query nor a map background implies
 independent observations or author identity across these related catalogues.
 
-## Country selection and combined records — local revision
+## Country selection and combined records
 
 Data distributor, catalogue, geographic country/territory overlay and map
 background are separate choices. Selecting a country does not select the
@@ -219,6 +267,7 @@ Run from the repository root:
 
 ```text
 node tests/test_preferences.cjs
+node tests/test_analytics.cjs
 node tests/test_view_state.cjs
 node tests/test_catalog_frontend.cjs
 node tests/test_catalog_composition.cjs

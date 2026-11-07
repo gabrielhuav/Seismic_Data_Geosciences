@@ -206,4 +206,13 @@ test('v4 combined query preserves each source evidence and selected composite or
  assert.equal(single.schema,'seismic-local-query/4');assert.deepEqual(single.geography,geography);
  assert.equal(single.input.events_sha256,'events-ssn-a');assert.equal(single.result.row_count,1);
 });
+test('research workflow tabs restore through existing URL protocols without changing queries',()=>{
+ assert.equal(V.parseURL('https://example.org/').view.tab,'home');
+ for(const version of ['1','2','3','4'])assert.equal(V.parseURL('https://example.org/?v='+version).view.tab,'catalog');
+ for(const tab of ['home','sources','analysis']){
+  const view={catalog:'usgs-na-2020-2025',filters:{...V.defaults,yearFrom:2020,yearTo:2025,magMin:4.5},lang:'en',sort:'recent',tab};
+  const parsed=V.parseURL(V.serialize(view,'https://example.org/'));
+  assert.equal(parsed.view.tab,tab);assert.deepEqual(parsed.view.filters,view.filters);
+ }
+});
 console.log(JSON.stringify({passed:checks.length,checks},null,2));

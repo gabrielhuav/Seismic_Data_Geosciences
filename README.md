@@ -34,6 +34,12 @@ USGS and NRCan inputs, separate/combined catalogue exploration and derived
 descriptive analyses. Public availability does not imply journal acceptance.
 The software MIT licence does not cover these manuscript files.
 
+The source tree also includes a descriptive-workflow extension with Home,
+Sources and Analysis views and five downloadable deliverables. Its new manuscript
+figures and matching Word/PDF are still being prepared; the linked documents
+above remain the reviewed eight-figure edition. A repository push does not update
+GitHub Pages: deployment is a separate, deliberate action.
+
 ## Explorer and reproducibility
 
 The [browser-local explorer](system/README.md) provides a geographic map, ES/EN,
@@ -46,6 +52,14 @@ All four can also be explored together with their source records and overlap
 flags retained. Country/territory filtering uses generalized land polygons,
 independently of the data distributor; outside/boundary categories stay explicit.
 The separate retained-revision pilot remains available in its own view.
+
+The Sources view presents the stored catalogue inventory, coverage, field/unit
+semantics, packages and hashes. Analysis uses the active filtered selection to
+show magnitude summaries by catalogue and exact reported type, documented-km
+depth summaries, annual source-row counts and qualified descriptive Pearson
+associations. It exports filtered records CSV, query JSON, summary CSV, analysis
+and evidence JSON, and a printable HTML report. These results support further
+analysis and research; no earthquake probability model is implemented.
 
 The default Natural Earth background is local. OpenStreetMap, humanitarian OSM,
 USGS Topo and NASA Blue Marble's static August 2004 composite are optional
@@ -61,6 +75,9 @@ python scripts/audit_revisions.py
 python -m scripts.validate_evidence
 python -m unittest discover -s tests
 python scripts/build_catalogs.py --verify-only
+node tests/test_analytics.cjs
+node tests/test_catalog_frontend.cjs
+node tests/test_system_labels.cjs
 python -m http.server 8787 --bind 127.0.0.1 --directory system/dist
 ```
 

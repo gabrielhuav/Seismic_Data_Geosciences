@@ -6,6 +6,58 @@ Lee completos AGENTS.md, MEMORIA_COMPARTIDA.md y NUEVA_PC.md antes de actuar.
 
 ## Estado actual
 
+- CIERRE SIN CONTROL DE PC autorizado por Gabriel el 7 nov 2026:
+  «termina todo lo demás, sistema, etc. una vez terminado commit y push sin IA,
+  con mi autoría». Autoriza UN commit humano y UN push de esta extensión;
+  no un despliegue Pages, release, correo, envío editorial ni apagado.
+  Al encontrar este estado incorporado en un commit de origin/main, considerar
+  consumidas esas dos acciones y no repetirlas. Consultar git log/ls-remote y
+  outputs/system_completion_2026-11-07/execution.json para el resultado observado.
+- SISTEMA Y VERIFICACIÓN PROGRAMÁTICA TERMINADOS: Inicio, Fuentes, Análisis,
+  seis vistas, cuatro catálogos/tres distribuidores, cinco bases y cinco entregables.
+  Sólo descriptivos; Poisson y métodos de la tesis quedan como trabajo futuro.
+  No revisión visual nueva: Gabriel encarga a Claude las capturas posteriormente.
+- QA fresca:63 Python/74 grupos JS;223 claves/116 IDs ES/EN sin faltantes;
+  ocho hashes de eventos/manifiestos intactos,287936 filas, índice reproducible.
+  SQLite4720 comprobaciones y24 casos sintéticos sin discrepancias.
+  Exports SSN204 yNRCan39 verificados mediante harness programático; cinco
+  descargas REALES anteriores del caso659mww conservan13180celdas e IDs/hashes.
+  Recibos nuevos:outputs/system_completion_2026-11-07/validation_qa.json y
+  export_harness_qa.json. No confundir harness con nueva revisión de navegador.
+- Enlaces de ESTE push verificados nuevamente en link_gate/ bajo esa carpeta;
+  ninguna excepción anterior se hereda. El push sólo puede completarse con cero
+  fallos o aceptación expresa de los pendientes y del alcance muestreado actual.
+- RELEVO PRIVADO preparado:outputs/system_completion_2026-11-07/CLAUDE_CAPTURES_HANDOFF.md.
+  Leerlo en esta copia completa; no está en Git ni se sirve en Pages. Incluye
+  consultas exactas, oráculo659mww, estados SSN/USA/Canadá/conjunto y diez figuras.
+  El preview propio previo usa127.0.0.1:18303; comprobar que siga vivo antes de
+  reutilizarlo. Nunca detener servicios de otros proyectos.
+- PAPER NUEVO AÚN PENDIENTE: fuente285 palabras resumen/5257 cuerpo y diez
+  anclas/pies; manifest todavía ocho imágenes. Fuente SHA
+  3045d053748422399682af8694ebb1469a577fbd4a427df112402964f5ad4c63.
+  No construir hasta integrar diez figuras reales. Después exportar en Word y
+  revisar todas las páginas y coincidencia del PDF. Fuentes/capturas/tesis privadas.
+- Los dos finales públicos siguen siendo la pareja revisada26p/8figs/4tablas:
+  DOCX SHA0f01cc8de8a2f74aebbc639da4b7ff7034ff43dab01107720acf765ddf3a753b;
+  PDF SHA57cc442187659edb235a59bddd0a77c7c19c796b7d04ce544ffd32823ff35bf3.
+  No sobrescritos ni incluidos como cambios nuevos en este cierre del sistema.
+- Git humano Gabriel Hurtado <gabrielhurtadoaviles@gmail.com>, sin asistentes,
+  trailers, coautores ni firma de IA. Declaración académica veraz de IA conservada.
+  Sitio público sigue baseline49372d0 hasta otro despliegue expresamente autorizado;
+  un push no lo activa. Remoto del paper anterior ea477b9 ya estaba verificado.
+  PC ENCENDIDA; nunca apagar salvo NUEVA orden explícita. Históricos intactos.
+
+## Estado conservado anterior (histórico; prevalece Estado actual)
+
+- COMMIT DEL PAPER EJECUTADO: ea477b9d3b126554995afabd43eafa5f8c730c50, ocho rutas,
+  autor/committer Gabriel Hurtado, sin IA/trailers/firma criptográfica.
+  PUSH NO EJECUTADO: pendiente respuesta a pregunta de excepción nueva
+  request_user_input_async para ESTE push: cuatroHTTP403editoriales, tres
+  timeoutsOpenCanada y muestra339/36872rutasUSGS.545/552verificados,cero falloslocales.
+  NRCanlanding comprobada enEdge sin afirmarHTTP200. Gate y plan:
+  outputs/paper_publication_2026-11-07/. No repetir commit/amend.
+  Al responder Gabriel, ejecutar sólo push autorizado con ese commit; noPages.
+
 - PUBLICACIÓN DEL WORD/PDF EN GITHUB AUTORIZADA por Gabriel el7nov2026:
   «el paper no se esta subiendo al repo? commit y push, el commit y push ya sabes
   van con mi firma y sin IA». Esta nueva instrucción autoriza UN commit humano,
@@ -99,14 +151,22 @@ Lee completos AGENTS.md, MEMORIA_COMPARTIDA.md y NUEVA_PC.md antes de actuar.
 
 ## Siguiente paso
 
-1. Cerrar gate nuevo de enlaces y candidato8rutas para UN commit/push humano
-   ya autorizados. Si quedan fallos/muestreo, requieren excepción expresa para
-   ESTE push, como exige AGENTS.md. No heredar aprobaciones consumidas.
-2. Publicar sólo DOCX/PDF finales, README, reglas de inclusión/exclusión y tres
-   contextos; comprobar bytes remotos. Sin nuevo despliegue Pages ni envío editorial.
-3. Mantener históricos intactos y PC encendida, sin apagar salvo nueva orden explícita.
+1. Comprobar execution.json y el remoto para distinguir commit/push completados
+   de una excepción de enlaces aún pendiente. No repetir un commit ya existente.
+   Esta autorización no se extiende a cambios posteriores ni a un despliegue.
+2. Gabriel entregará el control de PC a Claude. Usar el relevo privado para comprobar
+   visualmente la UI, tomar capturas reales, ligar las diez figuras y cerrar Word/PDF.
+   La nueva UI se captura en preview local mientras Pages siga en49372d0.
+3. Después de las capturas y QA de todas las páginas, obtener autorización NUEVA por
+   cada commit/push/despliegue posterior. Nunca apagar la PC sin nueva orden explícita.
 
 ## Bitácora
+
+- 2026-11-07, Gabriel autoriza cierre sincontrolPC y UNcommit/push humanos del sistema; Claude tomará después las capturas. Sistema y QA programática cerrados(63Python/74JS/223claves/116IDs),docs alineados y relevo privado preparado. Pareja Word/PDF anterior intacta; nueva versiónpendientecapturas. Gate nuevo independiente en outputs/system_completion_2026-11-07/link_gate/. No autorización de despliegue ni apagado. Resultado real del commit/push en execution.json y Git; no repetir acciones consumidas.
+
+- 2026-11-07, extensión descriptiva implementada y cinco descargas reales auditadas (659mww/13.180celdas). Inicio/Fuentes/Análisis capturados; diseño general nuevo generado. CUA detenido por imposibilidad de determinarURLWindows con confianza: mapas/reporte/Word/PDF de esta revisión PENDIENTES. Confirmada publicación remota anterior ea477b9 sin repetirpush. Sin nuevas accionesGit/despliegue/apagado.
+
+- 2026-11-07, commit humano ea477b9 ejecutado una vez con Word/PDF finales. Push pendiente de excepción fresca7enlaces+muestreo exigida porAGENTS; pregunta enviada sin respuesta. No despliegue ni apagado.
 
 - 2026-11-07, Gabriel autoriza publicar Word/PDF finales mediante UN commit/push humano, sin atribuciones IA en Git. Preparadas excepciones acotadas de.gitignore yREADME; fuentes/tesis/evidencias privadas. Verificación nueva previa alpush en curso, sin accionesGitmutantes todavía. No nuevo despliegue ni apagado.
 

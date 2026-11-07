@@ -1,9 +1,9 @@
 # Exploratory catalogues and map backgrounds
 
 The explorer distinguishes data distributor, catalogue, geographic
-country/territory overlay and map background. A local revision adds country
-selection and an explicit combined view; this document does not assert that
-the revision is already published. Switching backgrounds preserves records and
+country/territory overlay and map background. Country selection and the explicit
+combined view were released in code commit
+`49372d02198a614a07dda1a3ecbb8a21d754ff68`. Switching backgrounds preserves records and
 filters. Individually selected catalogues retain their separate source evidence;
 the combined view preserves that evidence per row. Reports from different
 catalogues are not silently deduplicated or treated as independent earthquakes.
@@ -51,9 +51,9 @@ catalogues are not silently deduplicated or treated as independent earthquakes.
 
 Each packaged catalogue has its own event bytes, manifest, SHA-256 values,
 provider, coverage and field limitations in `system/dist/data/catalogs.json`.
-The North America and Canadian additions are exploratory interface datasets;
-they are not substituted for the original article's evidence or used to expand
-its empirical claims. Magnitude type strings are retained exactly. Selection
+The North America and Canadian inputs support exploratory catalogue demonstrations;
+they do not enlarge the separate retained-revision cohort or reconcile overlapping
+observations. Magnitude type strings are retained exactly. Selection
 using reported numeric magnitudes does not make different scales equivalent.
 
 The Canadian CSV has no original event identifiers, revision history or
@@ -63,7 +63,51 @@ identifiable and are not claimed to represent independent physical events.
 Depth values whose units cannot be documented remain raw values outside the
 common kilometre field, rather than being silently converted or labelled.
 
-## Geographic country/territory selection and combined view — local revision
+## Schema alignment and normalization rules
+
+Integration uses source-specific adapters and schema alignment rather than
+scientific homogenization. Preserved CSV bytes are checked against their source
+manifests before columns are mapped to the common record interface: identifier,
+UTC origin time, coordinates, reported magnitude, documented depth and provenance.
+Finite numeric values are parsed without converting magnitude scales. Source
+categorical strings retain their case and meaning. Missing numeric measurements
+remain `null`; an original empty text cell can remain `""`. The SSN adapter
+initializes unavailable fields as `null`, whereas the USGS and NRCan adapters can
+retain empty source text. Composition supplies `null` for columns absent from a
+source's schema and preserves existing nulls and empty strings. Thus a common field name does not imply equal measurement
+semantics or a universal replacement of missing values.
+
+| Catalogue input | UTC origin-time rule | Depth rule | Identity and categorical fields |
+| --- | --- | --- | --- |
+| USGS Mexico | Preserve the supplied timestamp string; the source audit checks zoned instants | Reported kilometres; absent numeric values remain `null` | Original ComCat ID; exact magnitude-type, agency and status strings retained; raw event type selects `earthquake` |
+| USGS North America | Require explicitly UTC source times and retain their supplied strings | Reported kilometres; missing numeric values remain `null` | Original ComCat ID; repeated IDs within this package are rejected; exact reported type/status strings retained |
+| NRCan Canada | Parse the explicit zero-offset timestamp and emit ISO 8601 with `Z` | Common `depth` is `null`; retain `raw_depth` because its unit is undocumented | Content-derived row key plus occurrence suffix; exact magnitude-type case retained; unavailable event type/status stay unreported |
+| Direct SSN | Combine explicitly labelled `Fecha UTC` and `Hora UTC` as ISO 8601 with `Z`; retain raw UTC and local strings separately | Source-documented kilometres; observed zero stays zero | Content-derived row key plus occurrence suffix and source ordinal; absent magnitude type remains `null`; literal `verificado`/`revisado` statuses are not translated to ComCat categories |
+
+SSN and NRCan row keys use a collision-checked prefix of the SHA-256 of the original
+cells and an occurrence suffix computed in source order before magnitude selection.
+These keys identify source rows, not original agency event identifiers. All repeated
+source rows remain distinguishable. A combined key is qualified as
+`catalogue-id~packaged-key`, retaining the packaged key separately in
+`source_event_id` and its meaning in `source_identifier_kind`.
+
+The provenance relationship is a metadata lookup:
+`catalogue-qualified row → catalogue registry entry → catalogue manifest → source file and SHA-256`.
+The row's `file` identifies the file entry within its own manifest, so identically
+named files in different catalogues do not become the same evidence. Source rights,
+coverage, snapshot and hash links remain attached to that catalogue. The geographic
+index is joined separately by the unchanged package hash and row order; it adds a
+derived label without rewriting measurements.
+
+This process performs no cross-provider event `JOIN`, spatial/temporal matching,
+fuzzy deduplication or automatic statistical correlation. Only identical ComCat IDs
+shared by the two USGS packages are flagged, and both rows remain available.
+Magnitude filtering does not convert measurements to `Mw` or establish scale
+equivalence. Any statistical association must be computed separately for a declared,
+compatible subset; source co-occurrence does not establish correlation or independent
+validation.
+
+## Geographic country/territory selection and combined view
 
 `data/country-index.json` contains one geographic label per source-package row,
 in the same order. Its catalogue descriptors retain the event-package SHA-256;
@@ -195,8 +239,8 @@ not SSN network activity or national completeness.
 The view uses the existing ComCat event identifiers and provenance. It does
 not recover original SSN identifiers or revision history. No historical SSN
 SQL is republished or imported; reuse terms for that separate historical
-resource remain unresolved. This attribution predicate leaves the original
-three catalogue event/manifest pairs unchanged. The URL and JSON query
+resource remain unresolved. This attribution predicate leaves all four
+catalogue event/manifest pairs unchanged. The URL and JSON query
 identify the attribution predicate separately from the actual distributor.
 
 ## Map backgrounds

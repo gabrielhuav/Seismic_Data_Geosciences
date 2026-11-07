@@ -5,18 +5,33 @@ from three providers: USGS North America (2020–2025, the default), the frozen 
 Mexico paper snapshot, NRCan Canada and surroundings (1985–2019), and the
 native SSN download (1900–6 November 2026, partial year; M≥3.5). Text
 search, provider/catalogue selectors and scientific filters operate on the
-selected catalogue or an explicit combined view. The local country/combined-view
-revision described here requires separate publication verification before it
-can be reported as deployed. Records retain their source and are not counted as
+selected catalogue or an explicit combined view. Country/combined exploration is
+included in the published baseline `49372d0`; the new Home, Sources and Analysis
+views require their own deliberate deployment. Records retain their source and are not counted as
 independent physical earthquakes. Retained origin-product revisions remain a
 separate 36-event pilot. This is a research audit interface, not a forecasting
 or operational alert service.
+
+Home explains the source → query → analysis → reuse workflow. Sources provides
+the stored catalogue inventory, selection/coverage, units, identifiers, package
+links and SHA-256 values. Analysis derives results from the active selection:
+reported magnitude summaries by catalogue and exact type, documented-km depth
+summaries, annual source-row counts and conditional descriptive Pearson
+associations. Unknown types and undocumented units remain explicit; no magnitude
+conversion or cross-provider event reconciliation is inferred.
+
+Five actions produce filtered-record CSV, local-query JSON, statistical-summary
+CSV, analysis and evidence JSON, and a printable HTML report. The report preserves
+tables, filters and input hashes; it can be opened and printed in a browser.
+These are descriptive research outputs, without earthquake probabilities.
 
 The committed artifact is ready to serve. From the repository root run:
 
 ```text
 python scripts/build_catalogs.py --verify-only
-python scripts/build_country_index.py
+python scripts/build_country_index.py --verify-only
+node tests/test_analytics.cjs
+node tests/test_catalog_frontend.cjs
 python -m http.server 8787 --bind 127.0.0.1 --directory system/dist
 ```
 

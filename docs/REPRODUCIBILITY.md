@@ -105,6 +105,7 @@ node tests/test_catalog_composition.cjs
 python -m unittest discover -s tests -p test_country_index.py
 node tests/test_view_state.cjs
 node tests/test_catalog_frontend.cjs
+node tests/test_analytics.cjs
 node tests/test_system_labels.cjs
 ```
 
@@ -115,9 +116,35 @@ Unfiltered single-catalogue v3 views and v1/v2 restoration remain supported.
 CSV adds `country_id` to single-source fields; a native SSN CSV therefore has
 28 columns without rewriting its original 27-field package. Combined exports
 also retain per-row source catalogue, distributor, snapshot, packaged key,
-identifier semantics, depth unit and exact-USGS overlap flags. This local
-revision must be reviewed and explicitly authorized for publication before
-being described as present on the public site.
+identifier semantics, depth unit and exact-USGS overlap flags. Country and
+combined-view behavior is included in the published baseline `49372d0`.
+
+## Browser descriptive results
+
+`system/dist/analytics.js` computes summaries from the same filtered rows used
+by the map and record table. Groups retain catalogue identity and exact reported
+magnitude types; no scale conversion or cross-provider event reconciliation is
+performed. Depth summaries use documented kilometre units. Pearson coefficients
+require a known type, at least three valid pairs and nonconstant variables.
+Annual counts describe selected source rows, including explicit empty calendar
+bins; they do not establish catalogue completeness or absence of earthquakes.
+
+The Analysis view produces record CSV, local-query JSON, summary CSV, analysis
+and evidence JSON, and a printable HTML report. The latter retains tables,
+filters, input hashes and the full analysis document, without remote scripts.
+No occurrence-probability or earthquake-prediction model is implemented.
+Run the pure numerical tests and the frontend export/selection checks with:
+
+```text
+node tests/test_analytics.cjs
+node tests/test_catalog_frontend.cjs
+node tests/test_view_state.cjs
+node tests/test_system_labels.cjs
+```
+
+This source-tree extension requires its own authorized deployment before it is
+described as available on the public site. Manuscript screenshots and final
+Word/PDF regeneration remain separate from these code checks.
 
 The optional historical SSN diagnostic requires its separately identified
 upstream input and is not needed for the explorer, revision analysis or
@@ -165,8 +192,8 @@ through 6 November (partial year), reported magnitude at least 4.5 and 204
 matching records. It is an illustration, not a usability
 experiment, source-accuracy evaluation or reconstruction of past public states.
 
-Each interface figure uses one genuine capture, rather than combining independent
-states into an image. The overview enlarges the source controls and shows the
+In the reviewed eight-figure edition, each interface figure uses one genuine
+capture. The overview enlarges the source controls and shows the
 corresponding map from that same captured state; both source frames are recorded.
 The overview records the active source, filters and map;
 the second capture records source-specific inspection. The generator verifies
@@ -183,6 +210,19 @@ mandatory page break before each figure. The builder rejects missing, repeated
 or out-of-order anchors and excludes them from the word count.
 Captures, figure assets and private manuscript source stay in the authoring
 copy, outside the website and public code checkout.
+
+The new descriptive-workflow manuscript candidate plans ten inline figures,
+including Home, Sources, Analysis, regional maps and the actual HTML export.
+`python -m scripts.make_design_figure` renders its system-design diagram from
+the current registry counts and actual implementation stack. The regional map
+comparison may contain explicitly labelled panels from different genuine query
+states; each panel must retain its own capture, filters and evidence receipt.
+It must not appear to be a single synchronized map or a common earthquake
+population. Cropping/enlargement may improve readability without changing values
+or application pixels. Update the ordered figure manifest with the verified
+new images before building that candidate. Until captures, Word-native PDF
+export and every-page review are complete, the two reviewed final manuscript
+files remain the prior eight-figure edition.
 
 The SSN coverage plot is recomputed directly from the hash-verified preserved
 CSV by `scripts.make_system_figures`, independently of the adapter's selection.
