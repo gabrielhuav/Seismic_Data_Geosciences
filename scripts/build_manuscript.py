@@ -138,13 +138,18 @@ def main():
     def table(rows):
         t=node("tbl"); prop=node("tblPr");prop.append(node("tblW",w=9360,type="dxa"));prop.append(node("tblLayout",type="fixed"))
         borders=node("tblBorders")
-        for edge in ["top","left","bottom","right","insideH","insideV"]: borders.append(node(edge,val="single",sz=4,color="D9D9D9"))
+        for edge in ["top","left","bottom","right","insideH","insideV"]:
+            borders.append(node(edge,val="single" if edge in ["top","bottom"] else "nil",sz=8,color="000000"))
         prop.append(borders); margins=node("tblCellMar")
         for edge in ["top","bottom"]: margins.append(node(edge,w=70,type="dxa"))
         for edge in ["left","right"]: margins.append(node(edge,w=100,type="dxa"))
         prop.append(margins);t.append(prop)
         if len(rows[0]) == 4 and "Catalogue" in rows[0][0]:
             widths = [2100, 1700, 1100, 4460]
+        elif rows[0][0].startswith("Table 3."):
+            widths=[3600,1500,4260]
+        elif rows[0][0].startswith("Table 4."):
+            widths=[3000,3180,3180]
         else:
             widths=[2500,3430,3430] if len(rows[0])==3 else [9360//len(rows[0])]*len(rows[0])
         grid=node("tblGrid")
@@ -156,10 +161,25 @@ def main():
             tr.append(pr)
             for j,cell in enumerate(row):
                 tc=node("tc");cp=node("tcPr");cp.append(node("tcW",w=widths[j],type="dxa"));cp.append(node("vAlign",val="center"));tc.append(cp)
-                if i==0:cp.append(node("shd",fill="F1F3F3"))
+                if i==0:
+                    cb=node("tcBorders");cb.append(node("bottom",val="single",sz=6,color="000000"));cp.append(cb)
                 for func in ["snapshot_observed","retained_projection_conditional","historical_catalog_not_identifiable"]:
                     cell=cell.replace(func,func.replace("_","_\n"))
-                tc.append(paragraph(cell,"body"));tr.append(tc)
+                p=paragraph(cell,"body");pp=p.find(w("pPr"))
+                if i<len(rows)-1 or rows[0][0].startswith(("Table 2.","Table 3.")):
+                    pp.append(node("keepNext"))
+                for old in pp.findall(w("spacing")):pp.remove(old)
+                pp.append(node("spacing",before=70,after=70,line=240,lineRule="auto"))
+                if i and re.fullmatch(r"[\d,./ +−-]+",cell):pp.append(node("jc",val="right"))
+                for run in p.findall(w("r")):
+                    rp=run.find(w("rPr"))
+                    if i==0:rp.append(node("b"))
+                    if i and (cell.startswith(("snapshot_","retained_","historical_")) or re.fullmatch(r"us[0-9a-z]+",cell)):
+                        for old in rp.findall(w("rFonts")):rp.remove(old)
+                        rp.append(node("rFonts",ascii="Consolas",hAnsi="Consolas"))
+                        for old in rp.findall(w("sz")):rp.remove(old)
+                        rp.append(node("sz",val=18))
+                tc.append(p);tr.append(tc)
             t.append(tr)
         return t
     relname="word/_rels/document.xml.rels"; rel=E.fromstring(parts[relname])
@@ -197,7 +217,10 @@ def main():
             image_paragraph,caption_paragraph=figure_nodes[text]
             body.append(image_paragraph);body.append(caption_paragraph)
             figure_placements.append({"figure":text,"anchor":f"<!-- figure:{text} -->","content_block_index":block_index})
-        elif kind=="table":body.append(table(text));body.append(paragraph(""))
+        elif kind=="table":
+            body.append(table(text));gap=paragraph("")
+            if text[0][0].startswith(("Table 2.","Table 3.")):gap.find(w("pPr")).append(node("keepNext"))
+            body.append(gap)
         elif kind=="h1":body.append(paragraph(text,"title","Title"))
         elif kind in ["h2","h3"]:
             if kind=="h2": section_name=text

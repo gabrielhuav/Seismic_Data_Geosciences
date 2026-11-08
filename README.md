@@ -25,37 +25,32 @@ the target journal's evaluation of its computational contribution remains separa
 
 **A web system for traceable exploration and analysis of heterogeneous earthquake catalogues**
 
-The current author-review manuscript is available as
+The author-review manuscript is available as
 [editable Word](outputs/paper/Seismic_CG_manuscript.docx) and
-[PDF](outputs/paper/Seismic_CG_manuscript.pdf). The updated working edition has
-29 pages, ten inline figures and four tables. It describes the published code at
-commit `c64e5f5f07aa6b38919927231fac5fbffe6646f1`, including direct SSN,
-USGS and NRCan inputs, separate/combined catalogue exploration and derived
-descriptive analyses. Public availability does not imply journal acceptance.
-The software MIT licence does not cover these manuscript files.
+[PDF](outputs/paper/Seismic_CG_manuscript.pdf): 27 pages, ten inline figures and
+four tables. The 8 November 2026 revision shows genuine captures of the revised
+system, native diagnostics, four catalogue map states and descriptive results.
+It uses three horizontal table rules, numerical alignment and explicit notes.
+The software MIT licence does not cover manuscript files.
 
-The descriptive-workflow extension includes Home, Sources and Analysis views and
-five downloadable deliverables. The updated Word/PDF uses genuine integrated-browser
-captures from a local preview of that published code, with horizontal figure panels
-and a separate responsive-layout review. These new manuscript files are locally
-verified and await their own authorized publication; the last released documents
-remain the 26-page edition. GitHub Pages still serves code `49372d0` until a separate
-authorized deployment. A repository push does not update Pages automatically.
+This repository includes the 8 November 2026 visual-feedback revision.
+The manuscript records its local capture session against the previously verified
+public baseline `1c797dce7f6fe9b28e2015a9de779d9364a39ae5`.
+The [live system](https://gabrielhuav.github.io/Seismic_Data_Geosciences/) is
+published through the manual Pages workflow; consult its successful deployment
+and commit history for the current hosting version.
+Publication does not imply journal acceptance or coauthor approval.
 
-A subsequent local UI/UX revision reorganises exploration around a query sidebar,
-map and selection summary. Its Results view adds a catalogue/type focus selector,
-six visible measures, a magnitude histogram, documented-depth scatter/count cells,
-and annual bars; a report preview uses the same generated HTML as the download.
-Mobile filters can be folded away. These presentation changes are not yet committed
-or deployed and are not illustrated by the current Word/PDF. The two IJCOPI
-reference articles and systems informed the redesign without changing those projects.
+The two IJCOPI articles and systems informed the interface review; those projects
+remain unchanged.
 
 ## Explorer and reproducibility
 
 The [browser-local explorer](system/README.md) provides a geographic map, ES/EN,
 text search, catalogue and provider selectors, filters, source records, CSV export,
 shareable views and downloadable local-query specifications with input hashes
-and result IDs. Its default USGS North America catalogue covers 2020–2025;
+and result IDs. Unversioned entry opens all four catalogues on Home; the
+USGS North America catalogue covers 2020–2025. Versioned links retain their selection;
 the original Mexico snapshot, a separately licensed NRCan historical Canadian
 catalogue and the direct SSN 1900–2026 download remain individually selectable.
 All four can also be explored together with their source records and overlap
@@ -68,7 +63,10 @@ semantics, packages and hashes. Analysis uses the active filtered selection to
 show magnitude summaries by catalogue and exact reported type, documented-km
 depth summaries, annual source-row counts and qualified descriptive Pearson
 associations. It exports filtered records CSV, query JSON, summary CSV, analysis
-and evidence JSON, and a printable HTML report. These results support further
+and evidence JSON, and a printable HTML report. The visual-feedback revision
+includes a selectable ZIP with a payload-hash manifest, an inline report preview,
+native retained-version diagnostics and a separately scoped full-download SSN
+coverage module. These results support further
 analysis and research; no earthquake probability model is implemented.
 
 The default Natural Earth background is local. OpenStreetMap, humanitarian OSM,

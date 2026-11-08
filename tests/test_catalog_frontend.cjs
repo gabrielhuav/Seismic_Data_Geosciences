@@ -12,7 +12,7 @@ const catalogs = registry.catalogs;
 const options = {catalogs, defaultCatalog:registry.default_catalog_id};
 let checks = 0;
 const test = (name, run) => {run();checks++;console.log('PASS '+name);};
-test('new URLs default to North America while v1 links retain the paper snapshot', () => {
+test('version parser retains North America fallback while v1 links retain the paper snapshot', () => {
   assert.equal(V.catalogFromURL('https://example.org/',options),'usgs-na-2020-2025');
   assert.equal(V.parseURL('https://example.org/',options).view.filters.yearFrom,2020);
   assert.equal(V.catalogFromURL('https://example.org/?v=1&catalog=nrcan-ca-historical',options),'usgs-mx-historical');
@@ -89,7 +89,7 @@ async function main() {
     addEventListener(type,callback){(documentListeners[type]??=[]).push(callback);}};
   for(const element of elements.values())element.focus=()=>{document.activeElement=element;};
   elements.get('mapCard').parentElement=document.body;document.body.children=[elements.get('mapCard'),elements.get('catalogSelect')];
-  const location={href:'https://example.org/'};
+  const location={href:'https://example.org/?v=3&catalog=usgs-na-2020-2025'};
   const map={records:[],view:[50,-120,3],base:'local',setRecords(rows){this.records=rows;},getView(){return this.view;},setView(v){this.view=v;},setRegion(b){this.region=b;},reset(){this.view=[50,-120,3];},setBase(id){this.base=id;},getBase(){return this.base;},languageChanged(){},resize(){},fitRecords(){},highlight(id){this.highlighted=id;},focusRecord(id){this.highlighted=id;this.view=[60,-120,5.5];},themeChanged(){}};
   let tamper='', delayed='';
   const fetch=async url=>{
@@ -98,7 +98,7 @@ async function main() {
     const buffer=url===tamper ? Buffer.from(bytes.toString().replace('3.5','3.6')) : bytes;
     return {ok:true,arrayBuffer:async()=>buffer.buffer.slice(buffer.byteOffset,buffer.byteOffset+buffer.byteLength)};
   };
-  const context={window:{SeismicViewState:V,SeismicCatalogComposition:C,SeismicAnalytics:A,SeismicResearchCharts:R,addEventListener(){}},document,location,history:{replaceState(_,__,url){location.href=url;}},navigator:{},fetch,
+  const context={window:{SeismicViewState:V,SeismicCatalogComposition:C,SeismicAnalytics:A,SeismicResearchCharts:R,SeismicDiagnostics:require('../system/dist/diagnostics.js'),SeismicExportPackage:require('../system/dist/export-package.js'),addEventListener(){}},document,location,history:{replaceState(_,__,url){location.href=url;}},navigator:{},fetch,
     crypto:crypto.webcrypto,TextDecoder,TextEncoder,URL,Intl,Blob,setTimeout,clearTimeout,requestAnimationFrame:callback=>callback(),createSeismicMap:()=>map};
   vm.createContext(context);vm.runInContext(fs.readFileSync('system/dist/i18n.js','utf8'),context);
   context.window.document=document;context.window.localStorage={getItem:()=>null,setItem(){}};
@@ -389,6 +389,30 @@ async function main() {
   const visualReport=await context.savedDownload.blob.text();assert.equal((visualReport.match(/<svg\b/g)||[]).length,3);
   assert(visualReport.includes('mww'));assert(visualReport.includes(catalogs[0].sha256));
   checks++;console.log('PASS real 659-row oracle matches visible metrics, all scatter points and three report charts');
+  for(const id of ['includeCsv','includeJson','includeHtml'])elements.get(id).checked=true;
+  await vm.runInContext('exportFullPackage()',context);
+  assert(context.savedDownload.name.endsWith('.zip'));
+  const zip=Buffer.from(await context.savedDownload.blob.arrayBuffer()),payloads=new Map();let offset=0;
+  while(zip.readUInt32LE(offset)===0x04034b50){
+    const size=zip.readUInt32LE(offset+18),len=zip.readUInt16LE(offset+26),extra=zip.readUInt16LE(offset+28),start=offset+30+len+extra;
+    const name=zip.subarray(offset+30,offset+30+len).toString('utf8');payloads.set(name,zip.subarray(start,start+size));offset=start+size;
+  }
+  assert.deepEqual([...payloads.keys()],['records.csv','statistics.csv','query.json','analysis.json','report.html','manifest.json']);
+  const packageManifest=JSON.parse(payloads.get('manifest.json'));
+  assert.equal(packageManifest.record_count,659);
+  for(const item of packageManifest.files){assert.equal(payloads.get(item.name).length,item.bytes);assert.equal(crypto.createHash('sha256').update(payloads.get(item.name)).digest('hex'),item.sha256);}
+  assert.equal(payloads.get('records.csv').toString('utf8').split('\r\n').length,660);
+  assert.equal(JSON.parse(payloads.get('query.json')).result.row_count,659);
+  for(const id of ['includeCsv','includeJson','includeHtml'])elements.get(id).checked=false;
+  context.savedDownload=null;await vm.runInContext('exportFullPackage()',context);assert.equal(context.savedDownload,null);
+  assert.equal(elements.get('exportPackage').disabled,false);
+  elements.get('coverageFrom').value='1900';elements.get('coverageTo').value='2026';vm.runInContext('renderCoverage()',context);
+  assert(elements.get('coverageCounts').innerHTML.includes('402082')===false,'No fabricated single-year total marker');
+  assert(elements.get('coverageStats').textContent.includes('402'));
+  assert(!/NaN|Infinity/.test(elements.get('coverageMaximum').innerHTML));
+  assert(elements.get('diagnosticDepth').innerHTML.includes('us2000ahv0'));
+  elements.get('coverageFrom').value='2027';vm.runInContext('renderCoverage()',context);assert.equal(elements.get('coverageCounts').innerHTML,'');
+  checks++;console.log('PASS analysis ZIP hashes every actual payload, format deselection prevents download, and independent diagnostics reject invalid year windows');
   vm.runInContext('previewAnalysisReport()',context);assert.equal(elements.get('reportPreview').open,true);
   const previewHtml=elements.get('reportPreviewFrame').srcdoc;
   assert.equal((previewHtml.match(/<svg\b/g)||[]).length,3);assert(previewHtml.includes(catalogs[0].sha256));assert(previewHtml.includes('659'));

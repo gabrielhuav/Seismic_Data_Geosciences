@@ -28,6 +28,8 @@ jobs:
         run: python scripts/build_catalogs.py --verify-only
       - name: Verify country index against the pinned catalogue rows and map polygons
         run: python scripts/build_country_index.py --verify-only
+      - name: Verify full-download SSN diagnostic summary
+        run: python scripts/build_diagnostic_coverage.py --verify-only
       - name: Check shared views, filters and bilingual labels
         run: |
           node tests/test_view_state.cjs

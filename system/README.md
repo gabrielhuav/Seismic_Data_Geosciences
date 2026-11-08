@@ -1,18 +1,19 @@
 # Seismic Data Observatory
 
 Buildless, browser-local explorer with four individually selectable catalogues
-from three providers: USGS North America (2020–2025, the default), the frozen USGS
+from three providers: USGS North America (2020–2025), the frozen USGS
 Mexico paper snapshot, NRCan Canada and surroundings (1985–2019), and the
 native SSN download (1900–6 November 2026, partial year; M≥3.5). Text
 search, provider/catalogue selectors and scientific filters operate on the
-selected catalogue or an explicit combined view. Country/combined exploration is
-included in the published baseline `49372d0`; the new Home, Sources and Analysis
-views require their own deliberate deployment. Records retain their source and are not counted as
+selected catalogue or an explicit combined view. The 8 November 2026
+visual-feedback revision extends the previously published `1c797dc` baseline;
+hosting status is recorded in the manual Pages workflow. Records retain their source and are not counted as
 independent physical earthquakes. Retained origin-product revisions remain a
 separate 36-event pilot. This is a research audit interface, not a forecasting
 or operational alert service.
 
-Home explains the source → query → analysis → reuse workflow. Sources provides
+Unversioned entry opens Home with all four catalogues and their 287,936 source
+rows on the map. Versioned links retain their explicit selection. Sources provides
 the stored catalogue inventory, selection/coverage, units, identifiers, package
 links and SHA-256 values. Analysis derives results from the active selection:
 reported magnitude summaries by catalogue and exact type, documented-km depth
@@ -23,13 +24,18 @@ conversion or cross-provider event reconciliation is inferred.
 Five actions produce filtered-record CSV, local-query JSON, statistical-summary
 CSV, analysis and evidence JSON, and a printable HTML report. The report preserves
 tables, filters and input hashes; it can be opened and printed in a browser.
-These are descriptive research outputs, without earthquake probabilities.
+A selectable stored ZIP bundles outputs and a payload-hash manifest. The inline
+HTML preview can be printed. The revision pilot draws native endpoint and lineage
+SVGs from retained US origin products. Historical SSN coverage renders a verified
+offline summary of the complete 402,082-row CSV with independent year controls.
+These modules do not use map filters or imply earthquake probabilities.
 
-The committed artifact is ready to serve. From the repository root run:
+Serve the buildless artifact locally. From the repository root run:
 
 ```text
 python scripts/build_catalogs.py --verify-only
 python scripts/build_country_index.py --verify-only
+python scripts/build_diagnostic_coverage.py --verify-only
 node tests/test_analytics.cjs
 node tests/test_catalog_frontend.cjs
 python -m http.server 8787 --bind 127.0.0.1 --directory system/dist

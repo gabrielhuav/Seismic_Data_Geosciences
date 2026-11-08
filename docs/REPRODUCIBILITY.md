@@ -1,5 +1,32 @@
 # Reproducing the local audit
 
+## Author-review interface revision of 8 November 2026
+
+An unversioned entry opens all four packages on Home. Versioned links retain
+their explicit selection. Source cards expose active-session verification,
+full hashes, original CSV/package JSON formats and downloads. Cache status
+describes memory, not a persistent offline database.
+
+The export workspace generates a stored ZIP locally. CSV, JSON and HTML choices
+control its payloads; `manifest.json` lists every payload's bytes and SHA-256.
+Printable HTML is also previewed in the application. Map extent does not limit
+the selected records or exports.
+
+`diagnostics.js` recalculates 36 retained-event endpoint comparisons and selected
+primary-lineage plots from `data/revisions.json`, independently of map filters.
+Native SVG exports include scope and input hashes. Tests independently parse
+the preserved GeoJSON responses.
+
+`python scripts/build_diagnostic_coverage.py --verify-only` reconstructs the
+annual summary from the complete, hash-verified 402,082-row SSN CSV. The browser
+renders that summary with independent year controls; it is not derived from
+the 242,288-row map subset. `python scripts/build_architecture.py` maintains
+the SVG shown in Methods. Neither module adds a forecasting claim.
+
+The new manuscript captures document this local author-review revision.
+Publication requires fresh authorization. The preceding public deployment
+was verified at `1c797dce7f6fe9b28e2015a9de779d9364a39ae5`.
+
 The subsequent local UI revision adds `research-charts.js`; run
 `node tests/test_research_charts.cjs` and `node tests/test_catalog_frontend.cjs`
 alongside the existing checks. Histograms use width-0.2 bins without rounding the
@@ -190,64 +217,37 @@ removable filter indicators, record focus and an expanded map. See
 [interface behavior and inspection examples](UI_FEATURES.md). Appearance and
 map navigation do not change the scientific query; removing a filter does.
 
-`python scripts/make_figures.py` regenerates traceable PNG, PDF and SVG figures. Install matplotlib in the chosen scientific environment first. This run used the Codex bundled Python 3.12.14 and matplotlib 3.11.2 in the ignored `tmp/paper_deps` directory. Hashes, subsets and versions are recorded in `paper/figures/figures_manifest.json`.
+The current ten-figure manuscript uses the in-application architecture SVG
+(`python scripts/build_architecture.py`) and genuine browser captures. Preserved
+capture receipts identify view URLs, source images, crop rectangles and SHA-256
+values. Four regional panels use distinct, explicitly labelled selections and a
+common light theme and background; they do not represent a synchronized or
+independent earthquake population. Capture only after the view and map have
+finished rendering. Verify the actual image, not only its DOM metadata.
 
-After the revision and independent validation reports have been reproduced,
-`python -m scripts.make_system_figures --architecture-only` generates the
-additional workflow diagram from actual catalogue and audit counts. A genuine
-browser capture is required for the interface figure. The full command accepts
-`--capture-receipt <path>`; the receipt identifies the immutable image, shared
-query URL, visible result, display preferences and exact application/data hashes.
-The maintained overview capture uses the native SSN catalogue, origin year 2026
-through 6 November (partial year), reported magnitude at least 4.5 and 204
-matching records. It is an illustration, not a usability
-experiment, source-accuracy evaluation or reconstruction of past public states.
+The revision workspace computes endpoint and lineage SVGs in JavaScript.
+`build_diagnostic_coverage.py` separately verifies the full SSN CSV and prepares
+its annual summary. The browser renders four count series and annual maxima
+with common year controls. Sixteen years without source rows remain gaps;
+2026 is partial. Tied annual maxima remain provenance, not independent years.
+No fitted return period, scale conversion or completeness threshold is inferred.
 
-In the reviewed eight-figure edition, each interface figure uses one genuine
-capture. The overview enlarges the source controls and shows the
-corresponding map from that same captured state; both source frames are recorded.
-The overview records the active source, filters and map;
-the second capture records source-specific inspection. The generator verifies
-the capture hash and rejects an unsuitable tall layout. Native capture dimensions
-are retained in its receipt; PNG packaging at 300dpi does not add native detail.
-`paper/figures/system_figures_manifest.json` records the genuine captures, diagram and
-SSN descriptive coverage plot; `paper/figures/manuscript_figures.json` fixes the document image order and
-SHA-256 values. The three original scientific figures and their audited data
-are preserved. The DOCX builder requires one correctly numbered caption per
-verified image and preserves 17 unrelated template package parts byte for byte.
-Standalone `<!-- figure:N -->` markers position figures and captions in the text,
-near the corresponding task or result, without a final image appendix or a
-mandatory page break before each figure. The builder rejects missing, repeated
-or out-of-order anchors and excludes them from the word count.
-Captures, figure assets and private manuscript source stay in the authoring
-copy, outside the website and public code checkout.
+Earlier Matplotlib figure generators remain as offline audit tools; their
+outputs are not the current interface figures. Do not overwrite current capture
+assets with that older pipeline. PNG DPI metadata does not add native detail.
 
-The locally verified descriptive-workflow manuscript uses ten inline figures,
-including Home, Sources, Analysis, regional maps and the actual HTML export.
-`python -m scripts.make_design_figure` renders its system-design diagram from
-the current registry counts and actual implementation stack. The regional map
-comparison may contain explicitly labelled panels from different genuine query
-states; each panel must retain its own capture, filters and evidence receipt.
-It must not appear to be a single synchronized map or a common earthquake
-population. Cropping/enlargement improves readability without changing values
-or application pixels. The ordered manifest now binds all ten images. The
-29-page author-review Word/PDF pair was exported in native Word and checked
-page by page; these local results do not establish a new repository publication
-or Pages deployment. The previous eight-figure edition is retained in the
-private archive.
-
-The SSN coverage plot is recomputed directly from the hash-verified preserved
-CSV by `scripts.make_system_figures`, independently of the adapter's selection.
-Its annual bins distinguish all downloaded rows, numeric reported magnitudes,
-the M≥3.5 cartographic selection and M≥5. Sixteen years have no source rows and
-are plotted as gaps; this is not an assertion of zero physical seismicity.
-2026 is partial. Annual maxima are one statistic per observed year, with tied
-source rows retained separately. No fitted return-period distribution,
-homogenized magnitude scale or completeness threshold is inferred.
+`paper/figures/manuscript_figures.json` fixes the ten image paths and SHA-256
+values. The DOCX builder requires one numbered caption and inline anchor per
+image, rejects missing/repeated/out-of-order anchors, and preserves 17 unrelated
+template parts byte for byte. The four editable tables have three horizontal
+rules, aligned numerical cells and monospace logical/event identifiers. Short
+tables are kept together, with their notes. Native Word Standard-quality PDF
+export, complete text matching and every-page visual review precede replacement
+of the final pair. Source, template, captures and intermediate evidence remain
+private in the authoring copy; the two final manuscript files are tracked.
 
 AI assistance in implementation and plotting code is declared in the manuscript
-Methods and general declaration; the explanatory diagram caption also identifies
-the tool and session version. The declarations follow the [Elsevier journal AI
+Methods and general declaration, including the tool and session dates. The declarations follow the [Elsevier journal AI
 policy updated June 2026](https://www.elsevier.com/about/policies-and-standards/generative-ai-policies-for-journals),
 checked on 6 November 2026. Reproducible plotting and genuine captures remain
 distinct from fabricated observations or generative image synthesis. No

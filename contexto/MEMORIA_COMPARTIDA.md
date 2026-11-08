@@ -1,9 +1,77 @@
 # Memoria compartida: sismos para Computers & Geosciences
 
-Actualizada: 7 de noviembre de 2026. Hablar con Gabriel en español y brevemente.
+Actualizada: 8 de noviembre de 2026. Hablar con Gabriel en español y brevemente.
 Leer AGENTS.md completo. Los resultados de antecedentes no son verificaciones nuevas.
 
 ## Estado actual
+
+- 8 noviembre 2026: Gabriel autoriza expresamente UN commit con su identidad humana,
+  UN push y UN despliegue Pages de la revisión visual de 24 archivos. QA nueva:
+  66 pruebas Python y ocho suites JS pasan; 36 assets previstos y cero fallos locales.
+  Gate externo nuevo: 549/553 destinos verificados; cuatro HTTP403 editoriales
+  y muestra de 339/36,872 rutas USGS requieren aceptación expresa para ESTE push.
+  No se heredan excepciones. Plan/evidencia: outputs/feedback_release_2026-11-08/.
+  Commit/push/despliegue todavía no ejecutados al preparar esta nota. Registrar
+  resultados reales después; no repetir acciones consumidas. Word/PDF finales
+  verificados 27 páginas/10 figuras/4 tablas; sólo system/dist se sirve en Pages.
+  PC ENCENDIDA: no apagar. Históricos y declaración académica IA conservados.
+
+- RETROALIMENTACIÓN APLICADA LOCALMENTE (8 noviembre 2026): PDF privado de 18 páginas
+  leído completo. Primero se implementó el sistema y después se capturaron sus vistas
+  reales y se insertaron en Word/PDF. Inicio con los cuatro catálogos (287,936 filas),
+  mapa compartido, navegación fija, tarjetas de fuentes con hashes/verificación,
+  norte/escala/leyenda de magnitud y evidencia de consulta, exportación ZIP real con
+  CSV/JSON/HTML y manifiesto por archivo, vista previa imprimible y descargas SVG.
+  Diagnósticos nativos JS: profundidad/desplazamiento, magnitudes de tipo coincidente
+  y linaje seleccionable. Cobertura SSN desde resumen Python verificable del CSV
+  completo de 402,082 filas; independiente de los filtros del mapa. Sin predicción.
+  Arquitectura real por capas, sin inventar IndexedDB/Docker/PHP ni homogeneización.
+- Word/PDF finales locales: outputs/paper/Seismic_CG_manuscript.docx y .pdf;
+  27 páginas, diez figuras intercaladas y cuatro tablas editables de tres reglas,
+  todas enteras en una página. Cotejo completo: 214 párrafos sin pérdidas;
+  288 palabras de resumen / 5,494 de cuerpo; 17 partes de plantilla preservadas.
+  Todas las páginas revisadas visualmente. SHA Word: 42c171e5c65688facc7d40f433cc87b6f1ecc51100ca532dbf394ebb4ff5b261;
+  SHA PDF: dff95d005e19c2c83e1e96df4ce51d30c27389c607b1c0e4cda49ffc30cc8707. Fuente privada mantenible y recibos de capturas conservados.
+- QA: 66 pruebas Python, 37 grupos frontend y otras siete suites JS aprobadas;
+  307 referencias ES/EN/180 IDs sin faltantes. 36 archivos públicos previstos,
+  cero fallos locales; no se ejecutó gate HTTP externo para un push de esta revisión.
+  Escritorio1920, móvil390 (seis vistas/retorno de mapa) y tableta768 comprobados.
+  Evidencias: outputs/visual_feedback_2026-11-08/document_qa.json y capturas/recibos.
+- PUBLICACIÓN: sigue 1c797dce7f6fe9b28e2015a9de779d9364a39ae5. Esta revisión
+  NO tiene autorización nueva de commit, push ni despliegue; las anteriores están
+  consumidas. No reutilizarlas. PC ENCENDIDA; no apagar. Históricos intactos.
+
+
+- PUBLICACIÓN MAPA COMPLETADA8nov2026:commit humano1c797dce7f6fe9b28e2015a9de779d9364a39ae5
+  (sólo prueba de CSSversionado),push y workflow42499985081 success(validate+deploy).
+ 32/32archivos públicos HTTP200/SHAexactos85893166bytes; sistemaidéntico al658a638.
+  IABpúblico comprobó14041registros,mapaamplio,selectorbaseintegrado,móvil390,
+  regresoEscape/foco. Capturas/recibos en outputs/map_deployment_2026-11-08/.
+  Autorizaciones commit/push/despliegue CONSUMIDAS. No repetir. PC ENCENDIDA.
+  NUEVO TRABAJO: Gabriel pidió aplicar Retroalimentación para las imágenes.pdf
+  primero al sistema y después Word/PDF.18páginas,localprivadoDownloads; no implica
+  autorización nueva de commit/push/despliegue para esos cambios. Revisar validez
+  técnica de sugerencias(noIndexedDB existente,no filtros habilitados por contratos,
+  no fingir gráficosPython como cálculosJS). Preservar parejaWord/PDF hasta nuevaQA.
+
+- 8nov2026: Gabriel autorizó desplegar658a638. UN dispatch ejecutado: workflow
+ 42499460609 falló en validate/tests_preferences: comprobación literal de style.css
+  no admite ?v=map-20261107. Deploy OMITIDO, Pages sigue49372d0. No reintentar
+  sin resolver. Corrección LOCAL lista sólo tests/test_preferences.cjs,8suitesJS
+  pasan; artefacto658a638 idéntico. Nuevo commit/push/despliegue requieren nueva
+  autorización, preparada en outputs/map_deployment_2026-11-08/correction_plan.md.
+  Gate nuevo:4HTTP403editoriales pendientes,339/36872rutasUSGS;11TLSGitHub resueltos
+  con curl/TLSWindows200;OpenCanada responde,cero falloslocales. PC ENCENDIDA.
+
+- PUSH MAPA COMPLETADO Y VERIFICADO: origin/main=658a63819ff56268a636002f1fd7aedf0dd7abd6.
+  Commit/committer Gabriel Hurtado <gabrielhurtadoaviles@gmail.com>, sin IA/coautores/
+  trailers/firma. Gabriel aceptó expresamente para ESTE push4HTTP403+3timeoutsOpenCanada
+  y muestreo339/36872. Autorizaciones commit/push CONSUMIDAS; no repetir ni amend.
+  NO hubo despliegue Pages: sigue49372d0. Word/PDF anterior no entró en este commit;
+  su alineación con la UI nueva sigue pendiente. Gabriel CANCELÓ el apagado: PC
+  ENCENDIDA. Recibos map_push_gate.json/map_commit.json en outputs/ui_redesign_2026-11-07/.
+
+- COMMIT MAPA EJECUTADO:658a63819ff56268a636002f1fd7aedf0dd7abd6,14rutas,autor/committer humano sin IA. PUSH NO EJECUTADO: espera aceptación NUEVA de4HTTP403+3timeoutsOpenCanada+muestreo339/36872. Recibo map_push_gate.json y plan map_push_plan.md bajo outputs/ui_redesign_2026-11-07/. Autorización commit CONSUMIDA, push pendiente. Apagado sólo al terminar/verificar el push, por nueva orden explícita.
 
 - 7nov2026: Gabriel autorizó mejorar el mapa y UN commit/push humanos; posteriormente
   pidió apagar la PC AL TERMINAR. Mapa más amplio, selector de base dentro del mapa
@@ -492,22 +560,79 @@ fuera de muestra. No agregar ML ni modelos geotécnicos sin necesidad científic
 
 ## Siguiente paso
 
-Completar el push autorizado tras gate nuevo; no repetir commit. Registrar SHA en map_commit.json.
-
-1. Revisar el workspace local de18303 y mantener la distinción entre prototipo
-   nuevo, código público c64e5f5 y Pages49372d0. No afirmar que el paper ya coincide.
-2. Obtener figuras2–6 nuevas, horizontales y legibles, con recibos de los assets
-   actuales. Excluir tablet_sources_768.jpg y toda captura transitoria/fullPage
-   defectuosa; para overlays usar el scrollY correcto al recortar la captura completa.
-3. Aplicar la propuesta científica del paper sólo tras verificar sus descripciones;
-   incorporar la vista previa HTML real, atribuciones efectivamente capturadas y
-   cifras QA actuales si se mencionan. Stage privado, plantilla C&G, Word nativo,
-   cotejo Word/PDF y revisión de todas las páginas antes de reemplazar la pareja29p.
-4. Preparar plan concreto/gate nuevo y pedir autorización por cada commit humano,
-   push y despliegue. Sin IA en identidad/trailers Git; conservar declaración académica.
-   Nunca apagar la PC ni tocar los históricos, sus servicios o bases.
+Completar las acciones autorizadas una sola vez y registrar el SHA real del commit.
+Antes del push, obtener aceptación expresa de los cuatro HTTP403 editoriales y
+el muestreo339/36872 de ESTE gate; las aprobaciones antiguas no se reutilizan.
+Después del push, ejecutar UN dispatch Pages, verificar workflow y los 36 assets
+por SHA/tamaño, comprobar escritorio/móvil y entregar el enlace. PC encendida.
 
 ## Bitácora
+
+- 8 noviembre 2026: Gabriel autoriza expresamente UN commit con su identidad humana,
+  UN push y UN despliegue Pages de la revisión visual de 24 archivos. QA nueva:
+  66 pruebas Python y ocho suites JS pasan; 36 assets previstos y cero fallos locales.
+  Gate externo nuevo: 549/553 destinos verificados; cuatro HTTP403 editoriales
+  y muestra de 339/36,872 rutas USGS requieren aceptación expresa para ESTE push.
+  No se heredan excepciones. Plan/evidencia: outputs/feedback_release_2026-11-08/.
+  Commit/push/despliegue todavía no ejecutados al preparar esta nota. Registrar
+  resultados reales después; no repetir acciones consumidas. Word/PDF finales
+  verificados 27 páginas/10 figuras/4 tablas; sólo system/dist se sirve en Pages.
+  PC ENCENDIDA: no apagar. Históricos y declaración académica IA conservados.
+
+- RETROALIMENTACIÓN APLICADA LOCALMENTE (8 noviembre 2026): PDF privado de 18 páginas
+  leído completo. Primero se implementó el sistema y después se capturaron sus vistas
+  reales y se insertaron en Word/PDF. Inicio con los cuatro catálogos (287,936 filas),
+  mapa compartido, navegación fija, tarjetas de fuentes con hashes/verificación,
+  norte/escala/leyenda de magnitud y evidencia de consulta, exportación ZIP real con
+  CSV/JSON/HTML y manifiesto por archivo, vista previa imprimible y descargas SVG.
+  Diagnósticos nativos JS: profundidad/desplazamiento, magnitudes de tipo coincidente
+  y linaje seleccionable. Cobertura SSN desde resumen Python verificable del CSV
+  completo de 402,082 filas; independiente de los filtros del mapa. Sin predicción.
+  Arquitectura real por capas, sin inventar IndexedDB/Docker/PHP ni homogeneización.
+- Word/PDF finales locales: outputs/paper/Seismic_CG_manuscript.docx y .pdf;
+  27 páginas, diez figuras intercaladas y cuatro tablas editables de tres reglas,
+  todas enteras en una página. Cotejo completo: 214 párrafos sin pérdidas;
+  288 palabras de resumen / 5,494 de cuerpo; 17 partes de plantilla preservadas.
+  Todas las páginas revisadas visualmente. SHA Word: 42c171e5c65688facc7d40f433cc87b6f1ecc51100ca532dbf394ebb4ff5b261;
+  SHA PDF: dff95d005e19c2c83e1e96df4ce51d30c27389c607b1c0e4cda49ffc30cc8707. Fuente privada mantenible y recibos de capturas conservados.
+- QA: 66 pruebas Python, 37 grupos frontend y otras siete suites JS aprobadas;
+  307 referencias ES/EN/180 IDs sin faltantes. 36 archivos públicos previstos,
+  cero fallos locales; no se ejecutó gate HTTP externo para un push de esta revisión.
+  Escritorio1920, móvil390 (seis vistas/retorno de mapa) y tableta768 comprobados.
+  Evidencias: outputs/visual_feedback_2026-11-08/document_qa.json y capturas/recibos.
+- PUBLICACIÓN: sigue 1c797dce7f6fe9b28e2015a9de779d9364a39ae5. Esta revisión
+  NO tiene autorización nueva de commit, push ni despliegue; las anteriores están
+  consumidas. No reutilizarlas. PC ENCENDIDA; no apagar. Históricos intactos.
+
+
+- PUBLICACIÓN MAPA COMPLETADA8nov2026:commit humano1c797dce7f6fe9b28e2015a9de779d9364a39ae5
+  (sólo prueba de CSSversionado),push y workflow42499985081 success(validate+deploy).
+ 32/32archivos públicos HTTP200/SHAexactos85893166bytes; sistemaidéntico al658a638.
+  IABpúblico comprobó14041registros,mapaamplio,selectorbaseintegrado,móvil390,
+  regresoEscape/foco. Capturas/recibos en outputs/map_deployment_2026-11-08/.
+  Autorizaciones commit/push/despliegue CONSUMIDAS. No repetir. PC ENCENDIDA.
+  NUEVO TRABAJO: Gabriel pidió aplicar Retroalimentación para las imágenes.pdf
+  primero al sistema y después Word/PDF.18páginas,localprivadoDownloads; no implica
+  autorización nueva de commit/push/despliegue para esos cambios. Revisar validez
+  técnica de sugerencias(noIndexedDB existente,no filtros habilitados por contratos,
+  no fingir gráficosPython como cálculosJS). Preservar parejaWord/PDF hasta nuevaQA.
+
+- 8nov2026: Gabriel autorizó desplegar658a638. UN dispatch ejecutado: workflow
+ 42499460609 falló en validate/tests_preferences: comprobación literal de style.css
+  no admite ?v=map-20261107. Deploy OMITIDO, Pages sigue49372d0. No reintentar
+  sin resolver. Corrección LOCAL lista sólo tests/test_preferences.cjs,8suitesJS
+  pasan; artefacto658a638 idéntico. Nuevo commit/push/despliegue requieren nueva
+  autorización, preparada en outputs/map_deployment_2026-11-08/correction_plan.md.
+  Gate nuevo:4HTTP403editoriales pendientes,339/36872rutasUSGS;11TLSGitHub resueltos
+  con curl/TLSWindows200;OpenCanada responde,cero falloslocales. PC ENCENDIDA.
+
+- PUSH MAPA COMPLETADO Y VERIFICADO: origin/main=658a63819ff56268a636002f1fd7aedf0dd7abd6.
+  Commit/committer Gabriel Hurtado <gabrielhurtadoaviles@gmail.com>, sin IA/coautores/
+  trailers/firma. Gabriel aceptó expresamente para ESTE push4HTTP403+3timeoutsOpenCanada
+  y muestreo339/36872. Autorizaciones commit/push CONSUMIDAS; no repetir ni amend.
+  NO hubo despliegue Pages: sigue49372d0. Word/PDF anterior no entró en este commit;
+  su alineación con la UI nueva sigue pendiente. Gabriel CANCELÓ el apagado: PC
+  ENCENDIDA. Recibos map_push_gate.json/map_commit.json en outputs/ui_redesign_2026-11-07/.
 
 - 7nov2026: Gabriel autorizó mejorar el mapa y UN commit/push humanos; posteriormente
   pidió apagar la PC AL TERMINAR. Mapa más amplio, selector de base dentro del mapa

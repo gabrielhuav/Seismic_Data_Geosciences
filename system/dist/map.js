@@ -50,7 +50,7 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
       : g.type === 'MultiPolygon' ? {...g, coordinates: g.coordinates.map(displayPolygon)} : g};
   })};
   const map = L.map(element, {
-    preferCanvas: true, minZoom: 1.5, maxZoom: 12, zoomSnap: .25,
+    preferCanvas: true, trackResize:false, minZoom: 1.5, maxZoom: 12, zoomSnap: .25,
     maxBounds: [[-5, -210], [85, -40]], maxBoundsViscosity: .8,
     attributionControl: true, keyboard: true, zoomAnimation: !reducedMotion?.matches,
     fadeAnimation: !reducedMotion?.matches, markerZoomAnimation: !reducedMotion?.matches
@@ -132,6 +132,7 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
     onRemove(m) {m.off('moveend zoomend resize viewreset', this.redraw, this);this._canvas.remove();},
     redraw() {
       if (!this._map || !this._canvas) return;
+      const started=window.performance?.now?.();
       const size = this._map.getSize();if (!size.x || !size.y) return;
       const ratio = Math.min(window.devicePixelRatio || 1, 2), c = this._canvas;
       c.width = Math.round(size.x * ratio);c.height = Math.round(size.y * ratio);
@@ -158,6 +159,10 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
       }
       ctx.globalAlpha = 1;
       document.getElementById('mapStatus').textContent = translate('visible', {visible: formatNumber(this.points.length), filtered: formatNumber((this.records || []).length)});
+      if(Number.isFinite(started)){
+        const timing=document.getElementById('renderTiming');
+        if(timing)timing.textContent=translate('canvasTiming',{ms:formatNumber(Math.round((window.performance.now()-started)*10)/10)});
+      }
     },
     setRecords(records) {this.records = records;this.paintOrder=[...records].sort((a,b)=>a.mag-b.mag);this.redraw();}
   });
@@ -230,6 +235,6 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
     setRegion(bounds) {region = L.latLngBounds(bounds);},
     getView() {const center = map.getCenter();return [center.lat, center.lng, map.getZoom()];},
     setView(view) {map.closePopup();map.setView([view[0], view[1]], view[2], {animate: false});},
-    resize() {map.invalidateSize({pan: false});events.redraw();}
+    resize() {if(!element.clientWidth || !element.clientHeight)return;map.invalidateSize({pan: false});events.redraw();}
   };
 };
