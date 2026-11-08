@@ -18,7 +18,21 @@ test('initial head application follows the OS before any body controls exist',()
     const b=browser({dark});assert.equal(b.attributes['data-theme'],'green');assert.equal(b.attributes['data-mode'],dark?'dark':'light');assert.equal(b.P.get().mode,'system');
   }
   const html=fs.readFileSync('system/dist/index.html','utf8');
-  assert(html.indexOf('<script src="preferences.js"></script>')<html.indexOf('href="style.css"'));
+  const preferencesBeforeStyles = document => {
+    const script=document.indexOf('<script src="preferences.js"></script>');
+    const stylesheet=[...document.matchAll(/<link\b[^>]*>/g)].find(match=>{
+      const href=match[0].match(/\bhref="([^"]+)"/);
+      return href && new URL(href[1],'https://example.org/').pathname==='/style.css';
+    });
+    return script>=0 && !!stylesheet && script<stylesheet.index;
+  };
+  assert(preferencesBeforeStyles(html));
+  for(const href of ['style.css','style.css?v=map-20261107']) {
+    const script='<script src="preferences.js"></script>',link=`<link rel="stylesheet" href="${href}">`;
+    assert(preferencesBeforeStyles(script+link));
+    assert(!preferencesBeforeStyles(link+script));
+    assert(!preferencesBeforeStyles(link));
+  }
 });
 test('all theme and mode choices persist under a project-specific key',()=>{
   const b=browser();
