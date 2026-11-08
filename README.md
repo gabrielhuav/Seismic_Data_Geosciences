@@ -27,18 +27,28 @@ the target journal's evaluation of its computational contribution remains separa
 
 The current author-review manuscript is available as
 [editable Word](outputs/paper/Seismic_CG_manuscript.docx) and
-[PDF](outputs/paper/Seismic_CG_manuscript.pdf). This version has 26 pages,
-eight inline figures and four tables. It describes the published explorer at
-code commit `49372d02198a614a07dda1a3ecbb8a21d754ff68`, including direct SSN,
+[PDF](outputs/paper/Seismic_CG_manuscript.pdf). The updated working edition has
+29 pages, ten inline figures and four tables. It describes the published code at
+commit `c64e5f5f07aa6b38919927231fac5fbffe6646f1`, including direct SSN,
 USGS and NRCan inputs, separate/combined catalogue exploration and derived
 descriptive analyses. Public availability does not imply journal acceptance.
 The software MIT licence does not cover these manuscript files.
 
-The source tree also includes a descriptive-workflow extension with Home,
-Sources and Analysis views and five downloadable deliverables. Its new manuscript
-figures and matching Word/PDF are still being prepared; the linked documents
-above remain the reviewed eight-figure edition. A repository push does not update
-GitHub Pages: deployment is a separate, deliberate action.
+The descriptive-workflow extension includes Home, Sources and Analysis views and
+five downloadable deliverables. The updated Word/PDF uses genuine integrated-browser
+captures from a local preview of that published code, with horizontal figure panels
+and a separate responsive-layout review. These new manuscript files are locally
+verified and await their own authorized publication; the last released documents
+remain the 26-page edition. GitHub Pages still serves code `49372d0` until a separate
+authorized deployment. A repository push does not update Pages automatically.
+
+A subsequent local UI/UX revision reorganises exploration around a query sidebar,
+map and selection summary. Its Results view adds a catalogue/type focus selector,
+six visible measures, a magnitude histogram, documented-depth scatter/count cells,
+and annual bars; a report preview uses the same generated HTML as the download.
+Mobile filters can be folded away. These presentation changes are not yet committed
+or deployed and are not illustrated by the current Word/PDF. The two IJCOPI
+reference articles and systems informed the redesign without changing those projects.
 
 ## Explorer and reproducibility
 
@@ -76,6 +86,7 @@ python -m scripts.validate_evidence
 python -m unittest discover -s tests
 python scripts/build_catalogs.py --verify-only
 node tests/test_analytics.cjs
+node tests/test_research_charts.cjs
 node tests/test_catalog_frontend.cjs
 node tests/test_system_labels.cjs
 python -m http.server 8787 --bind 127.0.0.1 --directory system/dist

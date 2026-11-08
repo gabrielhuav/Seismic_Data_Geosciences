@@ -140,13 +140,15 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
       const ctx = c.getContext('2d');ctx.setTransform(ratio, 0, 0, ratio, 0, 0);this.points = [];
       const colors = {unknown: color('--point-unknown', '#526f7a'), deep: color('--point-deep', '#bc5b1e'), shallow: color('--point-shallow', '#087568')};
       let selectedPoint;
-      for (const e of this.records || []) {
+      // Paint small symbols first so larger observations remain selectable and visible.
+      for (const e of this.paintOrder || this.records || []) {
         const p = this._map.latLngToContainerPoint(eventLatLng(e));
         const radius = Math.max(2, (e.mag - 2.5) * 1.25);
         if (p.x < -radius || p.x > size.x + radius || p.y < -radius || p.y > size.y + radius) continue;
         this.points.push({x: p.x, y: p.y, radius, event: e});
         ctx.beginPath();ctx.globalAlpha = .7;ctx.fillStyle = e.depth === null ? colors.unknown : e.depth > 70 ? colors.deep : colors.shallow;
         ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);ctx.fill();
+        if(radius>=3.5){ctx.globalAlpha=.85;ctx.lineWidth=.7;ctx.strokeStyle=color('--selection-halo','#fff');ctx.stroke();}
         if (e.id === selectedId) selectedPoint = {x:p.x,y:p.y,radius};
       }
       if (selectedPoint) {
@@ -157,9 +159,23 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
       ctx.globalAlpha = 1;
       document.getElementById('mapStatus').textContent = translate('visible', {visible: formatNumber(this.points.length), filtered: formatNumber((this.records || []).length)});
     },
-    setRecords(records) {this.records = records;this.redraw();}
+    setRecords(records) {this.records = records;this.paintOrder=[...records].sort((a,b)=>a.mag-b.mag);this.redraw();}
   });
   const events = new EventsLayer().addTo(map);
+  let hoverStamp=0,hoverTip=null;
+  map.on('mousemove', ev=>{
+    if(Date.now()-hoverStamp<50)return;hoverStamp=Date.now();
+    let nearest=null,best=Infinity;
+    for(const point of events.points || []){
+      const distance=Math.hypot(point.x-ev.containerPoint.x,point.y-ev.containerPoint.y);
+      if(distance<=Math.max(8,point.radius+3) && distance<best){best=distance;nearest=point.event;}
+    }
+    element.style.cursor=nearest ? 'pointer' : '';
+    if(hoverTip){map.closeTooltip(hoverTip);hoverTip=null;}
+    if(nearest)hoverTip=L.tooltip({direction:'top',offset:[0,-10],className:'seismic-hover'})
+      .setLatLng(eventLatLng(nearest)).setContent(`<strong>M ${safe(formatNumber(nearest.mag))} ${safe(nearest.magType || translate('unknownType'))}</strong><br>${safe(nearest.place)}<br>${safe(nearest.time)}`).openOn(map);
+  });
+  map.on('mouseout',()=>{element.style.cursor='';if(hoverTip){map.closeTooltip(hoverTip);hoverTip=null;}});
   map.on('zoomend', labels);
   map.on('popupopen', ({popup}) => {
     const close = popup.getElement()?.querySelector('.leaflet-popup-close-button');

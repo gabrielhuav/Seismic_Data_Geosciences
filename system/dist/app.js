@@ -5,7 +5,7 @@ const t = (key, values) => I.t(key, values);
 const state = {events: [], fields: [], filtered: [], manifest: null, registry: null, catalog: null, page: 0, size: 40, revisions: null,
   applied: {...V.defaults}, tab: 'catalog', selectedEvent: '', ready: false, restoring: false,
   formValid: true, invalidLink: [], hashes: {}, action: '', loadError: null, request: 0, cache: new Map(), baseStatus: 'baseLocalNote', highlightedEvent:'', expanded:false,
-  geography:null, geographyHash:'', activePacks:[], composition:null};
+  geography:null, geographyHash:'', activePacks:[], composition:null,filtersOpen:false};
 const fmt = n => new Intl.NumberFormat(I.language).format(n);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const value = (n, dec = 2) => n === null || n === undefined || n === '' ? t('notReported') : Number(n).toLocaleString(I.language, {maximumFractionDigits: dec});
@@ -55,6 +55,7 @@ function setTab(name, persist = true) {
     const active = tab === name; $(tab + 'Panel').hidden = !active;
     if (active) $(tab + 'Tab').setAttribute('aria-current', 'page'); else $(tab + 'Tab').removeAttribute('aria-current');
   }
+  document.body.dataset.view=name;
   if (name === 'catalog' && state.map) requestAnimationFrame(() => {state.map.resize(); drawMap();});
   if (name === 'sources' || name === 'home') renderSources();
   if (name === 'analysis') renderAnalysis();
@@ -118,13 +119,14 @@ function showWarnings() {
   $('linkWarning').textContent = state.invalidLink.length ? t('invalidLink', {fields: state.invalidLink.join(', ')}) : '';
 }
 function buttons() {
-  for (const id of ['share', 'query', 'download', 'analysisRecordCsv', 'analysisQueryJson', 'analysisCsv', 'analysisJson', 'analysisReport']) $(id).disabled = !state.ready || !state.formValid;
+  for (const id of ['share', 'query', 'download', 'analysisRecordCsv', 'analysisQueryJson', 'analysisCsv', 'analysisJson', 'analysisReport','previewAnalysisReport']) $(id).disabled = !state.ready || !state.formValid;
   // A new package resets its filters. Do not accept input that would be silently
   // overwritten when that asynchronous load finishes; catalog choices remain live.
   for (const id of [...controls, 'searchButton', 'reset', 'sort']) $(id).disabled = !state.ready;
   if (state.ready) $('depthMax').disabled = !depthKnown();
   $('unmOnly').disabled = !state.ready || state.catalog?.id !== V.legacyCatalog;
   if(state.tab==='analysis' && (!state.ready || !state.formValid))renderAnalysis();
+  if(!state.ready || !state.formValid)renderExplorerInsights();
 }
 function applyFilters(persist = true) {
   if (!state.ready) return;
@@ -144,7 +146,7 @@ function render() {
   $('typeCount').textContent = fmt(new Set(rows.map(e => e.magType).filter(Boolean)).size);
   $('filterSummary').textContent = t('filterSummary', {n: fmt(rows.length), total: fmt(state.events.length), from: state.applied.yearFrom, to: state.applied.yearTo, min: value(state.applied.magMin,1)});
   $('mapSelection').textContent=catalogLabel(state.catalog)+' · '+(state.applied.country ? regionLabel(state.applied.country) : t('allCountries'))+' · '+state.applied.yearFrom+'–'+state.applied.yearTo+' · M ≥ '+value(state.applied.magMin,1);
-  renderFilterChips();drawMap();drawHistogram();renderTable();
+  renderFilterChips();drawMap();drawHistogram();renderTable();renderExplorerInsights();renderSearchSuggestions();
   if (state.tab === 'analysis') renderAnalysis();
   $('combinedNotice').hidden=state.catalog.id!=='all-catalogs';
   if(state.catalog.id==='all-catalogs'){
@@ -200,13 +202,26 @@ function setExpanded(expanded) {
 function appearanceChanged() {
   const preferences=window.SeismicPreferences?.get();
   if(preferences){$('theme').value=preferences.theme;$('appearance').value=preferences.mode;}
-  state.map?.themeChanged?.();if(state.ready){drawHistogram();if(state.tab==='analysis')renderAnalysis();}
+  state.map?.themeChanged?.();if(state.ready){drawHistogram();renderExplorerInsights();if(state.tab==='analysis')renderAnalysis();}
 }
 function renderTable() {
   const start = state.page * state.size, rows = state.filtered.slice(start, start + state.size);
   $('records').innerHTML = rows.length ? rows.map(e => `<tr class="${e.id===state.highlightedEvent ? 'record-selected' : ''}"><td>${esc(date(e.time))}</td><td><span class="mag">${value(e.mag, 1)}</span><span class="type">${esc(e.magType || '?')}</span></td><td>${eventDepthKnown(e) ? value(e.depth, 1) : esc(e.raw_depth || t('notReported'))}</td><td>${esc(e.place)}<small>${esc(e.id)}</small><small>${esc(regionLabel(e.country_id))}</small></td><td>${esc(packFor(e)?.catalog.provider_name || state.catalog.provider_name)}<small>${esc(e.locationSource || t('notReported'))}</small>${e.shared_event_id ? '<small>'+esc(t('sharedUsgsId'))+'</small>' : ''}</td><td><div class="record-actions"><button data-event="${esc(e.id)}" aria-label="${esc(t('inspectId', {id: e.id}))}">${esc(t('inspect'))}</button><button data-locate-event="${esc(e.id)}" aria-label="${esc(t('locateId',{id:e.id}))}">${esc(t('seeOnMap'))}</button></div></td></tr>`).join('') : `<tr><td colspan="6">${esc(t('noRecords'))}</td></tr>`;
   $('pageLabel').textContent = rows.length ? t('page', {first: fmt(start + 1), last: fmt(start + rows.length), total: fmt(state.filtered.length)}) : t('zeroRecords');
   $('prev').disabled = state.page === 0;$('next').disabled = start + state.size >= state.filtered.length;
+}
+function renderSearchSuggestions() {
+  if(!$('searchSuggestions'))return;
+  $('searchSuggestions').replaceChildren();
+  const normal=raw=>String(raw ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase();
+  const query=normal(state.applied.search).trim();if(!state.ready || query.length<2)return;
+  let n=0;
+  for(const event of state.filtered){
+    if(!normal(event.id+' '+event.place).includes(query))continue;
+    const option=document.createElement('option');option.value=event.id;
+    option.label=event.place+' · M '+value(event.mag,2)+' '+(event.magType || '?')+' · '+date(event.time);
+    $('searchSuggestions').append(option);if(++n===8)break;
+  }
 }
 
 // Descriptive views use the existing filtered row set; navigation never rewrites
@@ -215,12 +230,13 @@ function renderSources() {
   if (!state.registry) return;
   $('homeCatalogCount').textContent=fmt(state.registry.catalogs.length);
   $('homeRecordCount').textContent=fmt(state.registry.catalogs.reduce((n,c)=>n+c.event_count,0));
+  if($('sourceCards'))$('sourceCards').innerHTML=state.registry.catalogs.map(c=>`<button class="source-card" data-source-catalog="${esc(c.id)}"><span class="source-provider">${esc(c.provider_name)}</span><strong>${esc(catalogLabel(c))}</strong><span>${c.years[0]}–${c.years[1]} · M ≥ ${value(c.minimum_magnitude,1)}</span><b>${fmt(c.event_count)} <small>${esc(t('sourceRows'))}</small></b><span class="source-card-action">${esc(t('openThisCatalog'))} ↗</span></button>`).join('');
   $('sourceInventoryRows').innerHTML=state.registry.catalogs.map(c=>{
     const known=c.provider==='usgs' || c.depth_unit==='km';
     return `<tr><td><strong>${esc(catalogLabel(c))}</strong><small>${esc(c.id)}</small></td><td>${esc(c.provider_name)}</td><td>${c.years[0]}–${c.years[1]}<small>M ≥ ${value(c.minimum_magnitude,1)}</small></td><td>${fmt(c.event_count)}</td><td>${esc(t(c.identifier_kind==='derived_row_key' ? 'derivedId' : 'officialId'))}<small>${esc(t(known ? 'documentedDepth' : 'unknownDepthUnit'))}</small></td><td><button data-source-catalog="${esc(c.id)}">${esc(t('openThisCatalog'))}</button><div class="source-links"><a href="${esc(safeURL(c.events_url))}" download>${esc(t('packagedData'))}</a><a href="${esc(safeURL(c.manifest_url))}" download>${esc(t('fieldManifest'))}</a></div><details><summary>${esc(t('sourceHash'))}</summary><code class="hash">${esc(c.sha256)}</code></details></td></tr>`;
   }).join('');
 }
-let analysisCacheRows=null,analysisCache=null;
+let analysisCacheRows=null,analysisCache=null,analysisGroupKey='';
 function summaryForSelection() {
   if (!state.ready || !state.formValid || !window.SeismicAnalytics) return null;
   if(analysisCacheRows!==state.filtered){
@@ -236,12 +252,64 @@ function groupRows(summary) {
 function correlationRows(summary) {
   return summary.groups.map(g=>`<tr><td>${esc(groupName(g))}</td><td>${esc(g.mag_type ?? t('notReported'))}</td><td>${fmt(g.magnitude_depth.n)}</td><td>${value(g.magnitude_depth.pearson_r,4)}</td><td>${esc(t(g.magnitude_depth.pearson_r===null ? 'correlationUnavailable' : 'correlationDescriptive'))}</td></tr>`).join('');
 }
+const groupKey = group => JSON.stringify([group.catalog_id,group.mag_type]);
+function selectedAnalysisGroup(summary) {
+  if(!summary?.groups.length){analysisGroupKey='';return null;}
+  const chosen=summary.groups.find(group=>groupKey(group)===analysisGroupKey)
+    || summary.groups.reduce((largest,group)=>group.n>largest.n ? group : largest);
+  analysisGroupKey=groupKey(chosen);return chosen;
+}
+function groupDescription(group) {
+  return groupName(group)+' · '+(group.mag_type ?? t('unknownType'))+' · n = '+fmt(group.n);
+}
+function chartOptions(kind) {
+  return {format:(n,dec=1)=>value(n,dec),colors:{ink:color('--ink','#183c39'),muted:color('--muted','#566b61'),
+    grid:color('--line','#d4dfd6'),accent:color('--green','#126a5b'),secondary:color('--point-deep','#bc5b1e'),paper:color('--paper','#fff')},
+    labels:{title:t(kind),x:t(kind==='annualAnalysis' ? 'utcYear' : 'reportedM'),
+      y:t(kind==='scatterPlot' ? 'depthKm' : 'sourceRows'),empty:t('noChartRecords'),density:t('densityCells'),records:t('sourceRows')}};
+}
+function renderExplorerInsights() {
+  if(!$('miniGroupLabel'))return;
+  const summary=summaryForSelection(), group=selectedAnalysisGroup(summary);
+  $('miniGroupLabel').textContent=group ? groupDescription(group) : t('analysisUnavailable');
+  if($('miniScope'))$('miniScope').textContent=group ? t(group.mag_type==null ? 'miniUnknownScope' : 'miniKnownScope',{n:fmt(group.depth_km.n)}) : '';
+  for(const [id,n] of [['miniMean',group?.magnitude.mean],['miniMedian',group?.magnitude.median],['miniDepth',group?.depth_km.mean]])
+    $(id).textContent=Number.isFinite(n) ? value(n,2)+(id==='miniDepth' ? ' km' : '') : '—';
+  if($('homeSelectionSummary'))$('homeSelectionSummary').textContent=summary ? $('mapSelection').textContent+' · '+fmt(summary.record_count)+' '+t('sourceRows') : t('analysisUnavailable');
+  if($('homeAnnualChart') && window.SeismicResearchCharts)
+    $('homeAnnualChart').innerHTML=window.SeismicResearchCharts.svgAnnual(summary?.annual_counts || [],chartOptions('annualAnalysis'));
+}
+function renderResearchCharts(summary) {
+  const group=selectedAnalysisGroup(summary), selector=$('analysisGroupSelect');
+  if(!selector)return;
+  selector.replaceChildren();
+  for(const entry of summary?.groups || []){
+    const option=document.createElement('option');option.value=groupKey(entry);option.textContent=groupDescription(entry);selector.append(option);
+  }
+  selector.value=analysisGroupKey;selector.disabled=!group;
+  $('analysisGroupContext').textContent=group ? groupDescription(group) : t('noRecords');
+  $('analysisGroupNote').textContent=t(group?.mag_type==null ? 'unknownGroupWarning' : 'visualGroupScope');
+  const set=(id,n,dec=3)=>{$(id).textContent=Number.isFinite(n) ? value(n,dec) : '—';};
+  set('statMeanValue',group?.magnitude.mean);set('statMedianValue',group?.magnitude.median);set('statSdValue',group?.magnitude.sample_sd);
+  $('statRangeValue').textContent=group?.magnitude.n ? value(group.magnitude.min,3)+' – '+value(group.magnitude.max,3) : '—';
+  $('statDepthValue').textContent=group?.depth_km.n ? value(group.depth_km.mean,2)+' km · n='+fmt(group.depth_km.n) : t('notReported');
+  $('statPairsValue').textContent=Number.isFinite(group?.magnitude_depth.pearson_r) ? value(group.magnitude_depth.pearson_r,4)+' · n='+fmt(group.magnitude_depth.n) : t('notCalculable');
+  const R=window.SeismicResearchCharts;
+  if(!R)return;
+  const model=R.distribution(group ? state.filtered : [],{catalogId:group?.catalog_id || '__empty__',magType:group?.mag_type,catalogs:state.activePacks.map(p=>p.catalog)});
+  $('magnitudeChart').innerHTML=R.svgHistogram(model,chartOptions('magnitudeDistribution'));
+  $('scatterChart').innerHTML=R.svgScatter(model,chartOptions('scatterPlot'));
+  $('analysisHistogram').innerHTML=R.svgAnnual(summary?.annual_counts || [],chartOptions('annualAnalysis'));
+  if($('scatterCoverage'))$('scatterCoverage').textContent=t('scatterCoverage',{n:fmt(model.depth_pair_count),missing:fmt(model.missing_depth_pair_count)})
+    +' '+(model.scatter_mode==='density' ? t('densityExplanation') : t('allPairsShown'));
+}
 function renderAnalysis() {
   const summary=summaryForSelection();
   if(!summary){
     $('analysisSelection').textContent=t('analysisUnavailable');
     for(const id of ['analysisCount','analysisCatalogCount','analysisGroupCount','analysisYears'])$(id).textContent='—';
     for(const id of ['analysisGroupRows','analysisCorrelationRows','analysisAnnualRows','analysisHistogram'])$(id).innerHTML='';
+    renderResearchCharts(null);
     return;
   }
   $('analysisCount').textContent=fmt(summary.record_count);
@@ -252,7 +320,7 @@ function renderAnalysis() {
   $('analysisGroupRows').innerHTML=groupRows(summary) || `<tr><td colspan="9">${esc(t('noRecords'))}</td></tr>`;
   $('analysisCorrelationRows').innerHTML=correlationRows(summary) || `<tr><td colspan="5">${esc(t('noRecords'))}</td></tr>`;
   $('analysisAnnualRows').innerHTML=summary.annual_counts.map(x=>`<tr><td>${x.year}</td><td>${fmt(x.record_count)}</td></tr>`).join('');
-  $('analysisHistogram').innerHTML=$('histogram').innerHTML;
+  renderResearchCharts(summary);
 }
 function analysisDocument() {
   const summary=summaryForSelection();if(!summary)return null;
@@ -260,6 +328,7 @@ function analysisDocument() {
   const query=V.queryDocument({view,catalog:state.catalog,manifest:state.manifest,assetHashes:state.hashes,fields:state.fields,
     rows:state.filtered,pageURL:V.serialize(view,location.href),createdUTC:new Date().toISOString(),inputs:state.activePacks,geography:geographyEvidence()});
   return {schema:'seismic-analysis-report/1',created_utc:new Date().toISOString(),count_unit:'source_records',summary,
+    display_group:selectedAnalysisGroup(summary) ? {catalog_id:selectedAnalysisGroup(summary).catalog_id,mag_type:selectedAnalysisGroup(summary).mag_type} : null,
     query,evidence_note:t('analysisLimit'),normalization:{schema_mapping:'source-specific adapters; original fields retained',magnitude:'reported scales and literal types; no conversions',missing:'source missing strings preserved; absent common fields null',depth:'common km only where documented; Canadian raw depth remains unknown unit',identity:'qualified catalogue row keys; exact ComCat ID overlap flags; no cross-provider event reconciliation'}};
 }
 function exportedAnalysisStatus(){ $('analysisExportStatus').textContent=t('analysisSaved'); }
@@ -274,28 +343,63 @@ function exportAnalysisJson(){
   const report=analysisDocument();if(!report)return;
   download(new Blob([JSON.stringify(report,null,2)+'\n'],{type:'application/json;charset=utf-8'}),state.catalog.id+'_descriptive_analysis.json');exportedAnalysisStatus();
 }
-function exportAnalysisReport(){
-  const report=analysisDocument();if(!report)return;
+function reportVisuals(report) {
+  const R=window.SeismicResearchCharts;if(!R)return '';
+  const group=report.summary.groups.find(g=>g.catalog_id===report.display_group?.catalog_id && g.mag_type===report.display_group?.mag_type);
+  const model=R.distribution(group ? state.filtered : [],{catalogId:group?.catalog_id || '__empty__',magType:group?.mag_type,catalogs:state.activePacks.map(p=>p.catalog)});
+  const opts=kind=>({...chartOptions(kind),colors:{ink:'#183c39',muted:'#566b61',grid:'#d4dfd6',accent:'#126a5b',secondary:'#bc5b1e',paper:'#ffffff'}});
+  const figure=(title,content)=>'<figure><figcaption>'+esc(t(title))+'</figcaption><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" role="img" aria-label="'+esc(t(title))+'">'+content+'</svg></figure>';
+  return '<style>.report-visuals{margin:28px 0;padding:24px;background:#f2f5f1;border:1px solid #d4dfd6;border-radius:12px}.report-chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.report-visuals figure{margin:0;padding:14px;background:white;border:1px solid #d4dfd6;border-radius:8px;break-inside:avoid}.report-visuals figcaption{font-size:14px;font-weight:700}.report-visuals svg{width:100%;height:auto}.report-annual{margin-top:18px}@media(max-width:700px){.report-chart-grid{grid-template-columns:1fr}}@media print{.report-visuals{padding:10px}.report-chart-grid{display:block}.report-visuals figure{margin:10px 0}}</style><section class="report-visuals"><h2>'+esc(t('visualResults'))+'</h2><p>'+esc(group ? groupDescription(group) : t('noRecords'))+'</p><p>'+esc(t(group?.mag_type==null ? 'unknownGroupWarning' : 'visualGroupScope'))+'</p><div class="report-chart-grid">'+figure('magnitudeDistribution',R.svgHistogram(model,opts('magnitudeDistribution')))+figure('scatterPlot',R.svgScatter(model,opts('scatterPlot')))+'</div><div class="report-annual">'+figure('annualAnalysis',R.svgAnnual(report.summary.annual_counts,opts('annualAnalysis')))+'</div><p>'+esc(t('annualAnalysisNote'))+'</p></section>';
+}
+function analysisReportHtml(){
+  const report=analysisDocument();if(!report)return null;
   const summary=report.summary, heading=key=>esc(t(key));
   const table=(heads,rows)=>'<table><thead><tr>'+heads.map(h=>'<th>'+heading(h)+'</th>').join('')+'</tr></thead><tbody>'+rows+'</tbody></table>';
   const inputs=state.activePacks.map(p=>`<tr><td>${esc(catalogLabel(p.catalog))}</td><td>${esc(p.hashes.events)}</td><td>${esc(p.hashes.manifest)}</td></tr>`).join('');
   const html='<!doctype html><html lang="'+I.language+'"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>'+heading('analysisHeading')+'</title><style>body{font:15px/1.55 system-ui,sans-serif;color:#182d3b;max-width:1100px;margin:36px auto;padding:0 20px}h1,h2{line-height:1.2}table{border-collapse:collapse;width:100%;margin:20px 0;font-size:12px}th,td{border:1px solid #ccd6d9;padding:9px;text-align:left;overflow-wrap:anywhere}th{background:#eef3f4}pre,code{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px}button{padding:9px 15px}@media print{button{display:none}body{max-width:none;margin:0}thead{display:table-header-group}tr{break-inside:avoid}}</style><h1>'+heading('analysisHeading')+'</h1><p>'+esc($('analysisSelection').textContent)+'</p><p>'+esc(report.created_utc)+'</p><p>'+heading('analysisScope')+'</p><h2>'+heading('magnitudeStatistics')+'</h2>'+table(['dataCatalog','magType','sourceRows','statMean','statMedian','statMin','statMax','statSD','statDepthMean'],groupRows(summary))+'<h2>'+heading('correlationHeading')+'</h2><p>'+heading('correlationNote')+'</p>'+table(['dataCatalog','magType','pairedRecords','pearsonCoefficient','interpretation'],correlationRows(summary))+'<h2>'+heading('annualAnalysis')+'</h2><p>'+heading('annualAnalysisNote')+'</p>'+table(['utcYear','sourceRows'],summary.annual_counts.map(x=>'<tr><td>'+x.year+'</td><td>'+x.record_count+'</td></tr>').join(''))+'<h2>'+heading('filtersAndEvidence')+'</h2><pre>'+esc(JSON.stringify(state.applied,null,2))+'</pre>'+table(['dataCatalog','sourceHash','recordManifest'],inputs)+'<p>'+heading('analysisLimit')+'</p><details><summary>'+heading('analysisJson')+'</summary><pre>'+esc(JSON.stringify(report,null,2))+'</pre></details></html>';
+  return html.replace('<h2>',reportVisuals(report)+'<h2>').replace('</style>', '@media(max-width:700px){.report-visuals svg text{font-size:22px}.report-visuals .chart-density-note{display:none}}</style>');
+}
+function exportAnalysisReport(){
+  const html=analysisReportHtml();if(html===null)return;
   download(new Blob([html],{type:'text/html;charset=utf-8'}),state.catalog.id+'_descriptive_report.html');exportedAnalysisStatus();
+}
+function previewAnalysisReport(){
+  const html=analysisReportHtml();if(html===null)return;
+  $('reportPreviewFrame').srcdoc=html;$('reportPreview').showModal();
 }
 for(const [id,tab] of [['welcomeExplore','catalog'],['welcomeSources','sources'],['stepSources','sources'],['stepExplore','catalog'],['stepAnalyze','analysis'],['stepExport','analysis'],['editAnalysisQuery','catalog']]) $(id).addEventListener('click',()=>{setTab(tab);if(id==='stepExport')$('deliverablesCard').scrollIntoView?.({block:'center'});});
 $('sourceInventoryRows').addEventListener('click',async event=>{const button=event.target.closest('[data-source-catalog]');if(!button)return;await loadCatalog(button.dataset.sourceCatalog,false);if(state.ready)setTab('catalog');});
+if($('sourceCards'))$('sourceCards').addEventListener('click',async event=>{const button=event.target.closest('[data-source-catalog]');if(!button)return;await loadCatalog(button.dataset.sourceCatalog,false);if(state.ready)setTab('catalog');});
+if($('exploreAnalysis'))$('exploreAnalysis').addEventListener('click',()=>setTab('analysis'));
+if($('toggleFiltersMobile'))$('toggleFiltersMobile').addEventListener('click',()=>{
+  state.filtersOpen=!state.filtersOpen;document.body.classList.toggle('filters-open',state.filtersOpen);
+  $('toggleFiltersMobile').setAttribute('aria-expanded',String(state.filtersOpen));
+});
+if($('analysisGroupSelect'))$('analysisGroupSelect').addEventListener('change',()=>{analysisGroupKey=$('analysisGroupSelect').value;renderAnalysis();renderExplorerInsights();});
+if($('homeCases'))$('homeCases').addEventListener('click',async event=>{
+  const button=event.target.closest('[data-case]');if(!button || !state.registry)return;
+  const cases={ssn:['ssn-mx-historical',{yearFrom:2026,yearTo:2026,magMin:4.5,country:''}],
+    usa:['usgs-na-2020-2025',{yearFrom:2020,yearTo:2025,magMin:3.5,country:'USA'}],
+    canada:['nrcan-ca-historical',{yearFrom:1985,yearTo:2019,magMin:3.5,country:'CAN'}],
+    combined:['all-catalogs',{yearFrom:2010,yearTo:2025,magMin:4.5,country:''}]};
+  const scenario=cases[button.dataset.case];if(!scenario)return;
+  await loadCatalog(scenario[0],false,scenario[1]);if(state.ready)setTab('catalog');
+});
 $('analysisRecordCsv').addEventListener('click',exportCsv);$('analysisQueryJson').addEventListener('click',exportQuery);
 $('analysisCsv').addEventListener('click',exportAnalysisCsv);$('analysisJson').addEventListener('click',exportAnalysisJson);$('analysisReport').addEventListener('click',exportAnalysisReport);
+$('previewAnalysisReport').addEventListener('click',previewAnalysisReport);
+$('closeReportPreview').addEventListener('click',()=>$('reportPreview').close());
 
 function drawMap() {if (!$('catalogPanel').hidden && state.map) state.map.setRecords(state.filtered);}
 function drawHistogram() {
   const counts = new Map();for (const e of state.filtered) counts.set(e.year, (counts.get(e.year) || 0) + 1);
-  const a = state.applied.yearFrom, b = state.applied.yearTo, n = Math.max(1, b - a + 1), max = Math.max(1, ...counts.values()), bw = 940 / n;
+  const a = state.applied.yearFrom, b = state.applied.yearTo, n = Math.max(1, b - a + 1), max = Math.max(1, ...counts.values()), bw = 250 / n;
   const grid=esc(color('--chart-grid','#ccd9d5')), axis=esc(color('--chart-axis','#546a76')), bar=esc(color('--chart-bar','#438d7c'));
-  let svg = `<line x1="45" y1="145" x2="985" y2="145" stroke="${grid}"/><text x="4" y="22" font-size="10" fill="${axis}">${fmt(max)}</text><text x="22" y="148" font-size="10" fill="${axis}">0</text>`;
-  for (let year = a; year <= b; year++) {const count = counts.get(year) || 0, height = count / max * 120;svg += `<rect x="${45 + (year - a) * bw}" y="${145 - height}" width="${Math.max(.5, bw * .78)}" height="${height}" fill="${bar}"><title>${year}: ${esc(t('recordsN', {n: fmt(count)}))}</title></rect>`;}
-  const step = Math.max(1, Math.ceil(n / 8)), ticks = new Set([a,b]);for (let year = a + step; year < b; year += step) ticks.add(year);
-  for (const year of ticks) svg += `<text x="${45 + (year - a + .4) * bw}" y="169" text-anchor="middle" font-size="10" fill="${axis}">${year}</text>`;
+  let svg = `<title>${esc(t('annualAnalysis'))}</title><line x1="40" y1="125" x2="295" y2="125" stroke="${grid}"/><text x="2" y="17" font-size="10" fill="${axis}">${fmt(max)}</text><text x="24" y="128" font-size="10" fill="${axis}">0</text>`;
+  for (let year = a; year <= b; year++) {const count = counts.get(year) || 0, height = count / max * 105;svg += `<rect x="${40 + (year - a) * bw}" y="${125 - height}" width="${Math.max(.5, bw * .78)}" height="${height}" rx="1" fill="${bar}"><title>${year}: ${esc(t('recordsN', {n: fmt(count)}))}</title></rect>`;}
+  const ticks = new Set([a,b]);if(n>3)ticks.add(a+Math.floor((n-1)/2));
+  for (const year of ticks) svg += `<text x="${40 + (year - a + .4) * bw}" y="148" text-anchor="${year===b && n>1 ? 'end' : 'middle'}" font-size="11" fill="${axis}">${year}</text>`;
+  $('histogram').setAttribute('viewBox','0 0 300 160');
   $('histogram').innerHTML = svg;
 }
 function detail(id, persist = true) {
@@ -319,7 +423,8 @@ function detail(id, persist = true) {
   const rawFields = nativeSsn ? Object.entries(e).filter(([key])=>key.startsWith('raw_')) : [];
   const rawDetails = rawFields.length ? `<details><summary>${esc(t('sourceRawFields'))}</summary><dl>${rawFields.map(([key,v])=>`<dt>${esc(rawNames[key] ? t(rawNames[key]) : key)} <small>(${esc(key)})</small></dt><dd>${esc(v ?? t('notReported'))}</dd>`).join('')}</dl></details>` : '';
   const included=state.filtered.some(row=>row.id===id);
-  $('detailContent').innerHTML = '<dl>' + fields.map(([k,v]) => `<dt>${esc(t(k))}</dt><dd class="${k === 'rawHash' ? 'hash' : ''}">${esc(v || t('notReported'))}</dd>`).join('') + '</dl>' + rawDetails + `<p class="detail-actions"><button data-locate-event="${esc(id)}" ${included ? '' : 'disabled'}>${esc(t('seeOnMap'))}</button>${links}</p>` + (!included ? `<p class="small">${esc(t('outsideFilters'))}</p>` : '') + `<p class="small">${esc(t(sourceDerived ? 'derivedKeyNote' : 'detailNote'))}</p>` + (nativeSsn ? `<p class="small">${esc(t('ssnStatusNote'))}</p>` : '');
+  const feature=`<section class="record-feature"><p class="record-topline">${esc(sourceCatalog.provider_name)} · ${esc(catalogLabel(sourceCatalog))}</p><p class="record-time">${esc(date(e.time))}</p><div class="record-metrics"><div><span>${esc(t('reportedMagnitude'))}</span><strong>${value(e.mag,2)} <small>${esc(e.magType || '?')}</small></strong></div><div><span>${esc(t('depthKm'))}</span><strong>${sourceDepth ? value(e.depth,3)+' km' : '—'}</strong></div><div><span>${esc(t('latLon'))}</span><strong>${value(e.latitude,4)}<br>${value(e.longitude,4)}</strong></div></div><p class="record-key">${esc(sourceId)}</p>${!sourceDepth ? `<p class="small">${esc(t('depthUnitUnknown'))}</p>` : ''}</section>`;
+  $('detailContent').innerHTML = feature + `<p class="detail-actions"><button data-locate-event="${esc(id)}" ${included ? '' : 'disabled'}>${esc(t('seeOnMap'))}</button>${links}</p>` + (!included ? `<p class="small">${esc(t('outsideFilters'))}</p>` : '') + '<details class="record-metadata"><summary>'+esc(t('recordEvidence'))+'</summary><dl>' + fields.map(([k,v]) => `<dt>${esc(t(k))}</dt><dd class="${k === 'rawHash' ? 'hash' : ''}">${esc(v || t('notReported'))}</dd>`).join('') + '</dl>' + rawDetails + '</details>' + `<p class="small">${esc(t(sourceDerived ? 'derivedKeyNote' : 'detailNote'))}</p>` + (nativeSsn ? `<p class="small">${esc(t('ssnStatusNote'))}</p>` : '');
   if (!$('detail').open) $('detail').showModal();if (persist) syncURL();
 }
 function download(blob, name) {

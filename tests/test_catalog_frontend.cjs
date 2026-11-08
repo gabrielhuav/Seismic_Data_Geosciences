@@ -6,6 +6,7 @@ const crypto = require('node:crypto');
 const V = require('../system/dist/view-state.js');
 const C = require('../system/dist/catalog-composition.js');
 const A = require('../system/dist/analytics.js');
+const R = require('../system/dist/research-charts.js');
 const registry = JSON.parse(fs.readFileSync('system/dist/data/catalogs.json','utf8'));
 const catalogs = registry.catalogs;
 const options = {catalogs, defaultCatalog:registry.default_catalog_id};
@@ -97,7 +98,7 @@ async function main() {
     const buffer=url===tamper ? Buffer.from(bytes.toString().replace('3.5','3.6')) : bytes;
     return {ok:true,arrayBuffer:async()=>buffer.buffer.slice(buffer.byteOffset,buffer.byteOffset+buffer.byteLength)};
   };
-  const context={window:{SeismicViewState:V,SeismicCatalogComposition:C,SeismicAnalytics:A,addEventListener(){}},document,location,history:{replaceState(_,__,url){location.href=url;}},navigator:{},fetch,
+  const context={window:{SeismicViewState:V,SeismicCatalogComposition:C,SeismicAnalytics:A,SeismicResearchCharts:R,addEventListener(){}},document,location,history:{replaceState(_,__,url){location.href=url;}},navigator:{},fetch,
     crypto:crypto.webcrypto,TextDecoder,TextEncoder,URL,Intl,Blob,setTimeout,clearTimeout,requestAnimationFrame:callback=>callback(),createSeismicMap:()=>map};
   vm.createContext(context);vm.runInContext(fs.readFileSync('system/dist/i18n.js','utf8'),context);
   context.window.document=document;context.window.localStorage={getItem:()=>null,setItem(){}};
@@ -358,6 +359,12 @@ async function main() {
   assert.equal((elements.get('sourceInventoryRows').innerHTML.match(/data-source-catalog=/g)||[]).length,4);
   assert.equal(elements.get('homeRecordCount').textContent.replace(/[^0-9]/g,''),'287936');
   checks++;console.log('PASS welcome, source inventory and analysis navigation round-trip without changing selected records');
+  const beforeMobileToggle=location.href;
+  for(const callback of elements.get('toggleFiltersMobile').listeners.click)callback();
+  assert.equal(elements.get('toggleFiltersMobile')['aria-expanded'],'true');assert.equal(document.body.classes.has('filters-open'),true);
+  for(const callback of elements.get('toggleFiltersMobile').listeners.click)callback();
+  assert.equal(elements.get('toggleFiltersMobile')['aria-expanded'],'false');assert.equal(document.body.classes.has('filters-open'),false);assert.equal(location.href,beforeMobileToggle);
+  checks++;console.log('PASS mobile filter disclosure preserves scientific query and exposes its expanded state');
   await chooseSource('usgs');
   vm.runInContext("writeFilters({...V.catalogDefaults(state.catalog),yearFrom:2025,yearTo:2025,magMin:4.5,magType:'mww'});applyFilters();setTab('analysis');exportAnalysisJson()",context);
   const analysis=JSON.parse(await context.savedDownload.blob.text());
@@ -372,10 +379,47 @@ async function main() {
   assert(reportHtml.includes(catalogs[0].sha256));assert(reportHtml.includes(catalogs[0].manifest_sha256));assert(reportHtml.includes('2025'));assert(reportHtml.includes('seismic-analysis-report/1'));
   assert(context.savedDownload.name.endsWith('_descriptive_report.html'));
   checks++;console.log('PASS on-screen summary, CSV, JSON and printable HTML use the same filtered IDs and input hashes');
+  vm.runInContext("writeFilters({...V.catalogDefaults(state.catalog),yearFrom:2020,yearTo:2025,magMin:4.5,magType:'mww'});applyFilters();setTab('analysis');exportAnalysisReport()",context);
+  assert.equal(vm.runInContext('state.filtered.length',context),659);
+  assert.equal(elements.get('statMeanValue').textContent,(5.311168437025796).toLocaleString(context.window.SeismicI18n.language,{maximumFractionDigits:3}));
+  assert.equal(elements.get('statMedianValue').textContent,(5.2).toLocaleString(context.window.SeismicI18n.language,{maximumFractionDigits:3}));
+  assert.equal((elements.get('scatterChart').innerHTML.match(/<circle\b/g)||[]).length,659);
+  assert(elements.get('magnitudeChart').innerHTML.includes('<rect'));
+  assert(!/NaN|Infinity/.test(elements.get('magnitudeChart').innerHTML+elements.get('scatterChart').innerHTML));
+  const visualReport=await context.savedDownload.blob.text();assert.equal((visualReport.match(/<svg\b/g)||[]).length,3);
+  assert(visualReport.includes('mww'));assert(visualReport.includes(catalogs[0].sha256));
+  checks++;console.log('PASS real 659-row oracle matches visible metrics, all scatter points and three report charts');
+  vm.runInContext('previewAnalysisReport()',context);assert.equal(elements.get('reportPreview').open,true);
+  const previewHtml=elements.get('reportPreviewFrame').srcdoc;
+  assert.equal((previewHtml.match(/<svg\b/g)||[]).length,3);assert(previewHtml.includes(catalogs[0].sha256));assert(previewHtml.includes('659'));
+  for(const callback of elements.get('closeReportPreview').listeners.click)callback();assert.equal(elements.get('reportPreview').open,false);
+  assert.equal(vm.runInContext('state.filtered.length',context),659);
+  checks++;console.log('PASS in-application report preview uses generated HTML with real charts and preserved selection');
+  vm.runInContext('writeFilters(V.catalogDefaults(state.catalog));applyFilters();setTab("analysis")',context);
+  const idsBeforeGroup=vm.runInContext('state.filtered.map(e=>e.id).join()',context),urlBeforeGroup=location.href;
+  const focus=elements.get('analysisGroupSelect').children.find(option=>JSON.parse(option.value)[1]==='mb');assert(focus);
+  elements.get('analysisGroupSelect').value=focus.value;for(const callback of elements.get('analysisGroupSelect').listeners.change)callback();
+  assert.equal(vm.runInContext('state.filtered.map(e=>e.id).join()',context),idsBeforeGroup);assert.equal(location.href,urlBeforeGroup);
+  assert(elements.get('analysisGroupContext').textContent.includes('mb'));
+  assert.equal(vm.runInContext('selectedAnalysisGroup(summaryForSelection()).mag_type',context),'mb');
+  vm.runInContext('exportAnalysisJson()',context);const focusReport=JSON.parse(await context.savedDownload.blob.text());
+  assert.equal(focusReport.display_group.mag_type,'mb');assert.equal(focusReport.query.result.row_count,14041);assert(focusReport.summary.groups.length>1);
+  checks++;console.log('PASS chart group changes presentation only and exports identify it while retaining full selection');
+  for(const [caseName,expected] of [['ssn',204],['usa',2335],['canada',1492],['combined',7107]]) {
+    const fake={target:{closest:()=>({dataset:{case:caseName}})}};
+    await Promise.all(elements.get('homeCases').listeners.click.map(callback=>callback(fake)));
+    assert.equal(vm.runInContext('state.filtered.length',context),expected,caseName);
+    assert.equal(elements.get('catalogPanel').hidden,false);
+    if(caseName==='canada') {assert.equal(elements.get('miniDepth').textContent,'—');vm.runInContext('setTab("analysis")',context);assert(!elements.get('scatterChart').innerHTML.includes('<circle'));}
+    if(caseName==='ssn') {vm.runInContext('setTab("analysis")',context);assert.equal(elements.get('statPairsValue').textContent,context.window.SeismicI18n.t('notCalculable'));}
+  }
+  checks++;console.log('PASS four research cases recalculate SSN204, USA2335, Canada1492 and combined7107 without inventing units or Pearson');
   vm.runInContext("writeFilters({...V.catalogDefaults(state.catalog),search:'no-match-research-ui-fixture'});applyFilters();setTab('analysis')",context);
   assert.equal(elements.get('analysisCount').textContent,'0');assert(elements.get('analysisGroupRows').innerHTML.includes('colspan'));
   vm.runInContext('exportAnalysisJson()',context);const emptyAnalysis=JSON.parse(await context.savedDownload.blob.text());
   assert.equal(emptyAnalysis.summary.record_count,0);assert.deepEqual(emptyAnalysis.query.result.ordered_event_ids,[]);
+  assert.equal(elements.get('statMeanValue').textContent,'—');assert.equal(elements.get('analysisGroupSelect').disabled,true);
+  assert(!elements.get('scatterChart').innerHTML.includes('<circle'));
   checks++;console.log('PASS empty descriptive queries retain explicit empty results instead of fabricated statistics');
   console.log(JSON.stringify({passed:checks},null,2));
 }

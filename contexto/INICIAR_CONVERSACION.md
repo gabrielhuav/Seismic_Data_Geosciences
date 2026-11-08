@@ -6,46 +6,50 @@ Lee completos AGENTS.md, MEMORIA_COMPARTIDA.md y NUEVA_PC.md antes de actuar.
 
 ## Estado actual
 
-- CIERRE SIN CONTROL DE PC autorizado por Gabriel el 7 nov 2026:
-  «termina todo lo demás, sistema, etc. una vez terminado commit y push sin IA,
-  con mi autoría». Autoriza UN commit humano y UN push de esta extensión;
-  no un despliegue Pages, release, correo, envío editorial ni apagado.
-  Al encontrar este estado incorporado en un commit de origin/main, considerar
-  consumidas esas dos acciones y no repetirlas. Consultar git log/ls-remote y
-  outputs/system_completion_2026-11-07/execution.json para el resultado observado.
-- SISTEMA Y VERIFICACIÓN PROGRAMÁTICA TERMINADOS: Inicio, Fuentes, Análisis,
-  seis vistas, cuatro catálogos/tres distribuidores, cinco bases y cinco entregables.
-  Sólo descriptivos; Poisson y métodos de la tesis quedan como trabajo futuro.
-  No revisión visual nueva: Gabriel encarga a Claude las capturas posteriormente.
-- QA fresca:63 Python/74 grupos JS;223 claves/116 IDs ES/EN sin faltantes;
-  ocho hashes de eventos/manifiestos intactos,287936 filas, índice reproducible.
-  SQLite4720 comprobaciones y24 casos sintéticos sin discrepancias.
-  Exports SSN204 yNRCan39 verificados mediante harness programático; cinco
-  descargas REALES anteriores del caso659mww conservan13180celdas e IDs/hashes.
-  Recibos nuevos:outputs/system_completion_2026-11-07/validation_qa.json y
-  export_harness_qa.json. No confundir harness con nueva revisión de navegador.
-- Enlaces de ESTE push verificados nuevamente en link_gate/ bajo esa carpeta;
-  ninguna excepción anterior se hereda. El push sólo puede completarse con cero
-  fallos o aceptación expresa de los pendientes y del alcance muestreado actual.
-- RELEVO PRIVADO preparado:outputs/system_completion_2026-11-07/CLAUDE_CAPTURES_HANDOFF.md.
-  Leerlo en esta copia completa; no está en Git ni se sirve en Pages. Incluye
-  consultas exactas, oráculo659mww, estados SSN/USA/Canadá/conjunto y diez figuras.
-  El preview propio previo usa127.0.0.1:18303; comprobar que siga vivo antes de
-  reutilizarlo. Nunca detener servicios de otros proyectos.
-- PAPER NUEVO AÚN PENDIENTE: fuente285 palabras resumen/5257 cuerpo y diez
-  anclas/pies; manifest todavía ocho imágenes. Fuente SHA
-  3045d053748422399682af8694ebb1469a577fbd4a427df112402964f5ad4c63.
-  No construir hasta integrar diez figuras reales. Después exportar en Word y
-  revisar todas las páginas y coincidencia del PDF. Fuentes/capturas/tesis privadas.
-- Los dos finales públicos siguen siendo la pareja revisada26p/8figs/4tablas:
-  DOCX SHA0f01cc8de8a2f74aebbc639da4b7ff7034ff43dab01107720acf765ddf3a753b;
-  PDF SHA57cc442187659edb235a59bddd0a77c7c19c796b7d04ce544ffd32823ff35bf3.
-  No sobrescritos ni incluidos como cambios nuevos en este cierre del sistema.
-- Git humano Gabriel Hurtado <gabrielhurtadoaviles@gmail.com>, sin asistentes,
-  trailers, coautores ni firma de IA. Declaración académica veraz de IA conservada.
-  Sitio público sigue baseline49372d0 hasta otro despliegue expresamente autorizado;
-  un push no lo activa. Remoto del paper anterior ea477b9 ya estaba verificado.
-  PC ENCENDIDA; nunca apagar salvo NUEVA orden explícita. Históricos intactos.
+- 7nov2026: Gabriel autorizó mejorar el mapa y UN commit/push humanos; posteriormente
+  pidió apagar la PC AL TERMINAR. Mapa más amplio, selector de base dentro del mapa
+  siempre visible, símbolos grandes por encima de pequeños, contornos y tooltip
+  al pasar por un epicentro. Datos/filtros no modificados. Escritorio y móvil/Escape
+  comprobados. Commit autorizado del sistema/UI/docs; Word/PDF anterior EXCLUIDOS.
+  Push pendiente del gate nuevo y sus excepciones expresas si fueran necesarias.
+  No hay autorización nueva de despliegue Pages. Apagar sólo después de terminar
+  y verificar el push; si queda bloqueado, mantener PC encendida para continuarlo.
+
+- REDISEÑO UI/UX LOCAL IMPLEMENTADO (7 nov2026), por corrección expresa de Gabriel:
+  el problema era EL SISTEMA, no sólo sus capturas. Se leyeron completos los dos
+  PDF IJCOPI vigentes (agua v3/grafo y obras v1/lakehouse,15p cada uno), todas sus
+  figuras y sus sistemas/código. Históricos intactos. Informes/recibos privados:
+  outputs/ui_redesign_2026-11-07/ijcopi_articles_review.md y ijcopi_systems_code_review.md.
+- Nuevo workspace: filtros laterales con años/M siempre visibles, mapa protagonista,
+  resumen del grupo junto al mapa, inicio con cuatro casos y tarjetas de fuentes,
+  seis métricas + histograma M/dispersión-km/serie anual, tablas plegables, ficha
+  visual con evidencia expandible, sugerencias locales de ID/lugar e informe HTML
+  con tres gráficos y VISTA PREVIA real dentro del sistema. ES/EN,3paletas y modos;
+  filtros plegables en móvil y navegación6destinos visible en dos filas.
+- Sólo descriptivos: grupo exacto catálogo/tipo; SSN tipo desconocido sin Pearson;
+  NRCan sin km documentados no entra al scatter. Más de3000pares se agrupan en
+  celdas contadas48x28 sin muestreo. La serie anual/tablas/descargas conservan toda
+  la selección. display_group viaja en JSON de análisis; NO se guarda en la URL.
+  Datos/manifiestos originales intactos; no forecast, probabilidad ni tiempo real.
+- QA local:63Python +92gruposJS (36frontend/13gráficos),269labels/148IDs ESEN;
+ 32assets y cero fallos locales de enlaces. No hubo gate HTTP externo para push.
+  IAB comprobó204SSN/2335USA/1492Canadá/7107conjunto y ejemplo659mww: media5.311,
+  mediana5.2,SD0.524,prof32.83km,r-0.0033,n659. Informe real en iframe verificado.
+  Móvil375/390, oscuro/EN, filtros/retorno/Escape, escritorio1920x1080; tableta768
+  Sources: página768, scroll de tabla0→233 con teclado. Una captura fullPage768
+  está DEFECTUOSA/excluida; viewport real+DOM correctos. No evaluación con usuarios,
+  teléfonos físicos ni todas las vistas a todos los tamaños. Recibo ui_review_qa.json.
+- PAPER AÚN PENDIENTE DE ALINEAR AL REDISEÑO: Word/PDF29p/10figs/4tablas de la
+  revisión anterior se conservaron sin cambios. DOCX SHA3e69dd80269ec5215fa019d9b896188b2948340f86b5cbb7b306b533b5cd9e71;
+  PDF SHA6e343a4c4a22ca99cce1c862bd27c6911059384acb9c28202ced90956e1082cf.
+  Fuente bafa5113ae3a050a706fbc78095b2fa1295de68055b1be19b6925f2cd71b42f3 intacta.
+  Propuesta SIN aplicar paper_ui_alignment_proposal.md: resumen285/cuerpo5397;
+  requiere nuevas figuras2–6 y quitar notas editoriales antes de generar Word/PDF.
+- TODO ESTE REDISEÑO SIGUE SIN COMMIT/PUSH/DESPLIEGUE. Último c64e5f5 ya consumido;
+  Pages sigue49372d0. Autorizaciones antiguas no se reutilizan. Nueva autorización
+  propia para cada commit/push/publicación una vez preparado el resultado revisable.
+  Preview127.0.0.1:18303 conservado, IAB en resultados659/ES/azul/claro1920x1080.
+  PC ENCENDIDA: no apagar sin NUEVA orden explícita. Sin pagos/correo/envío editorial.
 
 ## Estado conservado anterior (histórico; prevalece Estado actual)
 
@@ -151,16 +155,63 @@ Lee completos AGENTS.md, MEMORIA_COMPARTIDA.md y NUEVA_PC.md antes de actuar.
 
 ## Siguiente paso
 
-1. Comprobar execution.json y el remoto para distinguir commit/push completados
-   de una excepción de enlaces aún pendiente. No repetir un commit ya existente.
-   Esta autorización no se extiende a cambios posteriores ni a un despliegue.
-2. Gabriel entregará el control de PC a Claude. Usar el relevo privado para comprobar
-   visualmente la UI, tomar capturas reales, ligar las diez figuras y cerrar Word/PDF.
-   La nueva UI se captura en preview local mientras Pages siga en49372d0.
-3. Después de las capturas y QA de todas las páginas, obtener autorización NUEVA por
-   cada commit/push/despliegue posterior. Nunca apagar la PC sin nueva orden explícita.
+Completar el push autorizado tras gate nuevo; no repetir commit. Registrar SHA en map_commit.json.
+
+1. Revisar el workspace local de18303 y mantener la distinción entre prototipo
+   nuevo, código público c64e5f5 y Pages49372d0. No afirmar que el paper ya coincide.
+2. Obtener figuras2–6 nuevas, horizontales y legibles, con recibos de los assets
+   actuales. Excluir tablet_sources_768.jpg y toda captura transitoria/fullPage
+   defectuosa; para overlays usar el scrollY correcto al recortar la captura completa.
+3. Aplicar la propuesta científica del paper sólo tras verificar sus descripciones;
+   incorporar la vista previa HTML real, atribuciones efectivamente capturadas y
+   cifras QA actuales si se mencionan. Stage privado, plantilla C&G, Word nativo,
+   cotejo Word/PDF y revisión de todas las páginas antes de reemplazar la pareja29p.
+4. Preparar plan concreto/gate nuevo y pedir autorización por cada commit humano,
+   push y despliegue. Sin IA en identidad/trailers Git; conservar declaración académica.
+   Nunca apagar la PC ni tocar los históricos, sus servicios o bases.
 
 ## Bitácora
+
+- 7nov2026: Gabriel autorizó mejorar el mapa y UN commit/push humanos; posteriormente
+  pidió apagar la PC AL TERMINAR. Mapa más amplio, selector de base dentro del mapa
+  siempre visible, símbolos grandes por encima de pequeños, contornos y tooltip
+  al pasar por un epicentro. Datos/filtros no modificados. Escritorio y móvil/Escape
+  comprobados. Commit autorizado del sistema/UI/docs; Word/PDF anterior EXCLUIDOS.
+  Push pendiente del gate nuevo y sus excepciones expresas si fueran necesarias.
+  No hay autorización nueva de despliegue Pages. Apagar sólo después de terminar
+  y verificar el push; si queda bloqueado, mantener PC encendida para continuarlo.
+
+- 7nov2026: Gabriel aclaró que el problema era UI/UX del sistema y pidió revisar
+  los dos artículos IJCOPI. Lectura completa/comparación realizadas; rediseño local
+  funcional y gráfico implementado,92gruposJS/63Python y revisión IAB documentados.
+  Word/PDF anterior preservado; nueva alineación/figuras pendiente. No Git/publicación
+  ni apagado. Evidencia privada outputs/ui_redesign_2026-11-07/.
+
+- 2026-11-07, cerrado aquí sin Claude: IAB1920x1080 y pruebas móviles375/390/768+844x390; cinco figuras horizontales nuevas y diez insertadas. Word/PDF29p/4tablas/226párrafos coincidentes, todas las páginas revisadas;17partes plantilla preservadas. Nuevos finales sólo locales, respaldo26p conservado. Sin nuevoGit/despliegue/envío/apagado. QA y entrega en outputs/integrated_browser_2026-11-07/.
+
+- 2026-11-07, a petición de Gabriel se preparó el prompt completo para Claude en outputs/system_completion_2026-11-07/PROMPT_PARA_CLAUDE.txt: capturas reales, diez figuras, cierre Word/PDF y autoría Git humana sin atribuciones de IA. Archivo privado; ningún nuevo commit/push, control de PC, despliegue ni apagado.
+
+- CIERRE COMPLETADO7nov2026: commit humano `c64e5f5f07aa6b38919927231fac5fbffe6646f1` y UN push
+  origin/main ejecutados y verificados. GitHub muestra autor/committer gabrielhuav;
+  objeto Git: Gabriel Hurtado <gabrielhurtadoaviles@gmail.com>, sin IA, trailers,
+  coautores ni gpgsig. No repetir commit/amend/push: autorización CONSUMIDA.
+  Gabriel aceptó expresamente para ESE push las ocho excepciones y339/36872;
+  no equivale a reparar los enlaces ni certificar36533rutas no visitadas.
+  Recibos execution.json, current_push_exception_authorization.json y
+  remote_commit_verification.json en outputs/system_completion_2026-11-07/.
+  RecordatorioSINatribucionesIA añadido al INICIO del relevo privado para Claude;
+  conserva créditos humanos/licencias y declaración académica veraz de IA.
+  Capturas/nuevoWordPDF pendientes de Claude; no nuevo despliegue ni apagado.
+  Esta continuidad posterior es LOCAL; no autoriza otro commit/push.
+
+- CIERRE OBSERVADO7nov2026: commit humano `c64e5f5f07aa6b38919927231fac5fbffe6646f1` realizado una vez,
+  19rutas, autor/committer Gabriel Hurtado, sin trailers/coautores/firmaIA.
+  PUSH TODAVÍA PENDIENTE sólo de aceptación expresa de ocho excepciones NUEVAS
+  (cuatro editoriales, NRCan y tres OpenCanada) y muestreo339/36872 para ESTE push.
+  Pregunta enviada; el envío de la pregunta no equivale a aprobación.
+  Gate545/553, cero falloslocales; no repetir commit/amend. Plan y ejecución:
+  outputs/system_completion_2026-11-07/. Preview propio18303 HTTP200 verificado
+  sinUI y hashindexactual; relevo privado preparado para Claude. No despliegue/apagado.
 
 - 2026-11-07, Gabriel autoriza cierre sincontrolPC y UNcommit/push humanos del sistema; Claude tomará después las capturas. Sistema y QA programática cerrados(63Python/74JS/223claves/116IDs),docs alineados y relevo privado preparado. Pareja Word/PDF anterior intacta; nueva versiónpendientecapturas. Gate nuevo independiente en outputs/system_completion_2026-11-07/link_gate/. No autorización de despliegue ni apagado. Resultado real del commit/push en execution.json y Git; no repetir acciones consumidas.
 

@@ -1,5 +1,16 @@
 # Reproducing the local audit
 
+The subsequent local UI revision adds `research-charts.js`; run
+`node tests/test_research_charts.cjs` and `node tests/test_catalog_frontend.cjs`
+alongside the existing checks. Histograms use width-0.2 bins without rounding the
+reported magnitudes. Scatter plots contain every finite documented-kilometre pair
+in the chosen exact catalogue/type group; above 3,000 pairs, up to 48 by 28 counted
+cells retain all pairs without sampling. The annual series, tables and five
+downloads still describe the whole filtered selection. The JSON `display_group`
+identifies the graphical focus; the shared URL does not retain that presentation
+choice. The report preview and download use one HTML builder. The revised UI is
+local and is not yet reflected in the retained author-review Word/PDF.
+
 Core acquisition, auditing and evidence contracts need Python 3.10 or newer and only the standard library. Tests do not need network access or a running database.
 
 ```text
@@ -211,18 +222,19 @@ or out-of-order anchors and excludes them from the word count.
 Captures, figure assets and private manuscript source stay in the authoring
 copy, outside the website and public code checkout.
 
-The new descriptive-workflow manuscript candidate plans ten inline figures,
+The locally verified descriptive-workflow manuscript uses ten inline figures,
 including Home, Sources, Analysis, regional maps and the actual HTML export.
 `python -m scripts.make_design_figure` renders its system-design diagram from
 the current registry counts and actual implementation stack. The regional map
 comparison may contain explicitly labelled panels from different genuine query
 states; each panel must retain its own capture, filters and evidence receipt.
 It must not appear to be a single synchronized map or a common earthquake
-population. Cropping/enlargement may improve readability without changing values
-or application pixels. Update the ordered figure manifest with the verified
-new images before building that candidate. Until captures, Word-native PDF
-export and every-page review are complete, the two reviewed final manuscript
-files remain the prior eight-figure edition.
+population. Cropping/enlargement improves readability without changing values
+or application pixels. The ordered manifest now binds all ten images. The
+29-page author-review Word/PDF pair was exported in native Word and checked
+page by page; these local results do not establish a new repository publication
+or Pages deployment. The previous eight-figure edition is retained in the
+private archive.
 
 The SSN coverage plot is recomputed directly from the hash-verified preserved
 CSV by `scripts.make_system_figures`, independently of the adapter's selection.

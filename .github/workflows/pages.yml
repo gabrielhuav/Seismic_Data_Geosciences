@@ -35,6 +35,7 @@ jobs:
           node tests/test_catalog_frontend.cjs
           node tests/test_catalog_composition.cjs
           node tests/test_analytics.cjs
+          node tests/test_research_charts.cjs
           node tests/test_preferences.cjs
           node tests/test_map_basemaps.cjs
       - name: Reproduce the independent retained-product validation
