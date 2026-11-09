@@ -1,0 +1,9 @@
+Contains information from the PB2002 tectonic-plate collection, made available under the Open Data Commons Attribution License 1.0.
+PB2002: Peter Bird (2003); GeoJSON conversion by Hugo Ahlenius/Nordpil and csterling; ODC-BY-1.0.
+License: https://opendatacommons.org/licenses/by/1-0/
+Source: https://github.com/fraxen/tectonicplates/tree/339b0c56563c118307b1f4542703047f5f698fae
+Model: Bird (2003), doi:10.1029/2001GC000252.
+This package preserves source geometries and original attributes and adds display identifiers. It does not classify earthquakes or establish active-fault, subduction, hazard or forecasting claims.
+
+Original collection notice follows:
+**This collection of data is made available under the Open Data Commons Attribution License: [http://opendatacommons.org/licenses/by/1.0/](http://opendatacommons.org/licenses/by/1.0/)**

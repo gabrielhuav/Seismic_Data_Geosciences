@@ -95,7 +95,7 @@ def without_figure_anchors(text):
     return "\n".join(line for line in text.splitlines() if not FIGURE_ANCHOR.fullmatch(line.strip()))
 
 
-def main():
+def main(include_highlights=True):
     source_bytes=SOURCE.read_bytes()
     source_text=source_bytes.decode("utf-8")
     parsed=list(blocks(source_text))
@@ -260,23 +260,25 @@ def main():
         preserved=[n for n in ref.namelist() if n not in modified]
         with ZipFile(dest) as final:
             assert all(ref.read(n)==final.read(n) for n in preserved)
-    # Highlights retain the body pattern and section geometry as a separate file.
-    hdoc=E.fromstring(parts["word/document.xml"]); hb=hdoc.find(w("body"))
-    for c in list(hb):hb.remove(c)
-    hb.append(paragraph("Highlights","title","Title"))
-    for line in (ROOT/"paper/drafts/highlights.txt").read_text(encoding="utf-8").splitlines():
-        if line.strip():
-            if len(line)>85:raise ValueError("Highlight exceeds 85 characters")
-            hb.append(paragraph("• "+line))
-    hb.append(deepcopy(final_sect));hparts=dict(parts);hparts["word/document.xml"]=E.tostring(hdoc,xml_declaration=True,encoding="UTF-8",standalone=True)
     SUPPORT.mkdir(parents=True, exist_ok=True)
-    with ZipFile(SUPPORT/"Seismic_CG_highlights.docx","w",ZIP_DEFLATED) as z:
-        for n,data in hparts.items():z.writestr(n,data)
+    if include_highlights:
+        # Highlights retain the body pattern and section geometry as a separate file.
+        hdoc=E.fromstring(parts["word/document.xml"]); hb=hdoc.find(w("body"))
+        for c in list(hb):hb.remove(c)
+        hb.append(paragraph("Highlights","title","Title"))
+        for line in (ROOT/"paper/drafts/highlights.txt").read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                if len(line)>85:raise ValueError("Highlight exceeds 85 characters")
+                hb.append(paragraph("• "+line))
+        hb.append(deepcopy(final_sect));hparts=dict(parts);hparts["word/document.xml"]=E.tostring(hdoc,xml_declaration=True,encoding="UTF-8",standalone=True)
+        SUPPORT.mkdir(parents=True, exist_ok=True)
+        with ZipFile(SUPPORT/"Seismic_CG_highlights.docx","w",ZIP_DEFLATED) as z:
+            for n,data in hparts.items():z.writestr(n,data)
     text=without_figure_anchors(source_text);abstract=text.split("## Abstract",1)[1].split("## 1.",1)[0].split("Keywords:")[0]
     maintext=text.split("## 1.",1)[1].split("## References",1)[0]
     metadata_path = SOURCE.parent / "author_metadata.json"
     metadata = json.loads(metadata_path.read_text(encoding="utf-8")) if metadata_path.exists() else {}
-    pending = ["latest generated manuscript/highlights must pass complete visual review",
+    pending = ["latest generated manuscript must pass complete visual review",
                "public code/data availability must match the actual released artifacts",
                "coauthor review and final submission authorization are not established by building a document"]
     if not metadata.get("confirmed_for_manuscript"):

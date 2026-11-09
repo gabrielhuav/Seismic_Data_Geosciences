@@ -1,11 +1,32 @@
 # Reproducing the local audit
 
-## Author-review interface revision of 8 November 2026
+## Local expansion of the verified 8 November 2026 baseline
+
+The public baseline verified on 8 November 2026 is
+`590f6e79ad6d5d78d70e286ab0c60bd4e856fdce`. Its visual-feedback interface,
+ZIP exports, native diagnostics and SSN coverage are already released.
+The source-tree additions documented here—compressed loading, browser SQL,
+country/subdivision selection, PB2002 context, count heatmaps, guided questions,
+the source-to-output workspace and country comparison—are local
+until a separately authorized release. Code checks do not deploy them.
+
+The local revision defaults to English, offers Spanish and provides eight
+workspaces: Home, Catalogue, Sources, Analysis, Revisions, Evidence/methods,
+SQL and country comparison. The four input packages still contain 287,936 source
+rows; these changes add no seismic observations or revision-pilot events.
 
 An unversioned entry opens all four packages on Home. Versioned links retain
 their explicit selection. Source cards expose active-session verification,
 full hashes, original CSV/package JSON formats and downloads. Cache status
 describes memory, not a persistent offline database.
+
+Home connects four real input selectors and the explicit combined choice to the
+shared interactive catalogue map and existing result/export actions. Its CSV,
+query JSON, ZIP and report actions use the active selection rather than an
+illustrative workflow. Source cards describe scientific purpose, available
+measurements, source-specific adaptation and limits; their technical inventory,
+normalization rules and checksum details remain expandable. Neither source
+selection nor a card's regional name substitutes for a geographic predicate.
 
 The export workspace generates a stored ZIP locally. CSV, JSON and HTML choices
 control its payloads; `manifest.json` lists every payload's bytes and SHA-256.
@@ -17,17 +38,27 @@ primary-lineage plots from `data/revisions.json`, independently of map filters.
 Native SVG exports include scope and input hashes. Tests independently parse
 the preserved GeoJSON responses.
 
+`revision-story.js` adds a practical reading of that same retained evidence:
+earliest/latest primary-origin cards, reported parameter differences, a switch
+between retained endpoints for the exact-type threshold query, and discrete
+update cards. The threshold model keeps the same comparable literal-type
+lineages; switching endpoints changes set membership, not catalogue acquisition.
+Update-card spacing denotes order, not elapsed time. These displays do not rank
+accuracy or reconstruct public preference, first issuance or historical catalogue
+membership. Existing diagnostic plots remain available.
+
 `python scripts/build_diagnostic_coverage.py --verify-only` reconstructs the
 annual summary from the complete, hash-verified 402,082-row SSN CSV. The browser
 renders that summary with independent year controls; it is not derived from
 the 242,288-row map subset. `python scripts/build_architecture.py` maintains
 the SVG shown in Methods. Neither module adds a forecasting claim.
 
-The new manuscript captures document this local author-review revision.
-Publication requires fresh authorization. The preceding public deployment
-was verified at `1c797dce7f6fe9b28e2015a9de779d9364a39ae5`.
+The author-review Word/PDF pair must match the particular local build being
+reviewed. Genuine new captures, matching tables and complete document verification
+precede its replacement; code checks alone do not validate that pair. Publication
+requires fresh authorization.
 
-The subsequent local UI revision adds `research-charts.js`; run
+The baseline includes `research-charts.js`; run
 `node tests/test_research_charts.cjs` and `node tests/test_catalog_frontend.cjs`
 alongside the existing checks. Histograms use width-0.2 bins without rounding the
 reported magnitudes. Scatter plots contain every finite documented-kilometre pair
@@ -35,10 +66,13 @@ in the chosen exact catalogue/type group; above 3,000 pairs, up to 48 by 28 coun
 cells retain all pairs without sampling. The annual series, tables and five
 downloads still describe the whole filtered selection. The JSON `display_group`
 identifies the graphical focus; the shared URL does not retain that presentation
-choice. The report preview and download use one HTML builder. The revised UI is
-local and is not yet reflected in the retained author-review Word/PDF.
+choice. The report preview and download use one HTML builder.
 
-Core acquisition, auditing and evidence contracts need Python 3.10 or newer and only the standard library. Tests do not need network access or a running database.
+Core acquisition, auditing and evidence contracts need Python 3.10 or newer and
+only the standard library. The browser-equivalence oracle tests also launch
+Node.js and the bundled sql.js assets. Tests do not require network access or a
+database server; rebuilding pinned source derivatives can require the explicitly
+documented source download.
 
 ```text
 python scripts/audit_sources.py --help
@@ -48,7 +82,10 @@ python -m scripts.validate_evidence
 python -m unittest discover -s tests
 python scripts/build_catalogs.py --verify-only
 python scripts/build_country_index.py
+python scripts/build_transport_assets.py --verify-only
 node tests/test_catalog_composition.cjs
+node tests/test_revision_story.cjs
+node tests/test_source_workbench.cjs
 python -m unittest discover -s tests -p test_country_index.py
 python -m http.server 8787 --bind 127.0.0.1 --directory system/dist
 ```
@@ -88,6 +125,10 @@ python scripts/build_catalogs.py --download
 python scripts/fetch_map_assets.py
 python scripts/build_catalogs.py --verify-only
 python scripts/build_country_index.py
+python scripts/build_diagnostic_coverage.py
+python scripts/build_admin1_index.py --download
+python scripts/build_tectonic_assets.py --download
+python scripts/build_transport_assets.py
 python scripts/check_links.py --scope artifact
 ```
 
@@ -152,10 +193,203 @@ record each input's event/manifest hashes plus registry, geometry and country
 index hashes. The selected source-record keys are ordered exactly as exported.
 Unfiltered single-catalogue v3 views and v1/v2 restoration remain supported.
 CSV adds `country_id` to single-source fields; a native SSN CSV therefore has
-28 columns without rewriting its original 27-field package. Combined exports
+28 columns before the optional subdivision layer loads. Once loaded, `admin1_id`
+is also derived for export, without rewriting the original 27-field package.
+Combined exports
 also retain per-row source catalogue, distributor, snapshot, packaged key,
 identifier semantics, depth unit and exact-USGS overlap flags. Country and
 combined-view behavior is included in the published baseline `49372d0`.
+
+## Verified static transport
+
+`python scripts/build_transport_assets.py` creates deterministic gzip companions
+for structured JSON/GeoJSON in `system/dist/data` and writes
+`data/transport-manifest.json`. Gzip uses level 9, an empty stored filename,
+mtime 0 and OS 255. Source bytes and their existing scientific hashes remain
+unchanged. The transport manifest records both representations' lengths and
+SHA-256 values; run this builder after intentional catalogue, geometry or summary
+changes. `--verify-only` recompresses in memory and checks the preserved artifact
+without rewriting it.
+
+`asset-loader.js` verifies compressed bytes before decompression and original
+bytes before parsing, reports stage/byte progress and yields between stages.
+Network and HTTP 5xx failures permit at most two retries. Uncompressed JSON is
+used when DecompressionStream is unavailable or a gzip companion returns
+404/415. Invalid lengths, hashes or decompression fail explicitly; integrity
+errors do not trigger a silent fallback. A transport manifest fixes expected
+bytes, not the authenticity of its host. Loaded packages are cached in session
+memory. No service worker or persistent offline cache is claimed.
+
+```text
+python scripts/build_transport_assets.py --verify-only
+python -m unittest discover -s tests -p test_transport_assets.py
+node tests/test_asset_loader.cjs
+```
+
+## Administrative and tectonic context
+
+`python scripts/build_admin1_index.py --download` obtains the pinned Natural
+Earth 1:10 million Admin 1 input, checking source length/SHA-256 before building
+`admin1.geojson`, `admin1-index.json` and `admin1-manifest.json`. The source is
+public domain; the manifest retains official documentation, version and commit.
+The retained 743 first-order units cover the same 47 country classes as the
+unchanged 1:50 million country index. They are not uniformly states: Mexico has
+32 named entities and a separate source unnamed minor-island unit.
+
+The documented generalization preserves every source polygon/island/hole;
+polygons containing holes retain their vertices. Closed-ring simplification
+uses a 0.01-degree tolerance with collapsed/orientation-changing rings falling
+back to original vertices. Shared-edge topology is not asserted. Classification
+is conditional on the existing country label. Edge/overlap, outside, invalid and
+unavailable results remain explicit; neither locality text nor nearest-region
+assignment fills a gap. These generalized de facto classes do not establish
+authoritative jurisdiction, positional uncertainty or offshore nationality.
+`--verify-only` requires the pinned source cache and rebuilds and compares assets locally.
+The packaged index binds geometry, registry, country index, event hashes and row
+order without changing source observations.
+
+A country click opens a confirmation. Applying a subdivision updates the
+scientific selection and uses v5 URLs / `seismic-local-query/5` with both
+geographic layers' hashes. Ordinary country/combined v4, unfiltered single-source
+v3 and legacy v1/v2 behavior remain supported. Loading a layer alone is not a
+subdivision filter. Stale or incompatible geographic evidence is rejected.
+Native SSN and Mexico-region views can automatically show Mexico's 33 source
+units as a context layer. This retains the 32 named entities and source
+minor-island unit, without silently selecting only terrestrial Mexican rows.
+Offshore observations remain preserved; only an explicit country/subdivision
+predicate changes their selection.
+
+`python scripts/build_tectonic_assets.py --download` verifies pinned source
+files from fraxen/tectonicplates commit
+`339b0c56563c118307b1f4542703047f5f698fae`. It concatenates PB2002 plate and
+boundary features without changing original geometry or properties, adding
+stable identifiers and aliases. The result contains 54 plate features for 52
+plate codes and 241 boundary lines. There are 65 literal source `subduction`
+types and 176 unknown types; no additional class is inferred.
+
+PB2002 is Peter Bird's static 2003 model, DOI 10.1029/2001GC000252. The GeoJSON
+conversion credits Hugo Ahlenius/Nordpil and contributors under ODC-BY 1.0,
+preserved in `tectonic-plates-LICENSE.txt` and the manifest. The layer supplies
+geological context rather than active-fault monitoring, event-to-plate assignment,
+mechanisms or hazard. Enabling it does not change query records. Its
+`--verify-only` checks packaged integrity offline; with source cache present it
+also reproduces and compares the assets. Run transport packaging last.
+
+```text
+python scripts/build_admin1_index.py --verify-only
+python scripts/build_tectonic_assets.py --verify-only
+python -m unittest discover -s tests -p test_admin1_index.py
+python -m unittest discover -s tests -p test_tectonic_assets.py
+node tests/test_view_state.cjs
+```
+
+## Screen-space count heatmap
+
+`SeismicMapHeat` in `map.js` uses equal weight 1 for every selected epicentre
+centre inside the current viewport, without sampling or magnitude weighting.
+An 8-CSS-pixel grid accumulates the raw visible-row counts. A separable Gaussian
+kernel has radius 32 CSS pixels and sigma 12 CSS pixels; its edge support is
+clipped by the viewport. Colour intensity is `log1p(smoothed cell weight)` divided
+by `log1p(current viewport maximum)`, not a globally fixed or geographic scale.
+Zero cells remain transparent. Raw-grid count conservation is checked before
+smoothing; smoothed edge mass is not claimed to be conserved.
+
+Pan, zoom and viewport size therefore change this visual count surface and its
+relative colour scale while leaving the selected records and CSV unchanged.
+`query.cartography` and analysis cartography evidence retain the display method,
+parameters, visible-row count and viewport separately from selection evidence.
+It is not magnitude energy, density per square kilometre, completeness, hazard
+or an earthquake-probability estimate. The point view remains available for
+individual-record inspection.
+
+```text
+node tests/test_map_basemaps.cjs
+```
+
+## Optional SQL inside the browser
+
+`sql-explorer.js` and `sql-worker.js` use locally bundled sql.js 1.13.0, SQLite
+compiled to WebAssembly. `vendor/sqljs/provenance.json` fixes package/file hashes
+and upstream version; MIT and SQLite public-domain notices remain alongside it.
+There is no Docker, backend SQL service or persistent application database.
+The first SQL execution creates the Worker and builds in-memory `records` and
+`catalogs` from the current verified selection, not an imported SQL dump.
+
+The interface opens with guided questions: summarize one exact catalogue/type
+group, follow its annual counts, group it by country/subdivision, or inspect its
+source records. Entering the SQL workspace can run the default summary; Worker
+creation remains lazy until that actual execution. Guided answers use the same
+read-only engine as the expandable advanced editor, not a separate numerical
+implementation. Cards show count, reported-M mean and observed range, and mean
+kilometre depth with valid/NULL counts. The magnitude band spans the observed
+minimum/maximum; its marker is the mean, not a distribution or uncertainty band.
+The schema, SQL statement, exact table and input evidence remain inspectable.
+
+Guided queries keep exact, case-sensitive type strings, including distinct NULL
+and empty-literal groups. Their annual series fills internal zero-row bins only
+between the group's first and last represented UTC years; zero is not a claim
+that no physical earthquakes occurred. Unknown subdivision classes remain
+explicit and are not inferred from place text. Generated SQL and the guided
+scope are retained in the evidence JSON. Guided record inspection uses the same
+5,000-row cap and truncation notice as advanced SQL.
+
+Rows preserve catalogue-qualified keys, original-versus-derived identifier kinds,
+literal magnitude types, documented-kilometre depth or null, country/admin-1
+classes and available raw fields. `original_fields` retains supplied raw/source
+metadata as JSON rather than duplicating all package fields; unavailable raw
+fields remain null. The source package/manifests remain the complete frozen
+input. SQL changes neither source arrays nor map filters. New filters invalidate
+old SQL results and require a new selection snapshot.
+
+One SELECT/WITH statement is accepted after quote/comment-aware validation.
+SQLite query-only mode, a bounded result wrapper, Worker cancellation and timeout
+provide additional execution controls. The result cap is 5,000 returned rows,
+with explicit truncation; 50-row display pages do not change downloads. Aggregate
+queries operate on the whole imported selection. CSV contains returned values
+(null becomes an empty field); JSON preserves null/types, SQL, selected keys,
+input hashes and limits. Device memory still constrains large selections.
+
+The Python SQLite oracle and browser engine share SQLite; they are not presented
+as independently invented database engines. Separate raw-row predicates and
+Python statistics check selection, order, nulls, metadata joins, the 659-record
+`mww` case, country counts and other groups. Controller tests exercise lazy
+loading, cancellation, timeout and replacement of stale snapshots. These tests
+do not establish arbitrary-query performance or immunity to all resource limits.
+
+```text
+node tests/test_sql_explorer.cjs
+node tests/test_sql_guided.cjs
+python -m unittest discover -s tests -p test_sql_oracle.py
+```
+
+## Common-filter country comparison
+
+`country-comparison.js` reads only the fixed USGS North America 2020–2025
+catalogue. It does not change map filters or compare the longer SSN/NRCan
+windows as interchangeable populations. Two distinct CAN/MEX/USA land classes
+share UTC start/end years, a reported magnitude threshold and one exact known
+magnitude type. The default 2020–2025, M ≥ 4.5, `mww` selection yields 15 Canadian
+and 53 Mexican records.
+
+Two country panels present count, observed range, median, magnitude mean/sample
+standard deviation and documented-kilometre depth mean with its valid count.
+A bilateral magnitude display uses raw counts in the same width-0.25 bins for
+both countries, with left-inclusive/right-exclusive intervals. Bin edges and
+counts are retained in JSON; no smoothing, probability or rate normalization is
+applied. An annual line-and-point display retains the common calendar years,
+including explicit zero-selected-row values. Its connecting lines aid reading
+of discrete annual counts, not interpolation of seismic occurrence. Exact annual
+and distribution tables are expandable. CSV/JSON contain filters, source and
+geography hashes, summaries and ordered identifiers. Offshore, boundary/invalid
+and other country classes are excluded. Counts are not completeness-adjusted
+rates, physical absence, area-normalized activity or relative hazard. Independent
+Python predicates/statistics check exact selected IDs and annual bins. No
+occurrence forecast or national-population independence is inferred.
+
+```text
+node tests/test_country_comparison.cjs
+python -m unittest discover -s tests -p test_country_comparison_oracle.py
+```
 
 ## Browser descriptive results
 
@@ -180,9 +414,9 @@ node tests/test_view_state.cjs
 node tests/test_system_labels.cjs
 ```
 
-This source-tree extension requires its own authorized deployment before it is
-described as available on the public site. Manuscript screenshots and final
-Word/PDF regeneration remain separate from these code checks.
+The descriptive workspace is part of public baseline `590f6e7`. The local
+extensions described above require their own authorized deployment. Manuscript
+capture and Word/PDF verification remain separate from code checks.
 
 The optional historical SSN diagnostic requires its separately identified
 upstream input and is not needed for the explorer, revision analysis or
@@ -217,7 +451,7 @@ removable filter indicators, record focus and an expanded map. See
 [interface behavior and inspection examples](UI_FEATURES.md). Appearance and
 map navigation do not change the scientific query; removing a filter does.
 
-The current ten-figure manuscript uses the in-application architecture SVG
+The preceding ten-figure manuscript uses the in-application architecture SVG
 (`python scripts/build_architecture.py`) and genuine browser captures. Preserved
 capture receipts identify view URLs, source images, crop rectangles and SHA-256
 values. Four regional panels use distinct, explicitly labelled selections and a
@@ -236,8 +470,14 @@ Earlier Matplotlib figure generators remain as offline audit tools; their
 outputs are not the current interface figures. Do not overwrite current capture
 assets with that older pipeline. PNG DPI metadata does not add native detail.
 
-`paper/figures/manuscript_figures.json` fixes the ten image paths and SHA-256
-values. The DOCX builder requires one numbered caption and inline anchor per
+The expanded local revision calls for thirteen figures, adding genuine SQL,
+administrative/plate-interface and common-filter country-comparison captures.
+Do not substitute diagrams or mock-ups for those interface states, or attribute
+them to baseline `590f6e7`. Capture receipts must identify the evaluated local
+revision; publication status must match the actual release after authorization.
+
+`paper/figures/manuscript_figures.json` fixes image paths and SHA-256 values.
+The DOCX builder requires one numbered caption and inline anchor per
 image, rejects missing/repeated/out-of-order anchors, and preserves 17 unrelated
 template parts byte for byte. The four editable tables have three horizontal
 rules, aligned numerical cells and monospace logical/event identifiers. Short
@@ -271,5 +511,11 @@ and the local template-distillation contract. A code checkout does not claim to
 contain unpublished manuscript material.
 
 ## Scope of interpretation
+
+Preserved CSV/JSON/GeoJSON, documented schemas, local dependencies, standard
+exports and reproducible builders allow migration to another static host or
+local HTTP service. This supports portability without guaranteeing future
+browser compatibility, twenty-year availability or continued GitHub hosting.
+Remote tiles can fail independently; local cartography remains available.
 
 The regional rectangle is latitude 14–33 and longitude −118–−86 degrees. It includes offshore areas and neighboring countries. Different reported magnitude types are not equated. Missing uncertainty is unknown, never zero. Differences between retained solutions are not accuracy errors or demonstrated improvements. The current-selected 36-event pilot does not estimate historical threshold migration, completeness, damage or earthquake probability.

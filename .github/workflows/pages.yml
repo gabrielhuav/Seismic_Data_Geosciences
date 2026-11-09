@@ -30,6 +30,10 @@ jobs:
         run: python scripts/build_country_index.py --verify-only
       - name: Verify full-download SSN diagnostic summary
         run: python scripts/build_diagnostic_coverage.py --verify-only
+      - name: Verify the pinned PB2002 overlay and attribution notice offline
+        run: python scripts/build_tectonic_assets.py --verify-only
+      - name: Verify lossless deterministic transport against every original data asset
+        run: python scripts/build_transport_assets.py --verify-only
       - name: Check shared views, filters and bilingual labels
         run: |
           node tests/test_view_state.cjs
@@ -40,9 +44,15 @@ jobs:
           node tests/test_research_charts.cjs
           node tests/test_preferences.cjs
           node tests/test_map_basemaps.cjs
+          node tests/test_asset_loader.cjs
+          node tests/test_sql_explorer.cjs
+          node tests/test_country_comparison.cjs
+          node tests/test_sql_guided.cjs
+          node tests/test_revision_story.cjs
+          node tests/test_source_workbench.cjs
       - name: Reproduce the independent retained-product validation
         run: python -m scripts.validate_evidence
-      - name: Check static references, privacy and pinned asset bytes
+      - name: Check static references, privacy, sql.js and contextual asset provenance
         run: python scripts/check_links.py --scope artifact
       - name: Configure Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0

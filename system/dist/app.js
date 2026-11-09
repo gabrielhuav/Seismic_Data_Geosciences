@@ -4,7 +4,7 @@ const I = window.SeismicI18n, V = window.SeismicViewState, C = window.SeismicCat
 const t = (key, values) => I.t(key, values);
 const state = {events: [], fields: [], filtered: [], manifest: null, registry: null, catalog: null, page: 0, size: 40, revisions: null,
   applied: {...V.defaults}, tab: 'catalog', selectedEvent: '', ready: false, restoring: false,
-  formValid: true, invalidLink: [], hashes: {}, action: '', loadError: null, request: 0, cache: new Map(), baseStatus: 'baseLocalNote', highlightedEvent:'', expanded:false,
+  formValid: true, invalidLink: [], hashes: {}, action: '', loadError: null, request: 0, locationRequest:0, cache: new Map(), packageLoads:new Map(), baseStatus: 'baseLocalNote', highlightedEvent:'', expanded:false,
   geography:null, geographyHash:'', activePacks:[], composition:null,filtersOpen:false,coverage:null,revisionsHash:'',coverageHash:''};
 const fmt = n => new Intl.NumberFormat(I.language).format(n);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -23,35 +23,124 @@ const packFor = event => state.activePacks.find(p=>p.catalog.id===(event?._catal
 const eventDepthKnown = event => {const c=packFor(event)?.catalog || state.catalog;return c?.provider==='usgs' || c?.depth_unit==='km';};
 const regionLabel = id => {const r=state.geography?.regions.find(r=>r.id===id);return r?.label?.[I.language] || r?.label?.en || id || t('notReported');};
 const combinedDefinition = () => ({id:'all-catalogs',provider:'all',provider_name:t('allSources'),label:{es:'Todos los catálogos disponibles',en:'All available catalogs'},years:[1900,2026],minimum_magnitude:3.5,bounds:[[3,-195],[85,-40]],events_bytes:state.registry?.catalogs.every(c=>Number.isFinite(c.events_bytes)) ? state.registry.catalogs.reduce((sum,c)=>sum+c.events_bytes,0) : null});
-const geographyEvidence = () => ({index_path:'data/country-index.json',index_sha256:state.geographyHash,geometry_path:state.geography.geometry_path,geometry_sha256:state.geography.geometry_sha256,method:state.geography.method,selected_country:state.applied.country || null});
+const geographyEvidence = () => ({index_path:'data/country-index.json',index_sha256:state.geographyHash,geometry_path:state.geography.geometry_path,geometry_sha256:state.geography.geometry_sha256,method:state.geography.method,selected_country:state.applied.country || null,...(state.admin1 ? {admin1:{index_path:'data/admin1-index.json',index_sha256:state.admin1Hash,geometry_path:'data/admin1.geojson',geometry_sha256:state.admin1.geometry_sha256,selected_admin1:state.applied.admin1||null}} : {})});
 const safeURL = raw => {if (!raw) return '';try {const u = new URL(raw, location.href);return ['http:', 'https:'].includes(u.protocol) ? u.href : '';} catch (_) {return '';}};
 const color = (name, fallback) => window.getComputedStyle?.(document.documentElement).getPropertyValue(name).trim() || fallback;
 let debounce;
+
+const TRANSPORT_SHA256='0ab2f5b5f1caed3ba5cd21d9919d4fe75be64fa8b168ac040f794aefb3344600';
+const downloadJobs=new Map();let lastProgressPaint=0,sqlPanel=null,sqlContextCache=null,sqlSelectionVersion=0;
+function updateTransportProgress(event){
+  if(event.phase==='download')downloadJobs.set(event.url,{loaded:event.loaded||0,total:event.total||0});
+  const now=Date.now();if(now-lastProgressPaint<120 && event.phase==='download')return;lastProgressPaint=now;
+  const jobs=[...downloadJobs.values()],loaded=jobs.reduce((n,v)=>n+v.loaded,0),total=jobs.reduce((n,v)=>n+v.total,0);
+  if($('loadingPhase'))$('loadingPhase').textContent=t(event.phase==='download'?'downloadProgress':'downloadPhase');
+  if($('loadingBytes'))$('loadingBytes').textContent=t('downloadBytes',{loaded:value(loaded/1e6,1),total:total?value(total/1e6,1):'…'});
+  if($('dataLoadProgress')){if(total)$('dataLoadProgress').value=Math.min(100,loaded/total*100);else $('dataLoadProgress').removeAttribute('value');}
+}
+function getSQLContext(){
+  if(!state.ready || !state.formValid)return {ready:false,key:'unavailable',records:[],catalogs:[],evidence:null,selectionLabel:t('sqlNotReady')};
+  if(sqlContextCache)return sqlContextCache;
+  const view=currentView(),geography=geographyEvidence(),evidence=V.queryDocument({view,catalog:state.catalog,manifest:state.manifest,assetHashes:state.hashes,fields:state.fields,rows:state.filtered,pageURL:viewURL(view),createdUTC:new Date().toISOString(),inputs:state.activePacks,geography});
+  // SQL can group by admin1_id even without an administrative filter. Retain the
+  // derivation's input hashes independently of the map-query predicate version.
+  if(geography.admin1)evidence.geography={...evidence.geography,admin1:geography.admin1};
+  const records=state.filtered.map((e,n)=>{
+    const p=packFor(e),c=p.catalog,kind=c.identifier_kind||p.manifest.identifier_kind||'source_event_id';
+    const raw=Object.fromEntries(Object.entries(e).filter(([k])=>k.startsWith('raw_')||['source_record','source_row_sha256'].includes(k)));
+    return {row_no:n+1,record_key:c.id+'~'+(e.source_event_id||e.id),catalogue_id:c.id,event_id:kind==='derived_row_key'?null:(e.source_event_id||e.id),time:e.time,year:e.year,latitude:e.latitude,longitude:e.longitude,mag:e.mag,mag_type:e.magType||null,depth_km:eventDepthKnown(e)?e.depth:null,country_id:e.country_id,admin1_id:e.admin1_id||null,provider:c.provider,location_source:e.locationSource??null,mag_source:e.magSource??null,place:e.place??null,identifier_kind:kind,original_fields:Object.keys(raw).length?JSON.stringify(raw):null};
+  });
+  const catalogs=state.activePacks.map(p=>({catalogue_id:p.catalog.id,label:catalogLabel(p.catalog),provider:p.catalog.provider,snapshot:p.catalog.snapshot||p.manifest.snapshot_commit,source_hash:p.hashes.events,manifest_hash:p.hashes.manifest,identifier_kind:p.catalog.identifier_kind||p.manifest.identifier_kind||'source_event_id',depth_unit:p.catalog.depth_unit|| (p.catalog.provider==='usgs'?'km':null)}));
+  sqlContextCache={ready:true,key:'selection-'+sqlSelectionVersion,records,catalogs,evidence,selectionLabel:$('mapSelection').textContent};return sqlContextCache;
+}
+function ensureSQLPanel(){
+  if(!sqlPanel && window.SeismicSQLPanel && $('sqlWorkspace'))sqlPanel=window.SeismicSQLPanel.mount($('sqlWorkspace'),{getContext:getSQLContext,getLanguage:()=>I.language});
+  return sqlPanel;
+}
+
+
+
+let admin1Loading=null,tectonicLoading=null,pendingCountry='',comparisonPanel=null;
+function ensureComparisonPanel(){
+  if(!comparisonPanel && window.SeismicCountryComparison)comparisonPanel=window.SeismicCountryComparison.mount($('comparisonWorkspace'),{autoLoad:false,getLanguage:()=>I.language,loadData:async()=>{const c=state.registry.catalogs.find(c=>c.id==='usgs-na-2020-2025');const p=await loadPackage(c);return {catalog:p.catalog,events:p.events,hashes:p.hashes,geographyEvidence:{...geographyEvidence(),selected_country:null}};}});
+  return comparisonPanel;
+}
+const realCountry=id=>!!id && !['outside','boundary','invalid'].includes(id);
+function admin1Label(id){const r=state.admin1?.regions.find(r=>r.id===id);return r?.label?.[I.language]||r?.label?.en||({'admin1-outside':t('admin1Outside'),'admin1-boundary':t('admin1Boundary'),'admin1-invalid':t('admin1Invalid'),'admin1-unavailable':t('admin1UnavailableLabel')})[id]||id;}
+function attachAdministrativeRows(pack){
+  if(!state.admin1)return;const index=state.admin1.catalogs[pack.catalog.id];
+  if(!index || index.events_sha256!==pack.hashes.events || index.admin1_ids.length!==pack.events.length)throw Error(t('hashMismatch'));
+  pack.events.forEach((e,n)=>{e.admin1_id=index.admin1_ids[n];});if(!pack.fields.includes('admin1_id'))pack.fields.push('admin1_id');
+}
+async function ensureAdmin1(){
+  if(state.admin1)return state.admin1;if(admin1Loading)return admin1Loading;
+  admin1Loading=(async()=>{
+    const [index,geometry,manifest]=await Promise.all(['data/admin1-index.json','data/admin1.geojson','data/admin1-manifest.json'].map(fetchAsset));
+    if(index.data.schema!=='seismic-admin1-index/1'||index.data.geometry_sha256!==geometry.hash||index.data.country_index_sha256!==state.geographyHash||index.data.registry_sha256!==state.registryHash)throw Error(t('hashMismatch'));
+    for(const a of manifest.data.assets){const found=a.path.endsWith('admin1.geojson')?geometry:index;if(found.hash!==a.sha256)throw Error(t('hashMismatch'));}
+    state.admin1=index.data;state.admin1Hash=index.hash;state.admin1Geometry=geometry.data;state.admin1Manifest=manifest.data;
+    const packs=new Set([...state.cache.values(),...state.activePacks]);
+    for(const pack of packs)attachAdministrativeRows(pack);
+    if(state.catalog?.id==='all-catalogs'){const lookups=new Map([...packs].map(p=>[p.catalog.id,new Map(p.events.map(e=>[e.id,e.admin1_id]))]));for(const e of state.events)e.admin1_id=lookups.get(e._catalog_id)?.get(e.source_event_id)||'admin1-unavailable';}
+    if(state.ready && !state.fields.includes('admin1_id'))state.fields.push('admin1_id');sqlContextCache=null;sqlSelectionVersion++;sqlPanel?.invalidate();
+    return state.admin1;
+  })().catch(error=>{admin1Loading=null;throw error;});return admin1Loading;
+}
+function populateAdmin1(filters=state.applied){
+  const country=filters.country||'',show=realCountry(country);$('admin1Control').hidden=!show;
+  if(!show){$('admin1').value='';state.map?.clearAdmin1?.();return;}
+  const selected=filters.admin1||'';$('admin1').replaceChildren();const all=document.createElement('option');all.value='';all.textContent=t('allAdmin1');$('admin1').append(all);
+  if(!state.admin1){$('admin1').disabled=true;$('admin1Status').textContent=t('admin1Loading');
+    ensureAdmin1().then(()=>{if(realCountry(state.applied.country)){populateAdmin1();if(state.applied.admin1)applyFilters();}}).catch(()=>{$('admin1Status').textContent=t('geoLayerFailed');});return;}
+  const regions=state.admin1.regions.filter(r=>r.country_id===country),counts=new Map();for(const e of V.filterEvents(state.events,{...state.applied,country,admin1:''}))counts.set(e.admin1_id,(counts.get(e.admin1_id)||0)+1);
+  for(const r of [...regions].sort((a,b)=>admin1Label(a.id).localeCompare(admin1Label(b.id),I.language))){const o=document.createElement('option');o.value=r.id;o.textContent=admin1Label(r.id)+' · '+fmt(counts.get(r.id)||0);$('admin1').append(o);}
+  for(const id of ['admin1-outside','admin1-boundary','admin1-invalid','admin1-unavailable'])if(counts.get(id)||id===selected){const o=document.createElement('option');o.value=id;o.textContent=admin1Label(id)+' · '+fmt(counts.get(id)||0);$('admin1').append(o);}
+  $('admin1').value=selected;$('admin1').disabled=!state.ready;$('admin1Status').textContent=t('admin1Ready',{n:fmt(regions.length)})+' · '+t('admin1Limit');
+  state.map?.setAdmin1?.({geometry:state.admin1Geometry,countryId:country,selectedId:selected});
+}
+function promptCountry(id){
+  if(!state.ready || !realCountry(id))return;if(state.expanded)setExpanded(false);pendingCountry=id;
+  const filters={...state.applied,country:id,admin1:''},n=V.filterEvents(state.events,filters).length;
+  $('countryPromptText').textContent=t('countryPromptText',{country:regionLabel(id),n:fmt(n)});$('countryPrompt').showModal();
+}
+async function showTectonics(){
+  if(!$('tectonicToggle').checked){state.map?.setTectonics?.(null);$('tectonicStatus').textContent='';return;}
+  $('tectonicStatus').textContent=t('tectonicLoading');
+  try{
+    if(!state.tectonics){tectonicLoading ||= Promise.all(['data/tectonic-plates.geojson','data/tectonic-plates-manifest.json'].map(fetchAsset));const [geo,manifest]=await tectonicLoading;state.tectonics=geo.data;state.tectonicManifest=manifest.data;state.tectonicHash=geo.hash;}
+    if($('tectonicToggle').checked){state.map?.setTectonics?.(state.tectonics);$('tectonicStatus').textContent=t('tectonicNote');}
+  }catch(error){tectonicLoading=null;$('tectonicStatus').textContent=t('geoLayerFailed');$('tectonicToggle').checked=false;}
+}
 
 function choices() {
   return {magTypes: [...new Set(state.events.map(e => e.magType).filter(Boolean)), '__missing__'],
     originSources: [...new Set(state.events.map(e => e.locationSource))].filter(Boolean),
     revisions: (state.revisions?.events || []).map(e => e.id), events: state.events.map(e => e.id),
     snapshot: snapshot(), catalogs: state.registry?.catalogs, defaultCatalog: state.registry?.default_catalog_id, catalog: state.catalog,
-    countries:state.geography?.regions.map(r=>r.id),geographyHash:state.geographyHash};
+    countries:state.geography?.regions.map(r=>r.id),geographyHash:state.geographyHash,admin1Regions:state.admin1?.regions,admin1Hash:state.admin1Hash};
 }
 function readFilters() {return Object.fromEntries(controls.map(k => [k, typeof V.defaults[k] === 'boolean' ? $(k).checked : $(k).value]));}
 function writeFilters(filters) {for (const k of controls) if (typeof V.defaults[k] === 'boolean') $(k).checked = filters[k]; else $(k).value = filters[k];}
 function currentView() {
   return {filters: {...state.applied}, sort: $('sort').value, lang: I.language, tab: state.tab,
     revision: $('revisionEvent').value || '', event: state.selectedEvent || state.highlightedEvent, map: state.map?.getView() || null,
-    snapshot: snapshot(), catalog: state.catalog?.id, base: state.map?.getBase() || 'local',geography:state.geographyHash};
+    snapshot: snapshot(), catalog: state.catalog?.id, admin1Geography:state.admin1Hash, base: state.map?.getBase() || 'local',geography:state.geographyHash};
 }
 function syncURL() {
   if (!state.ready || state.restoring || !state.formValid) return;
-  const url = V.serialize(currentView(), location.href);
+  const url=viewURL();
   history.replaceState(null, '', url);
   if (!$('viewLink').hidden) $('viewLink').value = url;
+}
+function viewURL(view=currentView()){
+  const url=new URL(V.serialize(view,location.href));
+  if(state.map?.getDisplayMode?.()==='heat')url.searchParams.set('display','heat');else url.searchParams.delete('display');
+  return url.href;
 }
 function setTab(name, persist = true) {
   if(state.expanded && name!=='catalog')setExpanded(false);
   state.tab = name;
-  for (const tab of ['home', 'catalog', 'sources', 'analysis', 'revisions', 'methods']) {
+  for (const tab of ['home', 'catalog', 'sources', 'analysis', 'revisions', 'comparison', 'sql', 'methods']) {
     const active = tab === name; $(tab + 'Panel').hidden = !active;
     if (active) $(tab + 'Tab').setAttribute('aria-current', 'page'); else $(tab + 'Tab').removeAttribute('aria-current');
   }
@@ -64,6 +153,9 @@ function setTab(name, persist = true) {
   if (['catalog','home'].includes(name) && state.map) requestAnimationFrame(() => {state.map.resize(); drawMap();});
   if (name === 'sources' || name === 'home') renderSources();
   if (name === 'analysis'){renderAnalysis();renderCoverage();}
+  if(name==='revisions')ensureRevisionStory();
+  if(name==='sql')ensureSQLPanel()?.activate();
+  if(name==='comparison')ensureComparisonPanel()?.activate();
   if (persist) syncURL();
 }
 function populate(id, values) {
@@ -124,11 +216,14 @@ function showWarnings() {
   $('linkWarning').textContent = state.invalidLink.length ? t('invalidLink', {fields: state.invalidLink.join(', ')}) : '';
 }
 function buttons() {
-  for (const id of ['share', 'query', 'download', 'analysisRecordCsv', 'analysisQueryJson', 'analysisCsv', 'analysisJson', 'analysisReport','previewAnalysisReport','exportPackage','refreshInlineReport']) $(id).disabled = !state.ready || !state.formValid;
+  if($('loadingProgress'))$('loadingProgress').hidden=state.ready || !!state.loadError;
+  if(!state.ready || !state.formValid)sqlPanel?.invalidate();
+  for (const id of ['share', 'query', 'download', 'analysisRecordCsv', 'analysisQueryJson', 'analysisCsv', 'analysisJson', 'analysisReport','previewAnalysisReport','exportPackage','refreshInlineReport','workbenchCsv','workbenchJson','workbenchZip','workbenchReport','workbenchStats','workbenchSql','workbenchCompare']) $(id).disabled = !state.ready || !state.formValid;
   if(!state.ready || !state.formValid){$('inlineReportFrame').srcdoc='';$('printInlineReport').disabled=true;}
   // A new package resets its filters. Do not accept input that would be silently
   // overwritten when that asynchronous load finishes; catalog choices remain live.
   for (const id of [...controls, 'searchButton', 'reset', 'sort']) $(id).disabled = !state.ready;
+  if($('admin1'))$('admin1').disabled=!state.ready || !state.admin1 || !realCountry(state.applied.country);
   if (state.ready) $('depthMax').disabled = !depthKnown();
   $('unmOnly').disabled = !state.ready || state.catalog?.id !== V.legacyCatalog;
   if(state.tab==='analysis' && (!state.ready || !state.formValid))renderAnalysis();
@@ -138,22 +233,26 @@ function buttons() {
 }
 function applyFilters(persist = true) {
   if (!state.ready) return;
-  const checked = V.validateFilters(readFilters(), choices()); state.formValid = checked.valid;buttons();
+  const incoming=readFilters();if(!state.restoring && incoming.country!==state.applied.country){incoming.admin1='';$('admin1').value='';}
+  const checked = V.validateFilters(incoming, choices()); state.formValid = checked.valid;buttons();
   $('filterError').textContent = checked.valid ? '' : t('invalidFilters');
   if (!checked.valid) return;
   const countryChanged=state.applied.country!==checked.filters.country;
+  if(countryChanged && !state.restoring){checked.filters.admin1='';$('admin1').value='';}
   state.applied = checked.filters;state.page = 0;
-  state.filtered = V.filterEvents(state.events, state.applied, $('sort').value);populateCatalogControls();render();
+  state.filtered = V.filterEvents(state.events, state.applied, $('sort').value);sqlContextCache=null;sqlSelectionVersion++;sqlPanel?.invalidate();populateCatalogControls();render();
   if(countryChanged)state.map?.fitRecords();
   if (persist) {state.invalidLink = [];showWarnings();actionStatus('');syncURL();}
 }
 function render() {
+  populateAdmin1();state.map?.setCountry?.(state.applied.country);syncAdminContext();
   const rows = state.filtered;
   $('eventCount').textContent = fmt(rows.length);$('unmCount').textContent = state.catalog.provider === 'ssn' ? t('notReported') : fmt(rows.filter(unm).length);
   $('missingCount').textContent = fmt(rows.filter(e => e.horizontalError === null).length);
   $('typeCount').textContent = fmt(new Set(rows.map(e => e.magType).filter(Boolean)).size);
   $('filterSummary').textContent = t('filterSummary', {n: fmt(rows.length), total: fmt(state.events.length), from: state.applied.yearFrom, to: state.applied.yearTo, min: value(state.applied.magMin,1)});
   $('mapSelection').textContent=catalogLabel(state.catalog)+' · '+(state.applied.country ? regionLabel(state.applied.country) : t('allCountries'))+' · '+state.applied.yearFrom+'–'+state.applied.yearTo+' · M ≥ '+value(state.applied.magMin,1);
+  if($('workbenchSelection'))$('workbenchSelection').textContent=fmt(rows.length)+' '+t('sourceRows');
   renderFilterChips();drawMap();drawHistogram();renderTable();renderExplorerInsights();renderSearchSuggestions();updateMapEvidence();
   if (state.tab === 'analysis') renderAnalysis();
   $('combinedNotice').hidden=state.catalog.id!=='all-catalogs';
@@ -166,9 +265,9 @@ function render() {
 function renderFilterChips() {
   const initial=V.catalogDefaults(state.catalog), active=controls.filter(key=>state.applied[key]!==initial[key]);
   $('activeFilters').hidden=!active.length;
-  const names={search:'search',yearFrom:'from',yearTo:'to',magMin:'magMin',magMax:'magMax',magType:'magType',originSource:'originSource',depthMax:'maxDepth',missingOnly:'missingOnly',unmOnly:'unmOnly',country:'countryFilter'};
+  const names={admin1:'admin1Filter',search:'search',yearFrom:'from',yearTo:'to',magMin:'magMin',magMax:'magMax',magType:'magType',originSource:'originSource',depthMax:'maxDepth',missingOnly:'missingOnly',unmOnly:'unmOnly',country:'countryFilter'};
   $('activeFilters').innerHTML=active.map(key=>{
-    const raw=state.applied[key], text=typeof V.defaults[key]==='boolean' ? t(names[key]) : t(names[key])+': '+(key==='country' ? regionLabel(raw) : raw==='__missing__' ? t('notReported') : raw);
+    const raw=state.applied[key], text=typeof V.defaults[key]==='boolean' ? t(names[key]) : t(names[key])+': '+(key==='country' ? regionLabel(raw) : key==='admin1' ? admin1Label(raw) : raw==='__missing__' ? t('notReported') : raw);
     return `<button type="button" data-remove-filter="${key}" aria-label="${esc(t('removeFilter',{filter:text}))}">${esc(text)}<span aria-hidden="true">×</span></button>`;
   }).join('');
 }
@@ -238,7 +337,8 @@ function renderSources() {
   if (!state.registry) return;
   $('homeCatalogCount').textContent=fmt(state.registry.catalogs.length);
   $('homeRecordCount').textContent=fmt(state.registry.catalogs.reduce((n,c)=>n+c.event_count,0));
-  if($('sourceCards'))$('sourceCards').innerHTML=state.registry.catalogs.map(c=>`<article class="source-card"><div class="source-provider">${esc(c.provider_name)}</div><h3>${esc(catalogLabel(c))}</h3><code class="identifier-badge">${esc(c.id)}</code><p>${c.years[0]}–${c.years[1]} · M ≥ ${value(c.minimum_magnitude,1)}</p><b class="source-record-total">${fmt(c.event_count)} <small>${esc(t('sourceRows'))}</small></b><p class="source-format">${esc(t('sourceFormat'))}</p><p class="integrity-badge ${state.cache.has(c.id) ? 'is-verified' : ''}">${esc(t(state.cache.has(c.id) ? 'sourceVerified' : 'sourceNotLoaded'))}</p><details><summary><code>SHA-256: ${esc(c.sha256.slice(0,16))}…</code></summary><code class="hash">${esc(c.sha256)}</code></details><div class="source-card-controls"><button data-source-catalog="${esc(c.id)}">${esc(t('openThisCatalog'))} ↗</button><a href="${esc(safeURL(c.events_url))}" download>↓ JSON</a><a href="${esc(safeURL(c.manifest_url))}" download>↓ ${esc(t('fieldManifest'))}</a></div></article>`).join('');
+  if($('sourceCards') && window.SeismicSourceWorkbench)$('sourceCards').innerHTML=window.SeismicSourceWorkbench.cards(state.registry.catalogs,{lang:I.language,verified:id=>state.cache.has(id)});
+  if($('workbenchSources') && window.SeismicSourceWorkbench)$('workbenchSources').innerHTML=window.SeismicSourceWorkbench.inputs(state.registry.catalogs,I.language,state.catalog?.id);
   $('sourceInventoryRows').innerHTML=state.registry.catalogs.map(c=>{
     const known=c.provider==='usgs' || c.depth_unit==='km';
     return `<tr><td><strong>${esc(catalogLabel(c))}</strong><small>${esc(c.id)}</small></td><td>${esc(c.provider_name)}</td><td>${c.years[0]}–${c.years[1]}<small>M ≥ ${value(c.minimum_magnitude,1)}</small></td><td>${fmt(c.event_count)}</td><td>${esc(t(c.identifier_kind==='derived_row_key' ? 'derivedId' : 'officialId'))}<small>${esc(t(known ? 'documentedDepth' : 'unknownDepthUnit'))}</small></td><td><button data-source-catalog="${esc(c.id)}">${esc(t('openThisCatalog'))}</button><div class="source-links"><a href="${esc(safeURL(c.events_url))}" download>${esc(t('packagedData'))}</a><a href="${esc(safeURL(c.manifest_url))}" download>${esc(t('fieldManifest'))}</a></div><details><summary>${esc(t('sourceHash'))}</summary><code class="hash">${esc(c.sha256)}</code></details></td></tr>`;
@@ -248,7 +348,7 @@ let analysisCacheRows=null,analysisCache=null,analysisGroupKey='';
 let fingerprintRows=null,fingerprintRequest=0;
 async function updateMapEvidence(){
   if(!state.ready || !state.formValid)return;
-  const scope=state.applied.country ? V.filterEvents(state.events,{...state.applied,country:''},'recent') : state.filtered;
+  const scope=state.applied.country ? V.filterEvents(state.events,{...state.applied,country:'',admin1:''},'recent') : state.filtered;
   const outside=scope.filter(e=>e.country_id==='outside').length;
   $('geographyAccounting').textContent=state.applied.country ? t('countryExcluded',{n:fmt(scope.length-state.filtered.length),outside:fmt(outside)}) : t('outsideIncluded',{n:fmt(outside)});
   if(fingerprintRows===state.filtered)return;
@@ -350,10 +450,10 @@ function analysisDocument() {
   const summary=summaryForSelection();if(!summary)return null;
   const view=currentView();
   const query=V.queryDocument({view,catalog:state.catalog,manifest:state.manifest,assetHashes:state.hashes,fields:state.fields,
-    rows:state.filtered,pageURL:V.serialize(view,location.href),createdUTC:new Date().toISOString(),inputs:state.activePacks,geography:geographyEvidence()});
+    rows:state.filtered,pageURL:viewURL(view),createdUTC:new Date().toISOString(),inputs:state.activePacks,geography:geographyEvidence()});
   return {schema:'seismic-analysis-report/1',created_utc:new Date().toISOString(),count_unit:'source_records',summary,
     display_group:selectedAnalysisGroup(summary) ? {catalog_id:selectedAnalysisGroup(summary).catalog_id,mag_type:selectedAnalysisGroup(summary).mag_type} : null,
-    query,evidence_note:t('analysisLimit'),normalization:{schema_mapping:'source-specific adapters; original fields retained',magnitude:'reported scales and literal types; no conversions',missing:'source missing strings preserved; absent common fields null',depth:'common km only where documented; Canadian raw depth remains unknown unit',identity:'qualified catalogue row keys; exact ComCat ID overlap flags; no cross-provider event reconciliation'}};
+    query,cartography:currentCartography(),evidence_note:t('analysisLimit'),normalization:{schema_mapping:'source-specific adapters; original fields retained',magnitude:'reported scales and literal types; no conversions',missing:'source missing strings preserved; absent common fields null',depth:'common km only where documented; Canadian raw depth remains unknown unit',identity:'qualified catalogue row keys; exact ComCat ID overlap flags; no cross-provider event reconciliation'}};
 }
 function exportedAnalysisStatus(){ $('analysisExportStatus').textContent=t('analysisSaved'); }
 function exportAnalysisCsv(){
@@ -379,9 +479,11 @@ function analysisReportHtml(report=analysisDocument()){
   if(!report)return null;
   const summary=report.summary, heading=key=>esc(t(key));
   const table=(heads,rows)=>'<table><thead><tr>'+heads.map(h=>'<th>'+heading(h)+'</th>').join('')+'</tr></thead><tbody>'+rows+'</tbody></table>';
+  const group=summary.groups.find(g=>g.catalog_id===report.display_group?.catalog_id && g.mag_type===report.display_group?.mag_type);
+  const summaryCards=group ? '<section class="report-metrics">'+[['sourceRows',fmt(group.n)],['statMean',value(group.magnitude.mean,3)],['statMedian',value(group.magnitude.median,3)],['statDepthMean',group.depth_km.n?value(group.depth_km.mean,2)+' km':'—']].map(([key,v])=>'<div><small>'+heading(key)+'</small><b>'+esc(v)+'</b></div>').join('')+'</section>' : '';
   const inputs=state.activePacks.map(p=>`<tr><td>${esc(catalogLabel(p.catalog))}</td><td>${esc(p.hashes.events)}</td><td>${esc(p.hashes.manifest)}</td></tr>`).join('');
   const html='<!doctype html><html lang="'+I.language+'"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>'+heading('analysisHeading')+'</title><style>body{font:15px/1.55 system-ui,sans-serif;color:#182d3b;max-width:1100px;margin:36px auto;padding:0 20px}h1,h2{line-height:1.2}table{border-collapse:collapse;width:100%;margin:20px 0;font-size:12px}th,td{border:1px solid #ccd6d9;padding:9px;text-align:left;overflow-wrap:anywhere}th{background:#eef3f4}pre,code{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px}button{padding:9px 15px}@media print{button{display:none}body{max-width:none;margin:0}thead{display:table-header-group}tr{break-inside:avoid}}</style><h1>'+heading('analysisHeading')+'</h1><p>'+esc($('analysisSelection').textContent)+'</p><p>'+esc(report.created_utc)+'</p><p>'+heading('analysisScope')+'</p><h2>'+heading('magnitudeStatistics')+'</h2>'+table(['dataCatalog','magType','sourceRows','statMean','statMedian','statMin','statMax','statSD','statDepthMean'],groupRows(summary))+'<h2>'+heading('correlationHeading')+'</h2><p>'+heading('correlationNote')+'</p>'+table(['dataCatalog','magType','pairedRecords','pearsonCoefficient','interpretation'],correlationRows(summary))+'<h2>'+heading('annualAnalysis')+'</h2><p>'+heading('annualAnalysisNote')+'</p>'+table(['utcYear','sourceRows'],summary.annual_counts.map(x=>'<tr><td>'+x.year+'</td><td>'+x.record_count+'</td></tr>').join(''))+'<h2>'+heading('filtersAndEvidence')+'</h2><pre>'+esc(JSON.stringify(state.applied,null,2))+'</pre>'+table(['dataCatalog','sourceHash','recordManifest'],inputs)+'<p>'+heading('analysisLimit')+'</p><details><summary>'+heading('analysisJson')+'</summary><pre>'+esc(JSON.stringify(report,null,2))+'</pre></details></html>';
-  return html.replace('<h2>',reportVisuals(report)+'<h2>').replace('</style>', 'body{font-family:Arial,Helvetica,sans-serif}table{border-top:2px solid #183342;border-bottom:2px solid #183342}th,td{border:0;padding:10px}th{background:white;border-bottom:1px solid #183342}td{font-variant-numeric:tabular-nums}td:not(:first-child){text-align:right}thead{display:table-header-group}@media(max-width:700px){.report-visuals svg text{font-size:22px}.report-visuals .chart-density-note{display:none}}</style>');
+  return html.replace('<h2>',summaryCards+reportVisuals(report)+'<h2>').replace('</style>', 'body{font-family:Arial,Helvetica,sans-serif;margin:22px auto}h1{font-size:24px;margin:8px 0}body>p{font-size:12px;margin:6px 0}.report-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:20px 0}.report-metrics>div{padding:13px;border-top:3px solid #126a5b;background:#eef4f3}.report-metrics small{display:block;font-size:10px}.report-metrics b{display:block;font-size:24px;margin-top:5px}.report-visuals{margin:18px 0;padding:16px}.report-visuals h2{margin:0 0 10px}.report-visuals p{font-size:11px;margin:6px 0}.report-visuals figure{padding:10px}.report-visuals figcaption{font-size:12px}table{border-top:2px solid #183342;border-bottom:2px solid #183342}th,td{border:0;padding:10px}th{background:white;border-bottom:1px solid #183342}td{font-variant-numeric:tabular-nums}td:not(:first-child){text-align:right}thead{display:table-header-group}@media(max-width:700px){.report-visuals svg text{font-size:22px}.report-visuals .chart-density-note{display:none}}</style>');
 }
 function exportAnalysisReport(){
   const html=analysisReportHtml();if(html===null)return;
@@ -442,7 +544,11 @@ $('exportPackage').addEventListener('click',exportFullPackage);
 $('refreshInlineReport').addEventListener('click',()=>{const html=analysisReportHtml();if(html!==null){$('inlineReportFrame').srcdoc=html;$('printInlineReport').disabled=false;}});
 $('printInlineReport').addEventListener('click',()=>{$('inlineReportFrame').contentWindow?.print();});
 
-function drawMap() {if (['catalog','home'].includes(state.tab) && state.map) state.map.setRecords(state.filtered);}
+function drawMap() {if (['catalog','home'].includes(state.tab) && state.map){state.map.setRecords(state.filtered);state.mapDrawnRows=state.filtered;}}
+function currentCartography(){
+  const evidence=state.map?.getDisplayEvidence?.();
+  return state.mapDrawnRows===state.filtered && evidence?.selected_rows===state.filtered.length ? evidence : null;
+}
 function drawHistogram() {
   const counts = new Map();for (const e of state.filtered) counts.set(e.year, (counts.get(e.year) || 0) + 1);
   const a = state.applied.yearFrom, b = state.applied.yearTo, n = Math.max(1, b - a + 1), max = Math.max(1, ...counts.values()), bw = 250 / n;
@@ -493,13 +599,14 @@ function exportQuery() {
   if (!state.ready || !state.formValid) return;
   try {
     const view = currentView(), query = V.queryDocument({view, catalog: state.catalog, manifest: state.manifest, assetHashes: state.hashes, fields:state.fields,
-      rows: state.filtered, pageURL: V.serialize(view, location.href), createdUTC: new Date().toISOString(),inputs:state.activePacks,geography:geographyEvidence()});
+      rows: state.filtered, pageURL: viewURL(view), createdUTC: new Date().toISOString(),inputs:state.activePacks,geography:geographyEvidence()});
+    query.cartography=currentCartography();
     download(new Blob([JSON.stringify(query, null, 2) + '\n'], {type:'application/json;charset=utf-8'}), state.catalog.id + '_local_query.json');actionStatus('querySaved');
   } catch (error) {actionStatus('queryFailed');}
 }
 async function shareView() {
   if (!state.ready || !state.formValid) return;
-  const url = V.serialize(currentView(), location.href);history.replaceState(null, '', url);
+  const url=viewURL();history.replaceState(null, '', url);
   $('viewLink').value = url;$('viewLink').hidden = false;
   try {if (!navigator.clipboard?.writeText) throw Error('Clipboard unavailable');await navigator.clipboard.writeText(url);actionStatus('copied');}
   catch (error) {actionStatus('copyFallback');$('viewLink').focus();$('viewLink').select();}
@@ -519,7 +626,7 @@ function renderRevision() {
   $('revisionSummary').innerHTML = `<div><strong>${fmt(rows.length)}</strong><span>${esc(t('retainedVersions'))}</span></div><div><strong>${esc(e.id)}</strong><span>${esc(t('canonicalId'))}</span></div>`;
   $('revisionRows').innerHTML = rows.map(v => `<tr><td>${esc(date(v.update_time_utc || v.updateTime_utc))}</td><td>${value(v.magnitude)} ${esc(v.magnitude_type || '')}</td><td>${value(v.depth_km,3)}</td><td>${esc(v.origin_source || t('unknown'))}</td><td>${esc(v.magnitude_source || t('unknown'))}</td><td>${esc(v.status || t('unknown'))}</td></tr>`).join('');
   $('revisionNote').textContent = t('revisionNote');
-  renderDiagnostics();
+  renderDiagnostics();ensureRevisionStory();
 }
 function diagnosticPalette(){return {ink:color('--ink','#183342'),muted:color('--muted','#506573'),grid:color('--line','#d5dfe4'),paper:color('--paper','#fff'),first:color('--diagnostic-first','#215b91'),second:color('--diagnostic-second','#aa551b')};}
 function diagnosticLabels(){return {depthTitle:t('depthPairTitle'),displacementTitle:t('displacementTitle'),earliestDepth:t('earliestDepth'),latestDepth:t('latestDepth'),displacement:t('displacementKm'),cohort:t('currentCohort'),median:t('statMedian'),magnitudeTitle:t('magnitudePairTitle'),earliestM:t('earliestMagnitude'),latestM:t('latestMagnitude'),threshold:t('threshold'),updateTime:t('updateTimestamp'),reportedM:t('reportedM'),depth:t('depthKm'),year:t('utcYear'),coverageTitle:t('coverageCountTitle'),maximumTitle:t('coverageMaximumTitle'),logRows:t('logAnnualRows'),maximum:t('annualMaximum'),gap:t('rawGap')};}
@@ -553,7 +660,7 @@ function exportDiagnosticSvg(event){
   const id=button.dataset.exportSvg;if(!['diagnosticDepth','diagnosticDisplacement','diagnosticMagnitude','lineageMagnitude','lineageDepth','coverageCounts','coverageMaximum'].includes(id))return;
   const svg=$(id);if(!svg.innerHTML)return;
   const evidence={schema:'seismic-diagnostic-svg/1',chart:id,created_utc:new Date().toISOString(),revisions_sha256:state.revisionsHash,ssn_coverage_sha256:state.coverageHash,ssn_source_sha256:state.coverage?.source.sha256,lineage:$('revisionEvent').value,coverage_years:[$('coverageFrom').value,$('coverageTo').value],scope:'Independent retained-version pilot or full-download SSN summary, not the map query.'};
-  const text='<svg xmlns="http://www.w3.org/2000/svg" width="800" height="'+(id.startsWith('coverage')?240:360)+'" viewBox="'+esc(svg.getAttribute('viewBox'))+'"><metadata>'+esc(JSON.stringify(evidence))+'</metadata>'+svg.innerHTML+'</svg>';
+  const text='<svg xmlns="http://www.w3.org/2000/svg" width="800" height="'+360+'" viewBox="'+esc(svg.getAttribute('viewBox'))+'"><metadata>'+esc(JSON.stringify(evidence))+'</metadata>'+svg.innerHTML+'</svg>';
   download(new Blob([text],{type:'image/svg+xml;charset=utf-8'}),id+'.svg');
 }
 $('diagnosticWorkspace').addEventListener('click',exportDiagnosticSvg);$('coverageWorkspace').addEventListener('click',exportDiagnosticSvg);
@@ -571,7 +678,7 @@ function describeDataset() {
   $('placeHeader').textContent = t(derivedKey() ? 'placeLocalKey' : 'placeId');
 }
 function changeLanguage(lang, persist = true) {
-  I.apply(lang);expandedLabel();populateCatalogControls();localizeFilterOptions();$('baseStatus').textContent = t(state.baseStatus);state.map?.languageChanged();
+  I.apply(lang);updateDisplayEvidence();revisionStory?.refreshLanguage?.();sqlPanel?.refreshLanguage();comparisonPanel?.refreshLanguage();if($('tectonicToggle').checked)showTectonics();expandedLabel();populateCatalogControls();localizeFilterOptions();$('baseStatus').textContent = t(state.baseStatus);state.map?.languageChanged();
   if (!state.ready) {describeDataset();$('loadStatus').textContent = state.loadError ? t('loadFailed') + ' ' + state.loadError : loadingText(state.catalog);return;}
   describeDataset();showWarnings();render();renderRevision();renderCoverage();state.map?.languageChanged();
   $('integrityStatus').textContent=t('verifiedMemory',{n:fmt(state.activePacks.length)});
@@ -582,18 +689,19 @@ function changeLanguage(lang, persist = true) {
 function restoreFromURL() {
   if (!state.ready) return;state.restoring = true;
   const parsed = V.parseURL(location.href, choices()), view = parsed.view;state.invalidLink = parsed.invalid;
-  I.apply(view.lang);populateCatalogControls();populateFilters();writeFilters(view.filters);$('sort').value = view.sort;
+  I.apply(view.lang);populateCatalogControls();populateFilters();populateAdmin1(view.filters);writeFilters(view.filters);$('sort').value = view.sort;
   if (!depthKnown() && Number(view.filters.depthMax) !== 1000) {view.filters.depthMax = 1000;$('depthMax').value = 1000;state.invalidLink.push('depth');}
   if (view.revision) $('revisionEvent').value = view.revision;
   applyFilters(false);renderRevision();describeDataset();showWarnings();actionStatus('');
   state.selectedEvent = '';if ($('detail').open) $('detail').close();
   state.map.setRegion(state.catalog.bounds);if (view.map) state.map.setView(view.map);else state.map.reset();
+  state.map.setDisplayMode?.(new URL(location.href).searchParams.get('display')==='heat'?'heat':'points');updateDisplayEvidence();
   $('mapBase').value = view.base;state.map.setBase(view.base, false);state.map.languageChanged();
   setTab(view.tab, false);if (view.event) detail(view.event, false);
   const missing = $('magType').querySelector('option[value="__missing__"]');if (missing) missing.textContent = t('notReported');
   state.restoring = false;syncURL();
 }
-for (const tab of ['home','catalog','sources','analysis','revisions','methods']) $(tab + 'Tab').addEventListener('click', () => setTab(tab));
+for (const tab of ['home','catalog','sources','analysis','revisions','comparison','sql','methods']) $(tab + 'Tab').addEventListener('click', () => setTab(tab));
 for (const id of controls) {
   const numeric=typeof V.defaults[id]==='number';
   $(id).addEventListener(id==='search' || numeric ? 'input' : 'change',()=>{
@@ -633,34 +741,45 @@ document.addEventListener('keydown',event=>{
   if(event.shiftKey && document.activeElement===first){event.preventDefault();last?.focus();}
   else if(!event.shiftKey && document.activeElement===last){event.preventDefault();first?.focus();}
 });
+$('tectonicToggle').addEventListener('change',showTectonics);
+$('countryPromptCancel').addEventListener('click',()=>$('countryPrompt').close());
+$('countryPromptConfirm').addEventListener('click',()=>{$('countryPrompt').close();$('country').value=pendingCountry;$('admin1').value='';applyFilters();setTab('catalog');state.map?.fitCountry?.(pendingCountry);});
 $('closeDetail').addEventListener('click', () => $('detail').close());
 $('detail').addEventListener('close', () => {if (!state.restoring && !$('detail').open) {state.selectedEvent = '';syncURL();}});
 $('download').addEventListener('click', exportCsv);$('query').addEventListener('click', exportQuery);$('share').addEventListener('click', shareView);
 $('revisionEvent').addEventListener('change', () => {renderRevision();syncURL();});
 $('language').addEventListener('change', () => changeLanguage($('language').value));
 $('fitMap').addEventListener('click', () => state.map?.fitRecords());$('resetMap').addEventListener('click', () => state.map?.reset());
-window.addEventListener('resize', () => {if(['catalog','home'].includes(state.tab))state.map?.resize();});window.addEventListener('popstate', restoreLocation);
+window.addEventListener('resize', () => {if(['catalog','home'].includes(state.tab))state.map?.resize();});
+window.addEventListener('popstate',()=>{restoreLocation().catch(()=>{state.invalidLink=['adm'];showWarnings();$('admin1Status').textContent=t('geoLayerFailed');});});
 I.apply(V.parseURL(location.href).view.lang);
 async function fetchAsset(url) {
+  if(state.assetLoader)return state.assetLoader.load(url);
   const response = await fetch(url);if (!response.ok) throw Error(url + ': ' + response.status);
   const bytes = await response.arrayBuffer(), data = JSON.parse(new TextDecoder().decode(bytes));
   const digest = await crypto.subtle.digest('SHA-256', bytes);
   return {data, hash: Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2,'0')).join('')};
 }
 async function loadPackage(c) {
-  let pack=state.cache.get(c.id);if(pack)return pack;
-  const [events,manifest]=await Promise.all([fetchAsset(c.events_url),fetchAsset(c.manifest_url)]);
-  if(events.hash!==c.sha256 || manifest.data.derived_asset_sha256!==events.hash || (c.manifest_sha256 && c.manifest_sha256!==manifest.hash))throw Error(t('hashMismatch'));
-  const index=state.geography.catalogs[c.id];
-  if(!Array.isArray(events.data.fields) || !Array.isArray(events.data.rows) || !index || index.events_sha256!==events.hash || index.row_count!==events.data.rows.length || index.country_ids.length!==index.row_count)throw Error(t('invalidPackage'));
-  const allowed=new Set(state.geography.regions.map(r=>r.id));
-  const rows=events.data.rows.map((row,n)=>{const e=Object.fromEntries(events.data.fields.map((key,i)=>[key,row[i]]));e.year=Number(e.time.slice(0,4));e.country_id=index.country_ids[n];return e;});
-  if(rows.some(e=>!Number.isFinite(e.latitude) || !Number.isFinite(e.longitude) || !Number.isFinite(e.mag) || !Number.isInteger(e.year) || !allowed.has(e.country_id)))throw Error(t('invalidPackage'));
-  pack={catalog:c,events:rows,fields:[...events.data.fields,'country_id'],manifest:manifest.data,hashes:{events:events.hash,manifest:manifest.hash}};
-  state.cache.set(c.id,pack);return pack;
+  const cached=state.cache.get(c.id);if(cached)return cached;
+  if(state.packageLoads.has(c.id))return state.packageLoads.get(c.id);
+  const pending=(async()=>{
+    const [events,manifest]=await Promise.all([fetchAsset(c.events_url),fetchAsset(c.manifest_url)]);
+    if(events.hash!==c.sha256 || manifest.data.derived_asset_sha256!==events.hash || (c.manifest_sha256 && c.manifest_sha256!==manifest.hash))throw Error(t('hashMismatch'));
+    const index=state.geography.catalogs[c.id];
+    if(!Array.isArray(events.data.fields) || !Array.isArray(events.data.rows) || !index || index.events_sha256!==events.hash || index.row_count!==events.data.rows.length || index.country_ids.length!==index.row_count)throw Error(t('invalidPackage'));
+    const allowed=new Set(state.geography.regions.map(r=>r.id));
+    const rows=events.data.rows.map((row,n)=>{const e=Object.fromEntries(events.data.fields.map((key,i)=>[key,row[i]]));e.year=Number(e.time.slice(0,4));e.country_id=index.country_ids[n];return e;});
+    if(rows.some(e=>!Number.isFinite(e.latitude) || !Number.isFinite(e.longitude) || !Number.isFinite(e.mag) || !Number.isInteger(e.year) || !allowed.has(e.country_id)))throw Error(t('invalidPackage'));
+    const pack={catalog:c,events:rows,fields:[...events.data.fields,'country_id'],manifest:manifest.data,hashes:{events:events.hash,manifest:manifest.hash}};
+    attachAdministrativeRows(pack);state.cache.set(c.id,pack);return pack;
+  })();
+  state.packageLoads.set(c.id,pending);
+  try{return await pending;}finally{if(state.packageLoads.get(c.id)===pending)state.packageLoads.delete(c.id);}
 }
 async function loadCatalog(id, restore = false, preset = {}) {
   const c = id==='all-catalogs' ? combinedDefinition() : state.registry.catalogs.find(c => c.id === id);if (!c) return;
+  downloadJobs.clear();sqlPanel?.invalidate();sqlContextCache=null;
   const request = ++state.request;clearTimeout(debounce);state.restoring = true;state.ready = false;state.loadError = null;state.catalog = c;state.pendingRestore = restore;
   const initial = {...V.catalogDefaults(c), ...preset};
   if (c.id !== V.legacyCatalog) initial.unmOnly = false;
@@ -698,12 +817,21 @@ async function loadCatalog(id, restore = false, preset = {}) {
   }
 }
 async function restoreLocation() {
-  if (!state.registry) return;const id = V.catalogFromURL(location.href, choices());
+  if (!state.registry) return;
+  const locationRequest=++state.locationRequest,href=location.href,packageRequest=state.request;
+  if(new URL(href).searchParams.get('adm')&&!state.admin1)await ensureAdmin1();
+  if(locationRequest!==state.locationRequest||href!==location.href||packageRequest!==state.request)return;
+  const id = V.catalogFromURL(href, choices());
   if (id !== state.catalog?.id || !state.ready) await loadCatalog(id, true);else restoreFromURL();
 }
 async function initialize() {
   $('retry').hidden = true;$('loadStatus').textContent = t('loading');buttons();
   try {
+    if(window.SeismicAssetLoader && !state.assetLoader){
+      const transport=await fetchAsset('data/transport-manifest.json');
+      if(transport.hash!==TRANSPORT_SHA256)throw Error(t('hashMismatch'));
+      state.assetLoader=window.SeismicAssetLoader.createLoader({transport:transport.data,onProgress:updateTransportProgress,retries:2});
+    }
     const [registry,revisions,basemap,geography,coverage] = await Promise.all(['data/catalogs.json','data/revisions.json','data/basemap.geojson','data/country-index.json','data/ssn-coverage.json'].map(fetchAsset));
     if(coverage.hash!=='3c1c8bff0e40ae287a272b2456fe856939f2657d948e100d8dc559f59c341856')throw Error(t('hashMismatch'));
     state.coverage=coverage.data;state.coverageHash=coverage.hash;state.revisionsHash=revisions.hash;
@@ -711,11 +839,44 @@ async function initialize() {
     if(geography.data.schema!=='seismic-country-index/1' || geography.data.geometry_sha256!==basemap.hash || geography.data.registry_sha256!==registry.hash || !Array.isArray(geography.data.regions))throw Error(t('hashMismatch'));
     state.geography=geography.data;state.geographyHash=geography.hash;
     state.registry = registry.data;state.registryHash = registry.hash;state.revisions = revisions.data;showRevisions();
-    state.map = createSeismicMap({element: $('map'),basemap: basemap.data,onSelect: detail,onViewChange: syncURL,translate: t,formatNumber: fmt,
+    state.map = createSeismicMap({element: $('map'),basemap: basemap.data,onSelect: detail,onViewChange: syncURL,onDisplayChange:updateDisplayEvidence,translate: t,formatNumber: fmt,
       onHighlight:id=>{state.highlightedEvent=id;renderTable();},
+      onCountrySelect:promptCountry,onAdmin1Select:id=>{if(realCountry(state.applied.country)){$('admin1').value=id;applyFilters();state.map?.fitAdmin1?.(id);}},
       onBaseChange: id => {$('mapBase').value = id;syncURL();},onBaseStatus: key => {state.baseStatus = key;$('baseStatus').textContent = t(key);}});
+    state.map.setDisplayMode?.(new URL(location.href).searchParams.get('display')==='heat'?'heat':'points');updateDisplayEvidence();
     if(!new URL(location.href).searchParams.has('v')){await loadCatalog('all-catalogs',false);setTab('home');requestAnimationFrame(()=>state.map.fitRecords());}
-    else await restoreLocation();
+    else {if(new URL(location.href).searchParams.get('adm'))await ensureAdmin1();await restoreLocation();}
   } catch (error) {state.loadError = error.message;$('loadStatus').textContent = t('loadFailed') + ' ' + state.loadError;$('retry').hidden = false;buttons();}
 }
+let revisionStory=null;
+function ensureRevisionStory(){
+  if(!revisionStory && window.SeismicRevisionStory && state.revisions?.events)revisionStory=window.SeismicRevisionStory.mount($('revisionStoryWorkspace'),{data:state.revisions,getLanguage:()=>I.language,onEventSelect:id=>{$('revisionEvent').value=id;renderDiagnostics();}});
+  return revisionStory;
+}
+function syncAdminContext(){
+  const context=state.ready && !state.applied.country && ['ssn-mx-historical','usgs-mx-historical'].includes(state.catalog?.id);
+  if(!context)return;
+  if(state.admin1){state.map?.setAdmin1Context?.({geometry:state.admin1Geometry,countryId:'MEX'});return;}
+  ensureAdmin1().then(()=>{if(!state.applied.country && ['ssn-mx-historical','usgs-mx-historical'].includes(state.catalog?.id))state.map?.setAdmin1Context?.({geometry:state.admin1Geometry,countryId:'MEX'});}).catch(()=>{});
+}
+function updateDisplayEvidence(evidence){
+  const heat=(evidence?.mode || state.map?.getDisplayMode?.())==='heat';
+  document.body.dataset.mapDisplay=heat?'heat':'points';
+  $('mapDisplay').value=heat?'heat':'points';$('heatLegend').hidden=!heat;$('mapPointLegend').hidden=heat;
+  const en=I.language==='en',e=evidence||state.map?.getDisplayEvidence?.();
+  $('heatEvidence').textContent=en?'One weight per visible source row · 8 px cells · 32 px radius · scale relative to this viewport. Not energy, physical density or hazard.':'Un peso por fila visible · celdas de 8 px · radio de 32 px · escala relativa a este encuadre. No es energía, densidad física ni amenaza.';
+  if(heat && e)$('heatEvidence').textContent+=' '+fmt(e.visible_rows||0)+(en?' visible of ':' visibles de ')+fmt(e.selected_rows||0)+(en?' selected.':' seleccionadas.');
+}
+$('mapDisplay').addEventListener('change',()=>{state.map?.setDisplayMode?.($('mapDisplay').value);updateDisplayEvidence();syncURL();});
+$('workbenchSources').addEventListener('click',async event=>{const button=event.target.closest('[data-workbench-catalog]');if(!button)return;await loadCatalog(button.dataset.workbenchCatalog,false);if(state.ready){setTab('home');state.map?.fitRecords();}});
+$('workbenchAll').addEventListener('click',async()=>{await loadCatalog('all-catalogs',false);if(state.ready){setTab('home');state.map?.fitRecords();}});
+$('workbenchSourceInfo').addEventListener('click',()=>setTab('sources'));
+$('workbenchStats').addEventListener('click',()=>{if(state.ready&&state.formValid)setTab('analysis');});
+$('workbenchCsv').addEventListener('click',()=>{if(state.ready&&state.formValid)exportCsv();});
+$('workbenchJson').addEventListener('click',()=>{if(state.ready&&state.formValid)exportQuery();});
+$('workbenchZip').addEventListener('click',()=>{if(state.ready&&state.formValid)exportFullPackage();});
+$('workbenchReport').addEventListener('click',()=>{if(!state.ready||!state.formValid)return;setTab('analysis');$('inlineReportFrame').srcdoc=analysisReportHtml();$('printInlineReport').disabled=false;$('deliverablesCard').scrollIntoView?.({block:'start'});});
+$('workbenchSql').addEventListener('click',()=>{if(state.ready&&state.formValid)setTab('sql');});
+$('workbenchCompare').addEventListener('click',()=>{if(state.ready&&state.formValid)setTab('comparison');});
+
 initialize();

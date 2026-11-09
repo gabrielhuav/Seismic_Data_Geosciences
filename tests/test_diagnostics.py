@@ -7,6 +7,8 @@ import shutil
 import subprocess
 import sys
 import unittest
+import math
+import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location('audit', ROOT/'scripts/audit_revisions.py')
@@ -43,3 +45,48 @@ class DiagnosticsTests(unittest.TestCase):
         closed=[b for b in data['annual_bins'] if b['year']<2026 and b['all']]
         self.assertEqual(len(closed),110)
         self.assertEqual(sum(b['maximum_rows'] for b in closed),118)
+
+    def test_coverage_svg_uses_one_shared_larger_geometry_without_changing_bins(self):
+        node=Path(sys.executable).parent.parent/'node/bin/node.exe'
+        if not node.exists():node=shutil.which('node')
+        script=r"""
+const fs=require('node:fs'),D=require('./system/dist/diagnostics.js'),data=JSON.parse(fs.readFileSync('system/dist/data/ssn-coverage.json','utf8')),before=JSON.stringify(data);
+const labels={year:'UTC year',coverageTitle:'Observed rows',maximumTitle:'Annual maximum',logRows:'log10(n)',maximum:'Maximum M',gap:'No source rows'};
+console.log(JSON.stringify({plots:D.coveragePlots(data,labels),partial:D.coveragePlots({...data,annual_bins:data.annual_bins.filter(b=>b.year===2026)},labels),gap:D.coveragePlots({...data,annual_bins:data.annual_bins.filter(b=>b.year===1904)},labels),unchanged:JSON.stringify(data)===before}));
+"""
+        out=json.loads(subprocess.check_output([str(node),'-e',script],cwd=ROOT))
+        data=json.loads((ROOT/'system/dist/data/ssn-coverage.json').read_text(encoding='utf-8'))
+        self.assertTrue(out['unchanged'])
+        layout=out['plots']['layout'];self.assertEqual(layout['height'],360)
+        self.assertEqual(layout['fontSize'],30);self.assertEqual(layout['labelFontSize'],32)
+        self.assertGreater(layout['bottom']-layout['top'],134)
+        by_year={r['year']:r for r in data['annual_bins']};gap_years={r['year'] for r in data['annual_bins'] if not r['all']}
+        self.assertEqual(len(gap_years),16)
+        def parse(fragment):
+            self.assertNotIn('NaN',fragment);self.assertNotIn('Infinity',fragment)
+            return ET.fromstring('<svg>'+fragment+'</svg>')
+        for key in ['counts','maximum']:
+            svg=parse(out['plots'][key]);bands=[e for e in svg.iter('rect') if e.get('class')=='coverage-gap']
+            self.assertEqual({int(e.get('data-year')) for e in bands},gap_years)
+            for e in bands:
+                self.assertEqual(float(e.get('y')),layout['top']);self.assertEqual(float(e.get('height')),layout['bottom']-layout['top'])
+                self.assertGreaterEqual(float(e.get('x')),layout['left']);self.assertLessEqual(float(e.get('x'))+float(e.get('width')),layout['right'])
+            self.assertTrue(any(e.get('font-size')=='32' and e.text=='UTC year' for e in svg.iter('text')))
+        counts=parse(out['plots']['counts'])
+        for line in counts.iter('line'):
+            if not line.get('data-series'):continue
+            a,b=int(line.get('data-from-year')),int(line.get('data-to-year'));key=line.get('data-series')
+            self.assertEqual(b-a,1);self.assertNotIn(a,gap_years);self.assertNotIn(b,gap_years)
+            expected=layout['bottom']-math.log10(by_year[b][key])/5*(layout['bottom']-layout['top'])
+            self.assertAlmostEqual(float(line.get('y2')),expected)
+        partial=[e for e in counts.iter('circle') if e.get('data-partial')=='true']
+        self.assertEqual(len(partial),4);self.assertEqual({e.get('data-year') for e in partial},{'2026'})
+        self.assertTrue(all(e.get('fill')=='#ffffff' for e in partial))
+        maximum=parse(out['plots']['maximum']);points=list(maximum.iter('circle'))
+        self.assertEqual(len(points),111)
+        hollow=[e for e in points if e.get('fill')=='#ffffff'];self.assertEqual(len(hollow),1)
+        self.assertIn('2026',hollow[0].find('title').text)
+        for kind in ['partial','gap']:
+            for key in ['counts','maximum']:parse(out[kind][key])
+        self.assertEqual(len([e for e in parse(out['partial']['counts']).iter('circle') if e.get('data-partial')=='true']),4)
+        self.assertEqual(len(list(parse(out['gap']['maximum']).iter('circle'))),0)

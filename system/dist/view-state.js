@@ -6,16 +6,19 @@
 })(typeof globalThis === 'object' ? globalThis : this, function () {
   'use strict';
   const defaults = Object.freeze({search: '', yearFrom: 1900, yearTo: 2026, magMin: 3.5, magMax: 10,
-    magType: '', originSource: '', depthMax: 1000, missingOnly: false, unmOnly: false, country: ''});
+    magType: '', originSource: '', depthMax: 1000, missingOnly: false, unmOnly: false, country: '', admin1: ''});
   const keys = Object.keys(defaults);
-  const tabs = ['home', 'catalog', 'sources', 'analysis', 'revisions', 'methods'];
+  const tabs = ['home', 'catalog', 'sources', 'analysis', 'comparison', 'revisions', 'sql', 'methods'];
   const sorts = ['recent', 'oldest', 'mag'];
   const defaultCatalog = 'usgs-na-2020-2025', legacyCatalog = 'usgs-mx-historical';
   const bases = ['local', 'osm', 'osm-hot', 'usgs-topo', 'nasa-blue-marble'];
   const unmSourceCodes = Object.freeze(['unm', 'us_unm']);
   const isUnmAttributed = event => unmSourceCodes.includes(event.locationSource) || unmSourceCodes.includes(event.magSource);
   const urlKeys = {search: 'q', yearFrom: 'from', yearTo: 'to', magMin: 'min', magMax: 'max',
-    magType: 'mt', originSource: 'src', depthMax: 'depth', missingOnly: 'missing', unmOnly: 'unmOnly', country: 'country'};
+    magType: 'mt', originSource: 'src', depthMax: 'depth', missingOnly: 'missing', unmOnly: 'unmOnly', country: 'country', admin1: 'adm'};
+  const countrySpecials = ['outside','boundary','invalid'];
+  const admin1Specials = ['admin1-outside','admin1-boundary','admin1-invalid','admin1-unavailable'];
+  const validHash = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
 
   function validateFilters(input, options = {}) {
     const f = {...defaults, ...input}, errors = [];
@@ -32,6 +35,12 @@
     f.magType = String(f.magType ?? ''); f.originSource = String(f.originSource ?? '');
     f.country = String(f.country ?? '');
     if (f.country && (!/^[A-Za-z0-9_-]{1,80}$/.test(f.country) || (options.countries && !options.countries.includes(f.country)))) errors.push('country');
+    f.admin1 = String(f.admin1 ?? '');
+    if (f.admin1) {
+      if (!f.country || countrySpecials.includes(f.country) || !/^[A-Za-z0-9_-]{1,100}$/.test(f.admin1)) errors.push('admin1');
+      if (options.admin1Regions && !admin1Specials.includes(f.admin1)
+          && !options.admin1Regions.some(region => region.id === f.admin1 && region.country_id === f.country)) errors.push('admin1');
+    }
     if (f.search.length > 200) errors.push('search');
     for (const [k, allowed] of [['magType', options.magTypes], ['originSource', options.originSources]]) {
       if (f[k].length > 80 || (allowed && f[k] && !allowed.includes(f[k]))) errors.push(k);
@@ -55,13 +64,14 @@
     const p = new URL(input).searchParams;
     const fallback = p.get('v') === '1' ? legacyCatalog : options.defaultCatalog || defaultCatalog;
     const requested = p.get('v') === '1' ? legacyCatalog : p.get('catalog') || fallback;
-    if (requested === 'all-catalogs' && p.get('v') === '4') return requested;
+    if (requested === 'all-catalogs' && ['4','5'].includes(p.get('v'))) return requested;
     return !options.catalogs || options.catalogs.some(c => (typeof c === 'string' ? c : c.id) === requested) ? requested : fallback;
   }
 
   function parseURL(input, options = {}) {
     const params = new URL(input).searchParams, invalid = [], catalog = catalogFromURL(input, options);
     const definition = options.catalogs?.find(c => c.id === catalog) || (catalog === 'all-catalogs' ? {years:[1900,2026],minimum_magnitude:3.5} : options.catalog);
+    const filterOptions = {...options,catalog:{...definition,id:catalog}};
     const initial = catalogDefaults(definition), raw = {...initial};
     if (params.has('catalog') && params.get('catalog') !== catalog) invalid.push('catalog');
     for (const k of keys) if (params.has(urlKeys[k])) raw[k] = params.get(urlKeys[k]);
@@ -70,14 +80,21 @@
       raw.missingOnly = params.get('missing') === '1';
     }
     if (params.has('unmOnly')) {
-      if (!['3','4'].includes(params.get('v')) || !['0', '1'].includes(params.get('unmOnly'))) invalid.push('unmOnly');
-      raw.unmOnly = ['3','4'].includes(params.get('v')) && params.get('unmOnly') === '1';
+      if (!['3','4','5'].includes(params.get('v')) || !['0', '1'].includes(params.get('unmOnly'))) invalid.push('unmOnly');
+      raw.unmOnly = ['3','4','5'].includes(params.get('v')) && params.get('unmOnly') === '1';
     }
-    if (params.has('country') && params.get('v') !== '4') {invalid.push('country');raw.country='';}
+    if (params.has('country') && !['4','5'].includes(params.get('v'))) {invalid.push('country');raw.country='';}
+    if (params.has('adm') && params.get('v') !== '5') {invalid.push('adm');raw.admin1='';}
+    if (params.get('v') === '5') {
+      if (!params.get('adm')) invalid.push('adm');
+      if (!validHash(params.get('adh')) || params.get('adh') !== options.admin1Hash) {invalid.push('adh');raw.admin1='';}
+      if (!params.get('geo') || params.get('geo') !== options.geographyHash) {invalid.push('geo');raw.admin1='';}
+    } else if (params.has('adh')) invalid.push('adh');
     if (raw.unmOnly && catalog !== legacyCatalog) {invalid.push('unmOnly');raw.unmOnly = false;}
-    const checked = validateFilters(raw, options);
+    if (validateFilters(raw,filterOptions).errors.includes('admin1')) {invalid.push('admin1');raw.admin1='';}
+    const checked = validateFilters(raw, filterOptions);
     if (!checked.valid) invalid.push(...checked.errors);
-    const view = {filters: checked.valid ? checked.filters : initial, lang: 'es', tab: 'catalog', sort: 'recent', revision: '', event: '', map: null, catalog, base: 'local'};
+    const view = {filters: checked.valid ? checked.filters : initial, lang: 'en', tab: 'catalog', sort: 'recent', revision: '', event: '', map: null, catalog, base: 'local'};
     if (!params.size) view.tab = 'home';
     for (const [key, allowed] of [['lang', ['es', 'en']], ['tab', tabs], ['sort', sorts]]) {
       if (params.has(key)) {
@@ -97,7 +114,7 @@
       if (validMap(center)) view.map = center; else invalid.push('c');
     }
     if (params.has('base')) {if (bases.includes(params.get('base'))) view.base = params.get('base');else invalid.push('base');}
-    if (params.has('v') && !['1','2','3','4'].includes(params.get('v'))) invalid.push('v');
+    if (params.has('v') && !['1','2','3','4','5'].includes(params.get('v'))) invalid.push('v');
     if (params.has('snapshot') && params.get('snapshot') !== options.snapshot) invalid.push('snapshot');
     if (params.has('geo') && params.get('geo') !== options.geographyHash) invalid.push('geo');
     return {view, invalid: [...new Set(invalid)]};
@@ -107,12 +124,14 @@
     const checked = validateFilters(view.filters);
     if (!checked.valid || !tabs.includes(view.tab) || !sorts.includes(view.sort) || !['es', 'en'].includes(view.lang)) throw Error('Invalid view');
     if (checked.filters.unmOnly && (view.catalog || legacyCatalog) !== legacyCatalog) throw Error('UNM attribution requires the Mexico catalogue');
+    if (checked.filters.admin1 && (!validHash(view.admin1Geography) || !validHash(view.geography))) throw Error('Admin-1 views require country and subdivision index hashes');
     const url = new URL(base); url.search = ''; url.hash = '';
-    const p = url.searchParams; p.set('v', checked.filters.country || view.catalog === 'all-catalogs' ? '4' : '3'); p.set('lang', view.lang);
+    const p = url.searchParams; p.set('v', checked.filters.admin1 ? '5' : checked.filters.country || view.catalog === 'all-catalogs' ? '4' : '3'); p.set('lang', view.lang);
     p.set('catalog', view.catalog || legacyCatalog);
     if (view.base && bases.includes(view.base) && view.base !== 'local') p.set('base', view.base);
     if (view.snapshot) p.set('snapshot', view.snapshot);
     if ((checked.filters.country || view.catalog==='all-catalogs') && view.geography) p.set('geo',view.geography);
+    if (checked.filters.admin1) p.set('adh',view.admin1Geography);
     // Numeric bounds are explicit so a registry update cannot silently alter a saved selection.
     for (const k of keys) if (typeof defaults[k] === 'number' || checked.filters[k] !== defaults[k]) p.set(urlKeys[k], typeof defaults[k] === 'boolean' ? (checked.filters[k] ? '1' : '0') : String(checked.filters[k]));
     if (view.tab !== 'catalog') p.set('tab', view.tab);
@@ -133,6 +152,7 @@
       && (!f.missingOnly || e.horizontalError === null)
       && (!f.unmOnly || isUnmAttributed(e))
       && (!f.country || e.country_id === f.country)
+      && (!f.admin1 || e.admin1_id === f.admin1)
       && (!q || searchText(e.id).includes(q) || searchText(e.source_event_id).includes(q) || searchText(e.place).includes(q)));
     rows.sort(sort === 'mag' ? (a,b) => b.mag-a.mag || b.time.localeCompare(a.time)
       : sort === 'oldest' ? (a,b) => a.time.localeCompare(b.time) : (a,b) => b.time.localeCompare(a.time));
@@ -140,17 +160,29 @@
   }
 
   function queryDocument({view, catalog, manifest, assetHashes, fields, rows, pageURL, createdUTC, inputs, geography}) {
+    const activeAdmin1 = !!view.filters.admin1;
+    if (activeAdmin1) {
+      const a = geography?.admin1;
+      if (!a || !validHash(a.index_sha256) || !validHash(a.geometry_sha256) || !a.index_path || !a.geometry_path
+          || a.selected_admin1 !== view.filters.admin1 || geography.selected_country !== view.filters.country
+          || (view.admin1Geography && view.admin1Geography !== a.index_sha256)) throw Error('Admin-1 queries require matching country and subdivision evidence');
+    } else if (geography && Object.hasOwn(geography,'admin1')) {
+      const {admin1: ignored, ...countryGeography} = geography; geography = countryGeography;
+    }
+    const version = activeAdmin1 ? '5' : catalog?.id === 'all-catalogs' || view.filters.country ? '4' : '3';
+    const withoutAdmin1 = {...view,filters:{...view.filters,admin1:''}};
     if (catalog?.id === 'all-catalogs') {
       if (!inputs?.length || !geography) throw Error('Combined queries require all source and geography evidence');
-      return {schema:'seismic-local-query/4', created_utc:createdUTC, engine:'Seismic Data Observatory browser-local filter, version 4',
+      return {schema:'seismic-local-query/'+version, created_utc:createdUTC, engine:'Seismic Data Observatory browser-local filter, version '+version,
         catalog:{id:catalog.id,provider:'all',years:catalog.years,bounds:catalog.bounds},
-        inputs:inputs.map(input=>queryDocument({view:{...view,catalog:input.catalog.id},...input,assetHashes:{...input.hashes,registry:assetHashes.registry},rows:[],pageURL,createdUTC}).input),
+        inputs:inputs.map(input=>queryDocument({view:{...withoutAdmin1,catalog:input.catalog.id},...input,assetHashes:{...input.hashes,registry:assetHashes.registry},rows:[],pageURL,createdUTC}).input),
         input_catalogs:inputs.map(input=>({id:input.catalog.id,provider:input.catalog.provider,snapshot:input.catalog.snapshot,events_sha256:input.hashes.events,manifest_sha256:input.hashes.manifest})),
         registry_sha256:assetHashes.registry, geography, selection:{...view.filters},sort:view.sort,view_url:pageURL,
         result:{row_count:rows.length,ordered_event_ids:rows.map(e=>e.id),ordered_source_keys:rows.map(e=>({catalog:e._catalog_id,id:e.source_event_id}))},
-        predicate_rules:{...queryDocument({view,catalog:inputs[0].catalog,manifest:inputs[0].manifest,assetHashes:inputs[0].hashes,rows:[],pageURL,createdUTC}).predicate_rules,
+        predicate_rules:{...queryDocument({view:withoutAdmin1,catalog:inputs[0].catalog,manifest:inputs[0].manifest,assetHashes:inputs[0].hashes,rows:[],pageURL,createdUTC}).predicate_rules,
           composition:'All packaged rows retained in registry order. Composite key catalogId~packagedId. Exact USGS shared identifiers flagged; no cross-provider event reconciliation or deduplication.',
-          country:'Exact match to the derived country_id in the hash-identified land-polygon index; offshore/outside, boundary/ambiguous and invalid remain separate.'},
+          country:'Exact match to the derived country_id in the hash-identified land-polygon index; offshore/outside, boundary/ambiguous and invalid remain separate.',
+          ...(activeAdmin1 ? {admin1:'Exact admin1_id match in the hash-identified subdivision index, conditional on the retained country_id. No nearest-subdivision or locality-text assignment.'} : {})},
         limits:['Counts are source records, not unique or independent earthquakes. Coverage windows and source semantics differ. Shared USGS IDs are flagged, not removed.',
           'Proximity across providers does not establish event identity. No cross-provider duplicate matching is inferred.',
           'Country/territory labels describe generalized land polygons, not nationality, maritime jurisdiction or authoritative coast/border membership.',
@@ -161,8 +193,8 @@
     const sourceEvidence = Object.fromEntries(['official_catalogue','rights','source_header','source_footer','query','time_basis','source_timing','raw_rows','packaged_records','selection','transformations','field_availability','field_semantics','identifier_derivation']
       .filter(key => Object.hasOwn(manifest,key)).map(key => [key,manifest[key]]));
     return {
-      schema: view.filters.country ? 'seismic-local-query/4' : 'seismic-local-query/3', created_utc: createdUTC,
-      engine: 'Seismic Data Observatory browser-local filter, version '+(view.filters.country ? '4' : '3'),
+      schema: 'seismic-local-query/'+version, created_utc: createdUTC,
+      engine: 'Seismic Data Observatory browser-local filter, version '+version,
       catalog: {id: catalog?.id || view.catalog || legacyCatalog, provider: catalog?.provider || 'usgs',
         provider_name: catalog?.provider_name || 'U.S. Geological Survey', role: catalog?.role,
         bounds: catalog?.bounds, years: catalog?.years, minimum_magnitude: catalog?.minimum_magnitude,
@@ -189,6 +221,7 @@
         search: 'Trimmed case-insensitive substring of event ID or reported place; NFD combining accents removed for comparison only. Original text is retained.',
         originSource: 'Exact locationSource match; not a country assignment.',
         country:'Exact match to derived country_id from generalized Natural Earth land polygons. Offshore/outside and boundary/ambiguous remain separate; no nearest-country or place-name inference.',
+        ...(activeAdmin1 ? {admin1:'Exact admin1_id match in the hash-identified subdivision index, conditional on the retained country_id. No nearest-subdivision or locality-text assignment.'} : {}),
         missing_magnitude_type: 'The sentinel __missing__ selects absent magnitude types.',
         sort_ties: 'mag uses descending origin time as a tiebreaker; time ties preserve packaged row order.',
         map: 'Map bounds, zoom, language, selected event and tab do not alter the filter or CSV.'
@@ -214,5 +247,5 @@
       ]
     };
   }
-  return {defaults, defaultCatalog, legacyCatalog, unmSourceCodes, isUnmAttributed, catalogDefaults, catalogFromURL, validateFilters, validMap, parseURL, serialize, filterEvents, queryDocument};
+  return {defaults, tabs, defaultCatalog, legacyCatalog, unmSourceCodes, isUnmAttributed, catalogDefaults, catalogFromURL, validateFilters, validMap, parseURL, serialize, filterEvents, queryDocument};
 });

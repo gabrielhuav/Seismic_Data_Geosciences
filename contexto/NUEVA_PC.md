@@ -2,6 +2,137 @@
 
 ## Estado actual
 
+- PUBLICACIÓN AUTORIZADA9nov2026 por Gabriel: «No se han subido estos cambios al
+  github pages? hazlo, sin autoría de IA, con mi firma». Se prepara UN commit humano,
+  UN push y UN despliegue manual de esta revisión; sin IA en metadatos/trailers.
+  Auditoría81rutas/77assets/80Python/14JS/45documentales aprobada. .gitattributes
+  conserva bytes exactos del artefacto y pines sql.js en Windows/Linux.
+  Gate HTTP NUEVO de este push; no reutilizar excepciones anteriores. El push
+  sólo se ejecuta con cero fallos o aceptación expresa de las excepciones actuales.
+  Estado de esta nota: antes del commit/push/despliegue; PC encendida.
+
+- REFINAMIENTO LOCAL COMPLETADO (9nov2026), aplicado al sistema antes del paper.
+  Home es contraparte funcional de Figura1: cuatro entradas, mapa real y salidas
+  de la selección activa (CSV/JSON/ZIP/informe/estadísticos/SQL/comparación).
+  Puntos conservados y calor opcional: peso1/fila visible, celdas8px, radio32px,
+  sigma12px y colores log1p relativos al encuadre; no densidad física ni amenaza.
+  Perfiles muestran propósito científico, adaptador y límites de4catálogos/3distribuidores.
+  México tiene contexto33unidadesfuente (32estados+unidadislas), sin filtrarSSN204;
+  conserva157outside. País→estado sigue modificando sólo la consulta confirmada.
+  Revisiones prácticas: evento8.0→8.2mww/35→47.39km; umbral5.5mww26→30;
+  siete actualizaciones discretas. SQL guiado4preguntas, comparaciónCAN15/MEX53
+  con bins0.25/serieanual; fuentes/tipos/unidades/NULL/hashes preservados.
+- Word/PDF FINALES LOCALES: outputs/paper/Seismic_CG_manuscript.docx y .pdf,
+  30páginas,13figuras intercaladas,4tablas editables; resumen272/cuerpo5484.
+  Figuras1/12aprobadas intactas; capturas auténticas con recibos por estado/hash.
+  45controles pasan y30páginas verificadas (11–30idénticas porSHAal primer render).
+  17partes de plantilla conservadas; autores/CRediT/licencias/declaraciónIA veraz intactos.
+  SHA DOCX97faf4cf9764fef9e255c78611cd62d31553ae5ba9a570291a5c191fb44b4e38;
+  SHA PDFef351f1befab60d7ae8eacb11a38f073967460f1e99f23b50e6b9bb36740dac8.
+- QA:80Python/14suitesJS (frontend44,mapa16,SQLguiado7,comparación7,
+  revisionstory5,sourceworkbench6); gateLOCAL77assets/46refs,cero falloslocales.
+  EN/ES,claro/oscuro,móvil390 y escritorio1920x1080; no prueba de dispositivos físicos.
+  Recibos/respaldo/QA: outputs/observatory_refinement_2026-11-09/.
+- Sin nuevo commit/push/despliegue. HEAD y referencia local origin/main590f6e7;
+  último público verificado8nov2026. Autorizaciones previas CONSUMIDAS.
+  Cada nueva acción requiere permiso propio y gate de enlaces NUEVO para ese push.
+  Git humano de Gabriel sin IA/trailers/firmas; asistencia académica veraz conservada.
+  Sólo system/dist se sirve; históricos intactos. NO apagar la PC.
+
+
+## Estado conservado anterior (histórico; prevalece Estado actual)
+
+### Estado previo al refinamiento del9nov2026
+
+- OBSERVATORIO COMPLETADO LOCALMENTE (8nov2026, título elegido por Gabriel):
+  A browser-based seismic observatory for regional earthquake catalogue comparison in North America.
+  Carga gzip determinista con doble SHA, progreso/reintentos/fallback verificable;
+  SQL opcional SQLite/WASM en Worker y memoria de sesión, sin backend SQL ni Docker.
+  Ocho vistas; inglés por defecto/ES explícito; confirmación al pulsar país,
+  743 unidades admin1/47 países con URLv5 y hashes, contexto PB2002/ODC-BY,
+  comparación en un catálogo/periodo/tipoM: CAN15/MEX53 (USA35 si se selecciona).
+  Filas científicas originales intactas. Sin Poisson/pronóstico; no garantía20años.
+  Corregida deriva Leaflet al redimensionar: pan:true/animate:false. Móvil390:
+  ocho vistas sin desborde y mapa ampliado287936/287936; ES/EN/claro/oscuro;
+  Escape devuelve foco. Escritorio1920x1080 restaurado; consola sin errores.
+- Word/PDF FINALES LOCALES en outputs/paper/Seismic_CG_manuscript.docx y .pdf:
+  29páginas,13figuras intercaladas,4tablas editables completas; título confirmado.
+  Resumen272/cuerpo5481;45controles documentales pasan y29páginas inspeccionadas.
+  17partes de plantilla preservadas,150párrafos de cuerpo cotejados y71celdas de
+  tablas verificadas. Microtexto auxiliar de capturas se consulta ampliandoPDF.
+  SHA DOCX311325dbcf0b4a236d788c53364ff503bf0116256a338dacf78267eb37a76ab6;
+  SHA PDF17028b8b36ea186405a0cb1dd93227dd5dbf777e34f5610026ededa9b956123a.
+  Capturas auténticas locales/arquitectura visual; figuras7–10 intactas. Autores,
+  contribuciones, licencias y declaración académica veraz de IA conservados.
+- QA:79Python,11suitesJS más regresiones finales(frontend40,mapa12,labels317/200IDs),
+  oráculo4720consultas sin desacuerdos y60controles de exportaciones SQL/comparación.
+  Gate LOCAL74assets/43referencias,cero fallos; sin nuevo gateHTTP para push.
+  Recibos y respaldo pareado: outputs/loading_sql_2026-11-08/.
+- PUBLICACIÓN PENDIENTE: HEAD/origin y Pages siguen590f6e7; esta revisión y la pareja
+  nueva NO tienen commit/push/despliegue. Autorizaciones previas CONSUMIDAS; cada
+  acción nueva requiere autorización expresa propia, sin reutilizar excepciones.
+  Sólo system/dist se sirve; fuentes/tesis/contexto/evidencias locales no se sirven.
+  Git humano de Gabriel, sin IA/trailers/firmas. NO apagar la PC. Históricos intactos.
+
+### Estado previo al cierre del observatorio del8nov2026
+
+- CONSULTA ARQUITECTURA8nov2026: Gabriel pregunta por carga desde Pages y utilidad
+  de AlooXoX/Seismic-Data-Visualization-System. Revisado código público fijado a
+  0c528416d0c1f72921196ef470588c06e5f39e55, sin ejecutarlo. Dos modos: PHP/PostgreSQL17
+  con Docker y, en indexraíz, SQL00–05.gz→descompresión→AlaSQL en memoria del navegador.
+  Esa página estática no usa docs/data/stats.json; README describe sólo otra vía.
+  Nuestro publicado590f6e7 ya carga JSON desde Pages, verifica SHA y trabaja en
+  memoria de sesión; no usa PostgreSQL/Docker/backend. Python/SQLite sólo offline.
+  Útil adaptar compresión, progreso, reintentos y procesamiento cooperativo; SQL
+  opcional sería una ampliación evaluable, no implementada ni autorizada por esta
+  pregunta. Conservar hashes/filas/tipos; no importar datos imputados como daños
+  observados. Evidencia outputs/architecture_review_2026-11-08/review.json.
+  Sin cambios al sistema/paper/Git/publicación ni a históricos; PC encendida.
+
+- PAPER ALINEADO A LA PUBLICACIÓN590f6e7 (8nov2026), sólo edición local:
+  Word/PDF finales en outputs/paper/Seismic_CG_manuscript.docx y .pdf.27páginas,
+  diez figuras/capturas y cuatro tablas editables cotejadas con el sistema público.
+  Se actualizó disponibilidad a590f6e79ad6d5d78d70e286ab0c60bd4e856fdce y se quitó
+  el falso pendiente de release. Se conserva el origen local auténtico de capturas
+  de esa misma implementación; no se atribuyen falsamente a navegación en producción.
+  Tabla1 precisa corte inclusivo(at or before); Fuentes se describe mediante tarjetas
+  e inventario técnico. Tablas2–4 e imágenes idénticas, cifras científicas intactas.
+  Cotejo214párrafos completos; resumen288/cuerpo5497;27páginas cubiertas por revisión
+  visual:7cambiadas inspeccionadas +20PNGidénticas a la revisión completa anterior.
+ 17partes de plantilla preservadas, figuras/captions juntas y tablas sin cortes.
+  SHA Word:bcfa2769409e425ef9efb1a1b2e4e64b6df2d2efd58a349c507d215f123cd6b0; SHA PDF:b1959b8203d4c83972e8b7f8cfd1cdab2bfeaf3f241f018c9bfd4e63868e53c7.
+  Recibo outputs/paper_published_alignment_2026-11-08/document_qa.json; respaldo pareado
+  anterior en before/. NO hubo nuevo commit/push/despliegue:590f6e7 sigue público y
+  la nueva pareja documental NO está subida todavía. Autorizaciones anteriores
+  CONSUMIDAS. PC ENCENDIDA; autores/licencias/declaración académicaIA conservados.
+
+- PUBLICACIÓN VISUAL COMPLETADA Y VERIFICADA8nov2026: commit humano
+  590f6e79ad6d5d78d70e286ab0c60bd4e856fdce (24 archivos), UN push origin/main y
+  UN dispatch Pages42508417900 exitosos, sin reintentos. Validate128815999793 y
+  deploy128816449840 success. Autor/committer Gabriel Hurtado
+  <gabrielhurtadoaviles@gmail.com>; sin IA, coautores, trailers ni gpgsig en Git.
+  Las tres autorizaciones están CONSUMIDAS: no repetir commit/amend/push/despliegue.
+  Gabriel aceptó para ESTE push los cuatro HTTP403 editoriales y muestra339/36872,
+  mediante «Sí, recuerda push sin IA».549/553 destinos verificados; las otras36533
+  rutas USGS no se certifican. Datos y hashes científicos intactos.
+- Sitio https://gabrielhuav.github.io/Seismic_Data_Geosciences/ verificado por HTTPS:
+  36/36 archivos HTTP200/SHA256/tamaño exactos frente al commit; contexto, fuente
+  privada del paper, research-data y PDF final NO se sirven en Pages (404).
+  Los dos finales Word/PDF27p/10figs/4tablas sí están en el repositorio público;
+  sus hashes finales no cambiaron. El manuscrito conserva la nota histórica de
+  captura local y referencia al anterior baseline1c797dc; nueva edición, si se
+  solicita, debe actualizar esa nota sin inventar otra captura ni aprobación.
+- IAB público: inicio287936filas/cuatro paquetes verificados; SSN204,USA2335,
+  Canadá1492 y conjunto7107 visibles; fuente/hashes, resultados659mww/media5.311,
+  informe HTML real, generación ZIP y coberturaSSN402082/16huecos comprobados.
+  Piloto muestra gráficos nativos y linaje7versiones; móvil390x844: seis vistas
+  sin desborde horizontal, OSM9/9teselas y659/659visibles, retornoEscape/foco correcto;
+  modos claro/oscuro e idiomas ES/EN; escritorio1920x1080 restaurado, consola vacía.
+  Recibos/capturas: outputs/feedback_release_2026-11-08/; sólo continuidad posterior
+  queda local sin otro commit/push. PC ENCENDIDA; no apagar. Históricos intactos.
+
+- COMMIT VISUAL CREADO8nov2026:590f6e79ad6d5d78d70e286ab0c60bd4e856fdce,24archivos. Autor y committer Gabriel Hurtado <gabrielhurtadoaviles@gmail.com>, sin IA/coautores/trailers/gpgsig. Autorización de UN commit CONSUMIDA; no repetir ni amend. Push y UN despliegue ya autorizados, TODAVÍA NO ejecutados: falta respuesta a la pregunta de excepciones NUEVAS (4HTTP403editoriales y muestra339/36872USGS) para ESTE push, exigida por AGENTS.md. Gate549/553,cero falloslocales,66Python/8suitesJS pasan. Plan/recibo outputs/feedback_release_2026-11-08/release_plan.json y .md. Pages sigue1c797dc. Pregunta enviada no equivale a aprobación. PC ENCENDIDA. Esta actualización posterior de continuidad queda sólo local.
+
 - 8 noviembre 2026: Gabriel autoriza expresamente UN commit con su identidad humana,
   UN push y UN despliegue Pages de la revisión visual de 24 archivos. QA nueva:
   66 pruebas Python y ocho suites JS pasan; 36 assets previstos y cero fallos locales.
@@ -114,8 +245,6 @@
   propia para cada commit/push/publicación una vez preparado el resultado revisable.
   Preview127.0.0.1:18303 conservado, IAB en resultados659/ES/azul/claro1920x1080.
   PC ENCENDIDA: no apagar sin NUEVA orden explícita. Sin pagos/correo/envío editorial.
-
-## Estado conservado anterior (histórico; prevalece Estado actual)
 
 - COMMIT DEL PAPER EJECUTADO: ea477b9d3b126554995afabd43eafa5f8c730c50, ocho rutas,
   autor/committer Gabriel Hurtado, sin IA/trailers/firma criptográfica.
@@ -298,13 +427,92 @@ No se trasladan chats, credenciales, hooks ni .git/config con un clon.
 
 ## Siguiente paso
 
-Completar las acciones autorizadas una sola vez y registrar el SHA real del commit.
-Antes del push, obtener aceptación expresa de los cuatro HTTP403 editoriales y
-el muestreo339/36872 de ESTE gate; las aprobaciones antiguas no se reutilizan.
-Después del push, ejecutar UN dispatch Pages, verificar workflow y los 36 assets
-por SHA/tamaño, comprobar escritorio/móvil y entregar el enlace. PC encendida.
+Completar el commit/push/despliegue autorizado9nov2026, cada acción sólo una vez.
+Ver plan privado outputs/refined_release_2026-11-09/release_plan.md e inventario.
+Resolver o pedir aceptación de los fallos del gate NUEVO antes del push; las
+excepciones antiguas no valen. Verificar luego bytes/funciones públicas frente
+al commit desplegado y registrar su SHA/run real. No apagar, pagar ni enviar.
 
 ## Bitácora
+
+- PUBLICACIÓN AUTORIZADA9nov2026 por Gabriel: «No se han subido estos cambios al
+  github pages? hazlo, sin autoría de IA, con mi firma». Se prepara UN commit humano,
+  UN push y UN despliegue manual de esta revisión; sin IA en metadatos/trailers.
+  Auditoría81rutas/77assets/80Python/14JS/45documentales aprobada. .gitattributes
+  conserva bytes exactos del artefacto y pines sql.js en Windows/Linux.
+  Gate HTTP NUEVO de este push; no reutilizar excepciones anteriores. El push
+  sólo se ejecuta con cero fallos o aceptación expresa de las excepciones actuales.
+  Estado de esta nota: antes del commit/push/despliegue; PC encendida.
+
+- 9nov2026: se aplicó retroalimentación a sistema y después a Word/PDF30p/13fig/4tablas.
+  Homefuncional,caloropcional,perfilescientíficos/contratos,Méxicoestadossinperderoffshore,
+  revisionesprácticas,SQL/comparaciónrediseñadosycoberturaejesgrandes. Capturasreales
+  corregidasporreflujo15px;Fig1/12aprobadasintactas.80Python/14JS/45documentalesy
+  revisiónvisualcompleta. Ver outputs/observatory_refinement_2026-11-09/final_delivery.json.
+  Sin commit,push,despliegue,envíoeditorial,pagosniapagado nuevos.
+
+- 8nov2026: Gabriel aprobó ampliar carga/SQL sinDocker, inglés inicial, navegación
+  país→estado, placas, comparación y diseño visual; eligió el título del observatorio.
+  Sistema y pareja Word/PDF29p/13fig/4tablas cerrados localmente con QA completa.
+  Ver final_delivery.json, browser_qa.json y document_qa/ en outputs/loading_sql_2026-11-08/.
+  Sin commit, push, despliegue, correo, envío editorial, pagos ni apagado nuevos.
+
+- CONSULTA ARQUITECTURA8nov2026: Gabriel pregunta por carga desde Pages y utilidad
+  de AlooXoX/Seismic-Data-Visualization-System. Revisado código público fijado a
+  0c528416d0c1f72921196ef470588c06e5f39e55, sin ejecutarlo. Dos modos: PHP/PostgreSQL17
+  con Docker y, en indexraíz, SQL00–05.gz→descompresión→AlaSQL en memoria del navegador.
+  Esa página estática no usa docs/data/stats.json; README describe sólo otra vía.
+  Nuestro publicado590f6e7 ya carga JSON desde Pages, verifica SHA y trabaja en
+  memoria de sesión; no usa PostgreSQL/Docker/backend. Python/SQLite sólo offline.
+  Útil adaptar compresión, progreso, reintentos y procesamiento cooperativo; SQL
+  opcional sería una ampliación evaluable, no implementada ni autorizada por esta
+  pregunta. Conservar hashes/filas/tipos; no importar datos imputados como daños
+  observados. Evidencia outputs/architecture_review_2026-11-08/review.json.
+  Sin cambios al sistema/paper/Git/publicación ni a históricos; PC encendida.
+
+- PAPER ALINEADO A LA PUBLICACIÓN590f6e7 (8nov2026), sólo edición local:
+  Word/PDF finales en outputs/paper/Seismic_CG_manuscript.docx y .pdf.27páginas,
+  diez figuras/capturas y cuatro tablas editables cotejadas con el sistema público.
+  Se actualizó disponibilidad a590f6e79ad6d5d78d70e286ab0c60bd4e856fdce y se quitó
+  el falso pendiente de release. Se conserva el origen local auténtico de capturas
+  de esa misma implementación; no se atribuyen falsamente a navegación en producción.
+  Tabla1 precisa corte inclusivo(at or before); Fuentes se describe mediante tarjetas
+  e inventario técnico. Tablas2–4 e imágenes idénticas, cifras científicas intactas.
+  Cotejo214párrafos completos; resumen288/cuerpo5497;27páginas cubiertas por revisión
+  visual:7cambiadas inspeccionadas +20PNGidénticas a la revisión completa anterior.
+ 17partes de plantilla preservadas, figuras/captions juntas y tablas sin cortes.
+  SHA Word:bcfa2769409e425ef9efb1a1b2e4e64b6df2d2efd58a349c507d215f123cd6b0; SHA PDF:b1959b8203d4c83972e8b7f8cfd1cdab2bfeaf3f241f018c9bfd4e63868e53c7.
+  Recibo outputs/paper_published_alignment_2026-11-08/document_qa.json; respaldo pareado
+  anterior en before/. NO hubo nuevo commit/push/despliegue:590f6e7 sigue público y
+  la nueva pareja documental NO está subida todavía. Autorizaciones anteriores
+  CONSUMIDAS. PC ENCENDIDA; autores/licencias/declaración académicaIA conservados.
+
+- PUBLICACIÓN VISUAL COMPLETADA Y VERIFICADA8nov2026: commit humano
+  590f6e79ad6d5d78d70e286ab0c60bd4e856fdce (24 archivos), UN push origin/main y
+  UN dispatch Pages42508417900 exitosos, sin reintentos. Validate128815999793 y
+  deploy128816449840 success. Autor/committer Gabriel Hurtado
+  <gabrielhurtadoaviles@gmail.com>; sin IA, coautores, trailers ni gpgsig en Git.
+  Las tres autorizaciones están CONSUMIDAS: no repetir commit/amend/push/despliegue.
+  Gabriel aceptó para ESTE push los cuatro HTTP403 editoriales y muestra339/36872,
+  mediante «Sí, recuerda push sin IA».549/553 destinos verificados; las otras36533
+  rutas USGS no se certifican. Datos y hashes científicos intactos.
+- Sitio https://gabrielhuav.github.io/Seismic_Data_Geosciences/ verificado por HTTPS:
+  36/36 archivos HTTP200/SHA256/tamaño exactos frente al commit; contexto, fuente
+  privada del paper, research-data y PDF final NO se sirven en Pages (404).
+  Los dos finales Word/PDF27p/10figs/4tablas sí están en el repositorio público;
+  sus hashes finales no cambiaron. El manuscrito conserva la nota histórica de
+  captura local y referencia al anterior baseline1c797dc; nueva edición, si se
+  solicita, debe actualizar esa nota sin inventar otra captura ni aprobación.
+- IAB público: inicio287936filas/cuatro paquetes verificados; SSN204,USA2335,
+  Canadá1492 y conjunto7107 visibles; fuente/hashes, resultados659mww/media5.311,
+  informe HTML real, generación ZIP y coberturaSSN402082/16huecos comprobados.
+  Piloto muestra gráficos nativos y linaje7versiones; móvil390x844: seis vistas
+  sin desborde horizontal, OSM9/9teselas y659/659visibles, retornoEscape/foco correcto;
+  modos claro/oscuro e idiomas ES/EN; escritorio1920x1080 restaurado, consola vacía.
+  Recibos/capturas: outputs/feedback_release_2026-11-08/; sólo continuidad posterior
+  queda local sin otro commit/push. PC ENCENDIDA; no apagar. Históricos intactos.
+
+- COMMIT VISUAL CREADO8nov2026:590f6e79ad6d5d78d70e286ab0c60bd4e856fdce,24archivos. Autor y committer Gabriel Hurtado <gabrielhurtadoaviles@gmail.com>, sin IA/coautores/trailers/gpgsig. Autorización de UN commit CONSUMIDA; no repetir ni amend. Push y UN despliegue ya autorizados, TODAVÍA NO ejecutados: falta respuesta a la pregunta de excepciones NUEVAS (4HTTP403editoriales y muestra339/36872USGS) para ESTE push, exigida por AGENTS.md. Gate549/553,cero falloslocales,66Python/8suitesJS pasan. Plan/recibo outputs/feedback_release_2026-11-08/release_plan.json y .md. Pages sigue1c797dc. Pregunta enviada no equivale a aprobación. PC ENCENDIDA. Esta actualización posterior de continuidad queda sólo local.
 
 - 8 noviembre 2026: Gabriel autoriza expresamente UN commit con su identidad humana,
   UN push y UN despliegue Pages de la revisión visual de 24 archivos. QA nueva:

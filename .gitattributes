@@ -4,6 +4,8 @@
 data/raw/** -text
 research-data/comcat/** -text
 research-data/catalogs/** -text
+# Publish the audited artifact verbatim, including code/version URL and vendor pins.
+system/dist/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 system/dist/data/** -text
 system/dist/vendor/leaflet/** -text
 

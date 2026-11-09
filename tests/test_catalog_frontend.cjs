@@ -91,16 +91,23 @@ async function main() {
   elements.get('mapCard').parentElement=document.body;document.body.children=[elements.get('mapCard'),elements.get('catalogSelect')];
   const location={href:'https://example.org/?v=3&catalog=usgs-na-2020-2025'};
   const map={records:[],view:[50,-120,3],base:'local',setRecords(rows){this.records=rows;},getView(){return this.view;},setView(v){this.view=v;},setRegion(b){this.region=b;},reset(){this.view=[50,-120,3];},setBase(id){this.base=id;},getBase(){return this.base;},languageChanged(){},resize(){},fitRecords(){},highlight(id){this.highlighted=id;},focusRecord(id){this.highlighted=id;this.view=[60,-120,5.5];},themeChanged(){}};
-  let tamper='', delayed='';
+  Object.assign(map,{displayMode:'points',contextCountry:'',
+    setDisplayMode(mode){this.displayMode=mode;this.onDisplayChange?.(this.getDisplayEvidence());},getDisplayMode(){return this.displayMode;},
+    getDisplayEvidence(){return {mode:this.displayMode,selected_rows:this.records.length,visible_rows:this.records.length,counting_unit:'visible source rows'};},
+    setAdmin1Context({countryId}){this.contextCountry=countryId;},clearAdmin1(){this.contextCountry='';},
+    setAdmin1({countryId,selectedId}){this.contextCountry='';this.admin1Country=countryId;this.selectedAdmin1=selectedId;}});
+  let tamper='', delayed='';const fetchCounts=new Map();
   const fetch=async url=>{
+    fetchCounts.set(url,(fetchCounts.get(url)||0)+1);
     if(url===delayed)await new Promise(resolve=>setTimeout(resolve,15));
     const bytes=fs.readFileSync('system/dist/'+url);
     const buffer=url===tamper ? Buffer.from(bytes.toString().replace('3.5','3.6')) : bytes;
     return {ok:true,arrayBuffer:async()=>buffer.buffer.slice(buffer.byteOffset,buffer.byteOffset+buffer.byteLength)};
   };
   const context={window:{SeismicViewState:V,SeismicCatalogComposition:C,SeismicAnalytics:A,SeismicResearchCharts:R,SeismicDiagnostics:require('../system/dist/diagnostics.js'),SeismicExportPackage:require('../system/dist/export-package.js'),addEventListener(){}},document,location,history:{replaceState(_,__,url){location.href=url;}},navigator:{},fetch,
-    crypto:crypto.webcrypto,TextDecoder,TextEncoder,URL,Intl,Blob,setTimeout,clearTimeout,requestAnimationFrame:callback=>callback(),createSeismicMap:()=>map};
+    crypto:crypto.webcrypto,TextDecoder,TextEncoder,URL,Intl,Blob,setTimeout,clearTimeout,requestAnimationFrame:callback=>callback(),createSeismicMap:options=>{map.onDisplayChange=options.onDisplayChange;return map;}};
   vm.createContext(context);vm.runInContext(fs.readFileSync('system/dist/i18n.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('system/dist/source-workbench.js','utf8'),context);
   context.window.document=document;context.window.localStorage={getItem:()=>null,setItem(){}};
   vm.runInContext(fs.readFileSync('system/dist/preferences.js','utf8'),context);
   vm.runInContext(fs.readFileSync('system/dist/app.js','utf8'),context);
@@ -151,6 +158,14 @@ async function main() {
   assert(elements.get('records').innerHTML.includes('nrcan-local-'));
   const rawDepth=vm.runInContext('state.filtered[0].raw_depth',context);assert(elements.get('records').innerHTML.includes('<td>'+rawDepth+'</td>'));
   checks++;console.log('PASS NRCan metadata, raw depth, source links and absence semantics');
+  const sharedCatalog=catalogs.find(c=>c.id==='usgs-mx-historical');
+  vm.runInContext('state.cache.clear()',context);delayed=sharedCatalog.events_url;
+  const previousFetches=fetchCounts.get(sharedCatalog.events_url)||0,previousManifests=fetchCounts.get(sharedCatalog.manifest_url)||0;
+  const sharedPacks=await Promise.all([vm.runInContext("loadPackage(state.registry.catalogs.find(c=>c.id==='usgs-mx-historical'))",context),vm.runInContext("loadPackage(state.registry.catalogs.find(c=>c.id==='usgs-mx-historical'))",context)]);
+  assert.equal(sharedPacks[0],sharedPacks[1],'Concurrent callers share the verified package object');
+  assert.equal(fetchCounts.get(sharedCatalog.events_url),previousFetches+1);assert.equal(fetchCounts.get(sharedCatalog.manifest_url),previousManifests+1);
+  assert.equal(vm.runInContext('state.packageLoads.size',context),0);
+  checks++;console.log('PASS concurrent catalogue loads share one download, validation and cached package');
   vm.runInContext('state.cache.clear()',context);delayed=catalogs.find(c=>c.id==='usgs-mx-historical').events_url;
   const pending=vm.runInContext("loadCatalog('usgs-mx-historical')",context);
   for(const name of [...Object.keys(V.defaults),'searchButton','reset','sort','download'])assert.equal(elements.get(name).disabled,true,name+' must be disabled during load');
@@ -169,13 +184,68 @@ async function main() {
   delayed='';tamper=catalogs[0].events_url;vm.runInContext('state.cache.clear()',context);
   await vm.runInContext("loadCatalog('usgs-na-2020-2025')",context);
   assert.equal(vm.runInContext('state.ready',context),false);assert.equal(elements.get('download').disabled,true);assert.equal(elements.get('retry').hidden,false);
+  assert.equal(vm.runInContext('state.packageLoads.size',context),0,'A failed shared load must remain retryable');
   tamper='';await vm.runInContext("loadCatalog('usgs-mx-historical')",context);
   assert.equal(vm.runInContext('state.events.length',context),24994);assert.equal(elements.get('depthMax').disabled,false);checks++;console.log('PASS integrity failure disables exports and another catalog recovers');
-  vm.runInContext("writeFilters({...V.defaults,search:'Oaxaca',yearFrom:2000,yearTo:2025,magMin:4,magMax:8,magType:'mww',originSource:'us',depthMax:100,missingOnly:true,unmOnly:true,country:'MEX'});applyFilters()",context);
+  const adminHash=crypto.createHash('sha256').update(fs.readFileSync('system/dist/data/admin1-index.json')).digest('hex');
+  // The Mexico-region map now loads subdivision context without applying a
+  // country filter. Deep-link restoration must still enrich active packages.
+  assert.equal(vm.runInContext('!!state.admin1',context),true);
+  vm.runInContext('state.cache.clear()',context); // Keep the active package outside the cache to exercise enrichment.
+  location.href=vm.runInContext('V.serialize({...currentView(),filters:{...V.catalogDefaults(state.catalog),country:"MEX",admin1:"MEX-2727"},admin1Geography:'+JSON.stringify(adminHash)+'},"https://example.org/")',context);
+  await vm.runInContext('restoreLocation()',context);
+  assert.equal(vm.runInContext('state.applied.admin1',context),'MEX-2727');assert.equal(elements.get('admin1').value,'MEX-2727');
+  assert(elements.get('admin1').children.some(o=>o.value==='MEX-2727'),'The target country options must exist before restoration');
+  assert(vm.runInContext('state.activePacks[0].events.every(e=>typeof e.admin1_id==="string")',context));
+  assert(vm.runInContext('state.filtered.length>0 && state.filtered.every(e=>e.country_id==="MEX" && e.admin1_id==="MEX-2727")',context));
+  assert.equal(new URL(location.href).searchParams.get('v'),'5');assert.equal(new URL(location.href).searchParams.get('adh'),adminHash);
+  assert(elements.get('activeFilters').innerHTML.includes('Ciudad de México'),'Administrative chips expose human-readable labels');
+  const expectedScope=vm.runInContext("V.filterEvents(state.events,{...state.applied,country:'',admin1:''},'recent')",context);
+  const expectedAccounting=context.window.SeismicI18n.t('countryExcluded',{n:new Intl.NumberFormat('es').format(expectedScope.length-vm.runInContext('state.filtered.length',context)),outside:new Intl.NumberFormat('es').format(expectedScope.filter(e=>e.country_id==='outside').length)});
+  assert.equal(elements.get('geographyAccounting').textContent,expectedAccounting);
+  vm.runInContext("writeFilters({...state.applied,admin1:''});applyFilters()",context);
+  const administrativeSQL=vm.runInContext('getSQLContext()',context);
+  assert.equal(administrativeSQL.evidence.schema,'seismic-local-query/4');assert.equal(administrativeSQL.evidence.geography.admin1.index_sha256,adminHash);
+  assert.equal(administrativeSQL.evidence.geography.admin1.selected_admin1,null);
+  assert(administrativeSQL.records.some(e=>e.admin1_id==='MEX-2727'));
+  checks++;console.log('PASS v5 navigation loads subdivisions, restores populated controls and retains SQL derivation hashes without a state filter');
+  const savedAdministrativeFilters=vm.runInContext('({...state.applied})',context);
+  const independentAdmin=JSON.parse(fs.readFileSync('system/dist/data/admin1-index.json','utf8'));
+  const independentCountry=JSON.parse(fs.readFileSync('system/dist/data/country-index.json','utf8'));
+  const independentMexico=JSON.parse(fs.readFileSync('system/dist/'+sharedCatalog.events_url,'utf8'));
+  const mexicoColumns=Object.fromEntries(independentMexico.fields.map((key,i)=>[key,i]));
+  const administrativeCounts=min=>{
+    const result=new Map();
+    independentMexico.rows.forEach((row,i)=>{
+      if(independentCountry.catalogs[sharedCatalog.id].country_ids[i]!=='MEX' || Number(row[mexicoColumns.time].slice(0,4))<2010 || Number(row[mexicoColumns.time].slice(0,4))>2025 || row[mexicoColumns.mag]<min || row[mexicoColumns.magType]!=='mww')return;
+      const id=independentAdmin.catalogs[sharedCatalog.id].admin1_ids[i];result.set(id,(result.get(id)||0)+1);
+    });
+    return result;
+  };
+  const assertAdministrativeCounts=expected=>{
+    for(const option of elements.get('admin1').children){
+      if(!option.value)continue;
+      const n=expected.get(option.value)||0,formatted=new Intl.NumberFormat(context.window.SeismicI18n.language).format(n);
+      assert(option.textContent.endsWith(' · '+formatted),option.value+' must display the currently filtered country count '+formatted);
+    }
+  };
+  const filteredAdministrativeCounts=administrativeCounts(4.5);
+  assert([...filteredAdministrativeCounts].filter(([id,n])=>!id.startsWith('admin1-') && n>0).length>1,'The oracle must cover multiple subdivisions');
+  vm.runInContext("writeFilters({...V.catalogDefaults(state.catalog),country:'MEX',yearFrom:2010,yearTo:2025,magMin:4.5,magType:'mww'});applyFilters()",context);
+  assertAdministrativeCounts(filteredAdministrativeCounts);
+  const selectedAdministrativeId=[...filteredAdministrativeCounts].find(([id,n])=>!id.startsWith('admin1-') && n>0)[0];
+  vm.runInContext('writeFilters({...state.applied,admin1:'+JSON.stringify(selectedAdministrativeId)+'});applyFilters()',context);
+  assertAdministrativeCounts(filteredAdministrativeCounts);
+  assert.equal(vm.runInContext('state.filtered.length',context),filteredAdministrativeCounts.get(selectedAdministrativeId));
+  vm.runInContext('writeFilters({...state.applied,magMin:6.5});applyFilters()',context);
+  assertAdministrativeCounts(administrativeCounts(6.5));
+  vm.runInContext('writeFilters('+JSON.stringify(savedAdministrativeFilters)+');applyFilters()',context);
+  checks++;console.log('PASS subdivision option counts follow common year magnitude and type filters while ignoring only the selected subdivision');
+  vm.runInContext("writeFilters({...V.defaults,search:'Oaxaca',yearFrom:2000,yearTo:2025,magMin:4,magMax:8,magType:'mww',originSource:'us',depthMax:100,missingOnly:true,unmOnly:true,country:'MEX',admin1:'MEX-2727'});applyFilters()",context);
   for(const key of Object.keys(V.defaults))assert(elements.get('activeFilters').innerHTML.includes('data-remove-filter="'+key+'"'),'Missing active filter chip '+key);
   vm.runInContext("removeFilter('search')",context);assert.equal(vm.runInContext('state.applied.search',context),'');
   vm.runInContext("writeFilters(V.catalogDefaults(state.catalog));applyFilters()",context);
-  assert.equal(elements.get('activeFilters').hidden,true);checks++;console.log('PASS all eleven active filter controls have removable chips and reset cleanly');
+  assert.equal(elements.get('activeFilters').hidden,true);checks++;console.log('PASS every active filter control has a removable chip and resets cleanly');
   const count=vm.runInContext('state.filtered.length',context), selected=vm.runInContext('state.filtered[41].id',context);
   vm.runInContext('showOnMap('+JSON.stringify(selected)+')',context);
   assert.equal(map.highlighted,selected);assert.equal(vm.runInContext('state.page',context),1);assert.equal(vm.runInContext('state.filtered.length',context),count);
@@ -236,6 +306,7 @@ async function main() {
   assert.equal(vm.runInContext('state.filtered.length',context),24994);assert.equal(elements.get('providerSelect').value,'usgs');
   checks++;console.log('PASS SSN load races, integrity failure, retry, ordinary source selection and reset preserve filter semantics');
   const nativeSsn=catalogs.find(c=>c.id==='ssn-mx-historical');assert(nativeSsn,'The native SSN catalog must be packaged before release');
+  vm.runInContext("changeLanguage('es')",context);
   await chooseSource('ssn');
   assert.equal(vm.runInContext('state.catalog.id',context),nativeSsn.id);assert.equal(vm.runInContext('state.catalog.provider',context),'ssn');
   assert.equal(vm.runInContext('state.filtered.length',context),nativeSsn.event_count);assert.equal(vm.runInContext('state.applied.unmOnly',context),false);
@@ -445,6 +516,76 @@ async function main() {
   assert.equal(elements.get('statMeanValue').textContent,'—');assert.equal(elements.get('analysisGroupSelect').disabled,true);
   assert(!elements.get('scatterChart').innerHTML.includes('<circle'));
   checks++;console.log('PASS empty descriptive queries retain explicit empty results instead of fabricated statistics');
+
+  // Exercise genuine workbench navigation and downloads through their listeners,
+  // with source records still loaded/hashed by the real application pipeline.
+  vm.runInContext("changeLanguage('en');setTab('home')",context);
+  for(const c of catalogs){
+    const event={target:{closest:()=>({dataset:{workbenchCatalog:c.id}})}};
+    await Promise.all(elements.get('workbenchSources').listeners.click.map(callback=>callback(event)));
+    assert.equal(vm.runInContext('state.catalog.id',context),c.id);
+    assert.equal(vm.runInContext('state.filtered.length',context),c.event_count);
+    assert.equal(vm.runInContext('state.applied.country',context),'');
+    assert.equal(vm.runInContext('state.tab',context),'home');assert.equal(elements.get('homePanel').hidden,false);
+    assert.equal(map.records.length,c.event_count);assert(elements.get('workbenchSources').innerHTML.includes('is-active" data-workbench-catalog="'+c.id+'"'));
+  }
+  await Promise.all(elements.get('workbenchAll').listeners.click.map(callback=>callback()));
+  assert.equal(vm.runInContext('state.catalog.id',context),'all-catalogs');assert.equal(vm.runInContext('state.activePacks.length',context),4);
+  assert.equal(vm.runInContext('state.filtered.length',context),287936);assert.equal(map.records.length,287936);
+  assert.equal((elements.get('sourceCards').innerHTML.match(/source-contract/g)||[]).length,4);
+  assert.equal(vm.runInContext('new Set(state.activePacks.map(p=>p.catalog.provider)).size',context),3);
+  checks++;console.log('PASS Home source/all controls load their real rows, retain four provenance contracts and route the active map');
+
+  await vm.runInContext("loadCatalog('ssn-mx-historical',false,{yearFrom:2026,yearTo:2026,magMin:4.5,country:''})",context);
+  await vm.runInContext('ensureAdmin1()',context);vm.runInContext('render()',context);
+  const contextRows=JSON.parse(vm.runInContext('JSON.stringify(state.filtered.map(e=>e.id))',context));
+  assert.equal(contextRows.length,204);assert.equal(vm.runInContext('state.applied.country',context),'');assert.equal(vm.runInContext('state.applied.admin1',context),'');
+  assert.equal(map.contextCountry,'MEX');assert.equal(vm.runInContext('state.filtered.filter(e=>e.country_id==="outside").length',context),157);
+  vm.runInContext('exportQuery()',context);const contextQuery=JSON.parse(await context.savedDownload.blob.text());
+  assert.deepEqual(contextQuery.result.ordered_event_ids,contextRows);assert.equal(contextQuery.selection.country,'');
+  checks++;console.log('PASS Mexico subdivision context preserves all204 SSN rows including157 offshore rows without applying a country/state predicate');
+
+  await vm.runInContext("loadCatalog('usgs-na-2020-2025',false,{yearFrom:2020,yearTo:2025,magMin:4.5,magType:'mww',country:''})",context);
+  vm.runInContext("setTab('home')",context);
+  const workbenchIds=JSON.parse(vm.runInContext('JSON.stringify(state.filtered.map(e=>e.id))',context)),workbenchFilters=vm.runInContext('JSON.stringify(state.applied)',context);
+  assert.equal(workbenchIds.length,659);assert.equal(map.contextCountry,'');
+  for(const callback of elements.get('workbenchCsv').listeners.click)callback();
+  assert(context.savedDownload.name.endsWith('_filtered_snapshot.csv'));assert.equal((await context.savedDownload.blob.text()).split('\r\n').length,660);
+  for(const callback of elements.get('workbenchJson').listeners.click)callback();
+  assert.deepEqual(JSON.parse(await context.savedDownload.blob.text()).result.ordered_event_ids,workbenchIds);
+  for(const [id,tab] of [['workbenchStats','analysis'],['workbenchSql','sql'],['workbenchCompare','comparison']]){
+    for(const callback of elements.get(id).listeners.click)callback();assert.equal(vm.runInContext('state.tab',context),tab);
+    assert.equal(vm.runInContext('JSON.stringify(state.applied)',context),workbenchFilters);assert.deepEqual(JSON.parse(vm.runInContext('JSON.stringify(state.filtered.map(e=>e.id))',context)),workbenchIds);
+  }
+  for(const callback of elements.get('workbenchReport').listeners.click)callback();
+  assert.equal(vm.runInContext('state.tab',context),'analysis');assert(elements.get('inlineReportFrame').srcdoc.includes('659'));assert.equal((elements.get('inlineReportFrame').srcdoc.match(/<svg\b/g)||[]).length,3);assert.equal(elements.get('printInlineReport').disabled,false);
+  for(const id of ['includeCsv','includeJson','includeHtml'])elements.get(id).checked=true;
+  context.savedDownload=null;for(const callback of elements.get('workbenchZip').listeners.click)callback();
+  for(let n=0;n<100&&!context.savedDownload;n++)await new Promise(resolve=>setTimeout(resolve,5));
+  assert(context.savedDownload?.name.endsWith('.zip'));assert.equal(Buffer.from(await context.savedDownload.blob.arrayBuffer()).readUInt32LE(0),0x04034b50);
+  checks++;console.log('PASS Home outputs produce real659-row CSV/query/ZIP and HTML preview while stats/SQL/comparison routes preserve the selected records');
+
+  vm.runInContext("setTab('home')",context);elements.get('mapDisplay').value='heat';
+  for(const callback of elements.get('mapDisplay').listeners.change)callback();
+  assert.equal(map.displayMode,'heat');assert.equal(new URL(location.href).searchParams.get('display'),'heat');
+  assert.equal(elements.get('heatLegend').hidden,false);assert.equal(elements.get('mapPointLegend').hidden,true);
+  assert.equal(vm.runInContext('JSON.stringify(state.applied)',context),workbenchFilters);assert.deepEqual(JSON.parse(vm.runInContext('JSON.stringify(state.filtered.map(e=>e.id))',context)),workbenchIds);
+  for(const callback of elements.get('workbenchJson').listeners.click)callback();
+  const heatQuery=JSON.parse(await context.savedDownload.blob.text());assert.equal(heatQuery.cartography.mode,'heat');assert.equal(heatQuery.cartography.selected_rows,659);assert.equal(new URL(heatQuery.view_url).searchParams.get('display'),'heat');assert.deepEqual(heatQuery.result.ordered_event_ids,workbenchIds);
+  vm.runInContext("setTab('analysis')",context);assert.equal(vm.runInContext('analysisDocument().cartography.mode',context),'heat');
+  location.href=vm.runInContext('viewURL({...currentView(),tab:"analysis",filters:{...state.applied,yearFrom:2025}})',context);
+  await vm.runInContext('restoreLocation()',context);
+  assert.equal(vm.runInContext('state.tab',context),'analysis');assert.equal(map.displayMode,'heat');assert.equal(vm.runInContext('state.filtered.length',context),143);
+  vm.runInContext('exportQuery()',context);const hiddenMapQuery=JSON.parse(await context.savedDownload.blob.text());
+  assert.equal(hiddenMapQuery.result.row_count,143);assert.equal(hiddenMapQuery.cartography,null,'A hidden map with an earlier selection must not supply current cartography evidence');
+  assert.equal(vm.runInContext('analysisDocument().cartography',context),null);
+  vm.runInContext("setTab('catalog');exportQuery()",context);const restoredMapQuery=JSON.parse(await context.savedDownload.blob.text());
+  assert.equal(restoredMapQuery.cartography.mode,'heat');assert.equal(restoredMapQuery.cartography.selected_rows,143);
+  assert.deepEqual(restoredMapQuery.result.ordered_event_ids,hiddenMapQuery.result.ordered_event_ids);
+  elements.get('mapDisplay').value='points';for(const callback of elements.get('mapDisplay').listeners.change)callback();
+  assert.equal(new URL(location.href).searchParams.has('display'),false);assert.equal(elements.get('heatLegend').hidden,true);
+  assert.deepEqual(JSON.parse(vm.runInContext('JSON.stringify(state.filtered.map(e=>e.id))',context)),hiddenMapQuery.result.ordered_event_ids);
+  checks++;console.log('PASS heat display/permalinks preserve filters and IDs; exports bind visible cartography or explicitly omit stale hidden-map evidence');
   console.log(JSON.stringify({passed:checks},null,2));
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

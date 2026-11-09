@@ -9,6 +9,7 @@ import argparse
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
+import gzip
 import hashlib
 from html.parser import HTMLParser
 import json
@@ -29,9 +30,21 @@ MARKDOWN_LINK = re.compile(r"\[[^\]]*\]\((?:<([^>]+)>|([^\s)]+))(?:\s+[^)]*)?\)"
 SECRET = re.compile(r"(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----)")
 LOCAL_PATH = re.compile(r"(?:[A-Za-z]:[\\/](?:Users|Documents and Settings)[\\/]|/Users/|/home/)")
 EVENT_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,100}\Z")
-ALLOWED = {".html", ".js", ".css", ".json", ".geojson", ".map", ".png", ".svg", ".jpg", ".jpeg", ".webp", ".ico", ".txt", ".woff", ".woff2"}
+ALLOWED = {".html", ".js", ".css", ".json", ".geojson", ".map", ".png", ".svg", ".jpg", ".jpeg", ".webp", ".ico", ".txt", ".woff", ".woff2", ".gz", ".wasm"}
 PRIVATE_PARTS = {".git", "contexto", "paper", "outputs", "tmp", "__pycache__", "node_modules", "credentials"}
 USER_AGENT = "SeismicDataResearch-LinkCheck/2 (bounded reproducibility audit)"
+SQLJS_VERSION = "1.13.0"
+SQLJS_PACKAGE_SHA256 = "6d70e68446df85ac8f56e34dd10986cfe1182335cb0f071b71b3f007bc33394a"
+SQLJS_FILES = {
+    "sql-wasm.js": (48788, "694ca5b36aa3e6e71f417819d7df390b65343665fcfa5c69015ca33d93d291b3"),
+    "sql-wasm.wasm": (659806, "0734155c83e493983d1f2ff5b09a4fab6e35a32e9449c7e4e545756439f62d73"),
+    "LICENSE": (2199, "60a3f6e4d7b29b4321359e683b36cf198d24f58e24582070f56e6fa89d5ee2be"),
+}
+NATURAL_EARTH_COMMIT = "ca96624a56bd078437bca8184e78163e5039ad19"
+ADMIN1_SOURCE_SHA256 = "22d0e3ad85eb3e27f17cabf8ba2d50e554fbc27a87796ff891d958185da62fb5"
+TECTONIC_COMMIT = "339b0c56563c118307b1f4542703047f5f698fae"
+TECTONIC_SHA256 = "0a4d3ad9bb5d419d89f476a0fdd0f2dd35954b736e1a526d20414c728397e16b"
+TECTONIC_LICENSE_SHA256 = "c1ecb59349b5b0cb81bad82d59af033304358c0109d668c727abe03bd96b2fd0"
 
 
 def digest(raw):
@@ -104,7 +117,21 @@ def collect_links(scope):
         elif path.suffix == ".css":
             refs += CSS_URL.findall(text)
         elif path.suffix == ".js":
-            refs += LOCAL_JSON.findall(text)
+            for match in LOCAL_JSON.finditer(text):
+                link = match.group(1)
+                # sql.js accepts a locateFile resolver even when wasmBinary is
+                # supplied. This exact concatenated directory is not a fetched
+                # asset. The actual JS/WASM/LICENSE targets are independently
+                # pinned below and the explicit fetch remains a local reference.
+                prefix = text[max(0, match.start()-30):match.start()]
+                suffix = text[match.end():match.end()+12]
+                if (name == "system/dist/sql-worker.js" and link == "vendor/sqljs/" and
+                        re.search(r"locateFile\s*:\s*file\s*=>\s*$", prefix) and
+                        re.match(r"\s*\+\s*file\b", suffix)):
+                    non_navigation.append({"url": link, "source": name,
+                                           "classification": "sql.js local resolver directory prefix; complete JS/WASM/licence paths independently pinned", "line": text.count("\n", 0, match.start())+1})
+                else:
+                    refs.append(link)
         elif path.suffix == ".md":
             refs += [a or b for a, b in MARKDOWN_LINK.findall(text)]
         if path.suffix in {".js", ".css"}:
@@ -150,8 +177,134 @@ def check_url(url, timeout=20):
             return {"url": url, "ok": False, "classification": "network_failure", "error": str(error), "method": method}
 
 
+def packaged_feature_checks():
+    """Check optional feature packages offline; this never certifies remote URLs.
+
+    Feature entry points make their manifests mandatory. Fixed upstream engine
+    and model pins are independent of the editable manifests. Transport is bound
+    to every current JSON/GeoJSON input, including compressed and decoded bytes.
+    Small synthetic link-policy fixtures without these features remain supported.
+    """
+    checks = []
+
+    def check(name, ok, error=None):
+        item = {"check": name, "ok": bool(ok)}
+        if error is not None:
+            item["error"] = str(error)
+        checks.append(item)
+
+    def local_file(relative):
+        if not isinstance(relative, str) or not relative or "\\" in relative:
+            raise ValueError("Invalid packaged path")
+        path = Path(relative)
+        target = (DIST / path).resolve()
+        if path.is_absolute() or ".." in path.parts or not target.is_relative_to(DIST.resolve()) or not target.is_file():
+            raise ValueError("Missing packaged file or path outside public artifact: " + relative)
+        return target
+
+    def matching_bytes(relative, spec):
+        raw = local_file(relative).read_bytes()
+        if len(raw) != spec["bytes"] or digest(raw) != spec["sha256"]:
+            raise ValueError("Packaged bytes differ: " + relative)
+        return raw
+
+    sql_dir = DIST / "vendor/sqljs"
+    if sql_dir.exists() or (DIST / "sql-explorer.js").exists():
+        try:
+            provenance = json.loads(local_file("vendor/sqljs/provenance.json").read_text(encoding="utf-8"))
+            expected = {name: {"bytes": count, "sha256": sha} for name, (count, sha) in SQLJS_FILES.items()}
+            check("pinned sql.js provenance and licence", provenance.get("name") == "sql.js" and
+                  provenance.get("version") == SQLJS_VERSION and provenance.get("files") == expected and
+                  provenance.get("package_sha256") == SQLJS_PACKAGE_SHA256 and
+                  provenance.get("source_package") == f"https://registry.npmjs.org/sql.js/-/sql.js-{SQLJS_VERSION}.tgz" and
+                  provenance.get("upstream") == f"https://github.com/sql-js/sql.js/tree/v{SQLJS_VERSION}" and
+                  provenance.get("license") == "MIT; bundled SQLite is public domain")
+            for name, spec in expected.items():
+                try:
+                    raw = matching_bytes("vendor/sqljs/" + name, spec)
+                    check("pinned sql.js asset: " + name, name != "sql-wasm.wasm" or raw[:8] == b"\x00asm\x01\x00\x00\x00")
+                except (OSError, ValueError, KeyError) as error:
+                    check("pinned sql.js asset: " + name, False, error)
+        except (OSError, ValueError, KeyError) as error:
+            check("pinned sql.js provenance and licence", False, error)
+
+    transport = DIST / "data/transport-manifest.json"
+    if transport.exists() or (DIST / "asset-loader.js").exists():
+        try:
+            manifest = json.loads(local_file("data/transport-manifest.json").read_text(encoding="utf-8"))
+            assets = manifest["assets"]
+            listed = [asset["path"] for asset in assets]
+            expected = {path.relative_to(DIST).as_posix() for path in (DIST / "data").rglob("*")
+                        if path.is_file() and path.suffix in {".json", ".geojson"} and path != transport}
+            check("transport manifest covers every structured data asset once", manifest.get("schema") == "seismic-transport/1" and
+                  len(listed) == len(set(listed)) and set(listed) == expected)
+            for asset in assets:
+                name = asset["path"]
+                try:
+                    raw = matching_bytes(name, asset)
+                    spec = asset["gzip"]
+                    if spec["path"] != name + ".gz":
+                        raise ValueError("Compressed path must be the original path plus .gz")
+                    compressed = matching_bytes(spec["path"], spec)
+                    check("transport original/gzip integrity: " + name, compressed[:4] == b"\x1f\x8b\x08\x00" and
+                          compressed[4:8] == b"\x00" * 4 and compressed[9:10] == b"\xff" and gzip.decompress(compressed) == raw)
+                except (OSError, ValueError, KeyError, EOFError) as error:
+                    check("transport original/gzip integrity: " + str(name), False, error)
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            check("transport manifest covers every structured data asset once", False, error)
+
+    admin_manifest = DIST / "data/admin1-manifest.json"
+    if admin_manifest.exists() or (DIST / "data/admin1-index.json").exists() or (DIST / "data/admin1.geojson").exists():
+        try:
+            metadata = json.loads(local_file("data/admin1-manifest.json").read_text(encoding="utf-8"))
+            source = metadata["source"]
+            check("pinned Natural Earth admin-1 source and rights", metadata.get("schema") == "seismic-admin1-manifest/1" and
+                  source.get("commit") == NATURAL_EARTH_COMMIT and source.get("sha256") == ADMIN1_SOURCE_SHA256 and
+                  source.get("bytes") == 40726851 and source.get("license") == "Public domain" and
+                  source.get("url") == f"https://raw.githubusercontent.com/nvkelso/natural-earth-vector/{NATURAL_EARTH_COMMIT}/geojson/ne_10m_admin_1_states_provinces.geojson" and
+                  source.get("rights_url") == "https://www.naturalearthdata.com/about/terms-of-use/")
+            assets = metadata["assets"]
+            check("admin-1 manifest names geometry and index once", {asset["path"] for asset in assets} ==
+                  {"data/admin1.geojson", "data/admin1-index.json"} and len(assets) == 2)
+            for asset in assets:
+                try:
+                    matching_bytes(asset["path"], asset)
+                    check("pinned admin-1 asset: " + asset["path"], True)
+                except (OSError, ValueError, KeyError) as error:
+                    check("pinned admin-1 asset: " + str(asset.get("path")), False, error)
+            index = json.loads(local_file("data/admin1-index.json").read_text(encoding="utf-8"))
+            check("admin-1 country/registry/source evidence binding", index.get("country_index_sha256") == metadata.get("country_index_sha256") ==
+                  digest(local_file("data/country-index.json").read_bytes()) and
+                  index.get("registry_sha256") == metadata.get("registry_sha256") == digest(local_file("data/catalogs.json").read_bytes()) and
+                  index.get("source_sha256") == ADMIN1_SOURCE_SHA256 and
+                  index.get("geometry_sha256") == digest(local_file("data/admin1.geojson").read_bytes()))
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            check("admin-1 package provenance", False, error)
+
+    tectonic_manifest = DIST / "data/tectonic-plates-manifest.json"
+    if tectonic_manifest.exists() or (DIST / "data/tectonic-plates.geojson").exists():
+        try:
+            metadata = json.loads(local_file("data/tectonic-plates-manifest.json").read_text(encoding="utf-8"))
+            asset, licence, citation = metadata["asset"], metadata["license"], metadata["citation"]
+            check("pinned PB2002 model, citation and separate licence", metadata.get("schema") == "seismic-tectonic-context/1" and
+                  metadata.get("model") == "PB2002" and metadata.get("source_commit") == TECTONIC_COMMIT and
+                  metadata.get("model_publication_year") == 2003 and citation.get("doi") == "10.1029/2001GC000252" and
+                  citation.get("url") == "https://doi.org/10.1029/2001GC000252" and
+                  licence.get("id") == "ODC-BY-1.0" and licence.get("url") == "https://opendatacommons.org/licenses/by/1-0/")
+            raw = matching_bytes(asset["path"], asset)
+            check("pinned PB2002 geometry", asset.get("path") == "data/tectonic-plates.geojson" and digest(raw) == TECTONIC_SHA256)
+            notice = local_file("data/" + licence["notice"]).read_bytes()
+            check("pinned PB2002 attribution notice", digest(notice) == licence.get("notice_sha256") == TECTONIC_LICENSE_SHA256)
+            sources = metadata["source_files"]
+            check("PB2002 source URLs use the pinned commit", len(sources) == 5 and all(
+                  item["url"] == f"https://raw.githubusercontent.com/fraxen/tectonicplates/{TECTONIC_COMMIT}/" + item["path"] for item in sources))
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            check("PB2002 package provenance", False, error)
+    return checks
+
+
 def privacy_and_integrity():
-    inventory, failures = [], []
+    inventory, failures, virtual_runtime_paths = [], [], []
     for path in sorted(DIST.rglob("*")):
         if not path.is_file():
             continue
@@ -170,7 +323,20 @@ def privacy_and_integrity():
             text = raw.decode("utf-8")
             if SECRET.search(text):
                 reason.append("credential/private-key signature")
-            if LOCAL_PATH.search(text):
+            path_scan = text
+            # The pinned Emscripten engine creates this POSIX directory inside
+            # its in-memory virtual filesystem. It is not a workstation path.
+            # Admit only the exact quoted literal in the exact upstream bytes;
+            # any changed vendor file or any other local path still fails.
+            if (relative == "vendor/sqljs/sql-wasm.js" and len(raw) == SQLJS_FILES["sql-wasm.js"][0] and
+                    digest(raw) == SQLJS_FILES["sql-wasm.js"][1]):
+                literal = '"/home/web_user"'
+                if literal in path_scan:
+                    path_scan = path_scan.replace(literal, '"[Emscripten virtual HOME]"')
+                    virtual_runtime_paths.append({"path": relative, "literal": "/home/web_user",
+                                                  "classification": "Pinned Emscripten in-memory POSIX HOME; not a workstation path",
+                                                  "guard_sha256": SQLJS_FILES["sql-wasm.js"][1]})
+            if LOCAL_PATH.search(path_scan):
                 reason.append("private workstation path")
         if reason:
             failures.append({"path": relative, "reasons": reason})
@@ -201,7 +367,8 @@ def privacy_and_integrity():
                 if ok:
                     ok = digest(target.read_bytes()) == catalog[hash_key]
                 checks.append({"check": catalog["id"] + ": " + path_key, "ok": ok})
-    return {"inventory": inventory, "privacy_failures": failures, "integrity_checks": checks,
+    checks.extend(packaged_feature_checks())
+    return {"inventory": inventory, "privacy_failures": failures, "virtual_runtime_paths": virtual_runtime_paths, "integrity_checks": checks,
             "limits": "Checks known private path/credential signatures and packaged checksums; not a proof that arbitrary prose contains no personal information."}
 
 
@@ -263,7 +430,7 @@ def main():
               "local_assets": local, "artifact": artifact, "literal_external_url_count": len(external),
               "literal_external_inventory": [{"url": url, "linked_from": sorted(paths)} for url, paths in sorted(external.items())],
               "non_navigation_urls": non_navigation,
-              "dependency_scope": "Third-party Leaflet JS and source-map definition/source URLs are covered by pinned-file hashes, not interpreted as application navigation. Leaflet CSS resource URLs are checked as local references. Original application JS, including map attribution and generated-event templates, is scanned.",
+              "dependency_scope": "Third-party Leaflet JS and sql.js/SQLite WASM engine bytes are covered by independent version/file pins and packaged provenance, not interpreted as application navigation. Leaflet CSS resources are checked as local references. Engine provenance, Natural Earth admin-1 and PB2002 model/citation/licence URLs are included in the literal external inventory and need fresh network verification for publication; offline byte checks never certify those destinations. Original application JS, including map attribution and generated-event templates, is scanned. Every transport entry verifies original and compressed hashes, sizes and lossless decoding.",
               "archived_response_scope": "Raw official response bodies in research-data/comcat preserve historical product-content URLs as captured evidence, not as current website navigation. Their bytes and acquisition manifest are checked by prepare_public_evidence.py; this link report covers the source/query links exposed by the article, technical documentation and deployed explorer, without dereferencing every unexposed media URL inside archived products.",
               "url_templates": templates, "dynamic_events": dynamic, "external_checked": checked,
               "network_checked": args.network, "generated_event_links_exhaustively_checked": args.network and args.dynamic_events == "all",

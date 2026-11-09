@@ -19,19 +19,34 @@ test('initial head application follows the OS before any body controls exist',()
   }
   const html=fs.readFileSync('system/dist/index.html','utf8');
   const preferencesBeforeStyles = document => {
-    const script=document.indexOf('<script src="preferences.js"></script>');
+    const base='https://example.org/';
+    const scripts=[...document.matchAll(/<script\b[^>]*>/g)].filter(match=>{
+      const src=match[0].match(/\bsrc="([^"]+)"/);
+      if(!src)return false;
+      const url=new URL(src[1],base);
+      return url.origin===new URL(base).origin && url.pathname==='/preferences.js';
+    });
     const stylesheet=[...document.matchAll(/<link\b[^>]*>/g)].find(match=>{
       const href=match[0].match(/\bhref="([^"]+)"/);
       return href && new URL(href[1],'https://example.org/').pathname==='/style.css';
     });
-    return script>=0 && !!stylesheet && script<stylesheet.index;
+    // Appearance must be applied by one blocking local script before CSS.
+    // A version query does not alter execution order or permit duplicate loads.
+    const script=scripts[0],attributes=script?.[0].replace(/\bsrc="[^"]*"/,'');
+    return scripts.length===1 && !/\b(?:async|defer|type)\b/.test(attributes) &&
+      !!stylesheet && script.index<stylesheet.index;
   };
   assert(preferencesBeforeStyles(html));
-  for(const href of ['style.css','style.css?v=map-20261107']) {
-    const script='<script src="preferences.js"></script>',link=`<link rel="stylesheet" href="${href}">`;
+  for(const href of ['style.css','style.css?v=map-20261107'])for(const src of ['preferences.js','preferences.js?v=c82b36aca310']) {
+    const script=`<script src="${src}"></script>`,link=`<link rel="stylesheet" href="${href}">`;
     assert(preferencesBeforeStyles(script+link));
     assert(!preferencesBeforeStyles(link+script));
     assert(!preferencesBeforeStyles(link));
+    assert(!preferencesBeforeStyles(script+script+link));
+    assert(!preferencesBeforeStyles(`<script src="${src}" defer></script>`+link));
+    assert(!preferencesBeforeStyles(`<script src="${src}" async></script>`+link));
+    assert(!preferencesBeforeStyles(`<script src="${src}" type="module"></script>`+link));
+    assert(!preferencesBeforeStyles('<script src="https://unrelated.example/preferences.js"></script>'+link));
   }
 });
 test('all theme and mode choices persist under a project-specific key',()=>{
