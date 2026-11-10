@@ -160,10 +160,10 @@ def build(capture_system: Path | str = DEFAULT_CAPTURE, capture_url: str = DEFAU
     heading(2050, "03", "OUTPUTS", "#997029")
 
     source_specs = [
-        ("USGS", "Mexico region", "usgs-mx-historical", "1900–2026*", ("MEX",), "#176b8d"),
-        ("USGS", "North America", "usgs-na-2020-2025", "2020–2025", ("USA", "CAN", "MEX"), "#225aa3"),
-        ("NRCan / GSC", "Canada + vicinity", "nrcan-ca-historical", "1985–2019", ("CAN",), "#8b5674"),
-        ("SSN / UNAM", "Mexico", "ssn-mx-historical", "1900–2026*", ("MEX",), "#087f7e"),
+        ("01 USGS", "North America", "usgs-na-2020-2025", "2020–2025", ("USA", "CAN", "MEX"), "#2563eb"),
+        ("02 USGS", "Mexico region", "usgs-mx-historical", "1900–2026*", ("MEX",), "#7c3aed"),
+        ("03 NRCan / GSC", "Canada + vicinity", "nrcan-ca-historical", "1985–2019", ("CAN",), "#c28112"),
+        ("04 SSN / UNAM", "Mexico", "ssn-mx-historical", "1900–2026*", ("MEX",), "#0d9471"),
     ]
     for index, (agency, geography, key, years, countries, color) in enumerate(source_specs):
         x, y, w, h = 25, 151+index*237, 220, 218
@@ -229,14 +229,15 @@ def build(capture_system: Path | str = DEFAULT_CAPTURE, capture_url: str = DEFAU
                         (1024, 189, "SQLite · WASM"), (1224, 128, "Web Crypto")]:
         pill(x, 1118, w, label, "#075985", "#e8f2f7", 19)
     text(1380, 1141, "Session memory · no database server / Docker", 20, 400, "#456879")
-    text(278, 1176, "8 coordinated views", 21, 700)
-    views = [("Home", 98), ("Map", 84), ("Sources", 115), ("Results", 112), ("Revisions", 132),
-             ("SQL", 82), ("Compare", 125), ("Methods", 123)]
-    current_x = 515
+    text(278, 1176, "12 coordinated views", 20, 700)
+    views = [("Home", 78), ("Map", 64), ("Sources", 96), ("Results", 86), ("Revisions", 106),
+             ("SQL", 62), ("Compare", 100), ("Methods", 96), ("Quick", 80),
+             ("Top 10", 76), ("Proximity", 106), ("Help", 64)]
+    current_x = 520
     for label, width in views:
-        pill(current_x, 1154, width, label, "#31586b", "#edf3f6", 19)
-        current_x += width+10
-    text(1684, 1176, "NE admin-1 + PB2002 · context", 19, 600, "#58707e")
+        pill(current_x, 1154, width, label, "#31586b", "#edf3f6", 17)
+        current_x += width+8
+    text(1710, 1176, "NE admin-1 + PB2002 · context", 17, 600, "#58707e")
 
     # This lane is offline evidence validation, never a browser dependency.
     rect(25, 1205, 2246, 53, "#edf1f4", "#d8e0e6", 10)

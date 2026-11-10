@@ -1,4 +1,4 @@
-"""Bind the entry page to the exact local application JS/CSS bytes, without data edits."""
+"""Bind local code, styles and interface images to their exact bytes, without data edits."""
 from pathlib import Path
 import hashlib
 import re
@@ -18,7 +18,7 @@ def versioned_html(text):
             raise ValueError('Missing local frontend dependency: ' + name)
         checksum = hashlib.sha256(path.read_bytes()).hexdigest()[:12]
         return prefix + name + '?v=' + checksum + '"'
-    return re.sub(r'((?:src|href)=")([^"#]+\.(?:js|css)(?:\?[^"#]*)?)"', replace, text)
+    return re.sub(r'((?:src|href)=")([^"#]+\.(?:js|css|svg|png|jpe?g|webp|ico)(?:\?[^"#]*)?)"', replace, text)
 
 
 def main():
@@ -31,7 +31,7 @@ def main():
             text = text[:at] + f'<script src="{dependency}" defer></script>' + text[at:]
     text = text.replace('2026.11 · review', '2026.11.10 · review')
     path.write_text(versioned_html(text), encoding='utf-8', newline='\n')
-    print('Entry page bound to local application JS/CSS SHA-256 prefixes; source data unchanged.')
+    print('Entry page bound to local code, styles and interface-image SHA-256 prefixes; source data unchanged.')
 
 
 if __name__ == '__main__':

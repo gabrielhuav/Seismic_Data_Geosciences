@@ -67,4 +67,29 @@ test('catalogue labels and identifiers are encoded in generated HTML without cha
  assert(!html.includes('<img'));assert(html.includes('&lt;img'));
  assert(inputs.includes('test-&quot;&lt;id&gt;'));assert.equal(JSON.stringify(c),before);
 });
+test('four catalogue identities remain stable across ordering, active selection and interface language without merging the two USGS inputs',()=>{
+ const expected={'usgs-na-2020-2025':['01','#2563eb','circle'],'usgs-mx-historical':['02','#7c3aed','square'],'nrcan-ca-historical':['03','#c28112','triangle'],'ssn-mx-historical':['04','#0d9471','diamond']};
+ for(const c of [...catalogs].reverse()){
+  const s=W.identity(c.id);assert.deepEqual([s.code,s.color,s.shape],expected[c.id]);
+  for(const lang of ['en','es'])for(const html of [W.cards([c],{lang,active:c.id}),W.inputs([c],lang,c.id)]){assert(html.includes('--catalogue-color:'+s.color));assert(html.includes('shape-'+s.shape));assert(html.includes(s.code));assert(html.includes('is-active'));}
+ }
+ assert.notEqual(W.identity(catalogs[0]).color,W.identity(catalogs[1]).color);
+ assert.equal(W.identity('unknown').color,'#64748b');
+ assert.equal((W.inputs(catalogs,'en','all-catalogs').match(/is-active/g)||[]).length,4);
+});
+test('aligned coverage tracks expose exact observed bounds and do not invent intervals for unloaded sources',()=>{
+ const ranges={'usgs-na-2020-2025':{first:'2020-01-01T01:00:00Z',last:'2025-12-31T23:00:00Z'},'ssn-mx-historical':{first:'1900-01-20T06:33:30Z',last:'2026-11-06T20:31:07Z'}};
+ const html=W.timeline(catalogs,{lang:'en',active:'ssn-mx-historical',extent:id=>ranges[id]});
+ assert.equal((html.match(/class="source-track(?: is-active)?"/g)||[]).length,4);
+ assert.equal((html.match(/<i style="left:/g)||[]).length,2,'Unloaded source windows must not become observed intervals');
+ assert(html.includes('2020-01-01 01:00:00 UTC'));assert(html.includes('2026-11-06 20:31:07 UTC'));assert(html.includes('do not imply continuous observations or completeness'));
+ assert(html.includes('2026 partial through 6 November'));assert.equal(W.intervalPosition({first:'bad',last:'2026'}),null);
+ const position=W.intervalPosition(ranges['ssn-mx-historical']);assert(position.left>0&&position.left<1&&position.width<100);
+ assert.equal(W.intervalPosition({first:'2026-01-01',last:'1900-01-01'}),null);
+});
+test('active source facts retain derived keys, unknown magnitude types and undocumented Canadian depths',()=>{
+ const ssn=W.focus(catalogs,{active:'ssn-mx-historical',selectedRows:204,lang:'en'}),canada=W.focus(catalogs,{active:'nrcan-ca-historical',selectedRows:20,lang:'es'});
+ assert(ssn.includes('Derived row key; no official event ID supplied'));assert(ssn.includes('Type unreported; not converted to Mw'));assert(ssn.includes('204'));
+ assert(canada.includes('Sólo valor crudo; unidad no documentada'));assert(!canada.includes('Kilómetros documentados'));
+});
 console.log(JSON.stringify({passed:checks}));

@@ -5,7 +5,7 @@ const t = (key, values) => I.t(key, values);
 const state = {events: [], fields: [], filtered: [], manifest: null, registry: null, catalog: null, page: 0, size: 40, revisions: null,
   applied: {...V.defaults}, tab: 'catalog', selectedEvent: '', ready: false, restoring: false,
   formValid: true, invalidLink: [], hashes: {}, action: '', loadError: null, request: 0, locationRequest:0, cache: new Map(), packageLoads:new Map(), baseStatus: 'baseLocalNote', highlightedEvent:'', expanded:false,
-  geography:null, geographyHash:'', activePacks:[], composition:null,filtersOpen:false,coverage:null,revisionsHash:'',coverageHash:''};
+  geography:null, geographyHash:'', activePacks:[], composition:null,filtersOpen:false,coverage:null,revisionsHash:'',coverageHash:'',sourceView:'atlas'};
 const fmt = n => new Intl.NumberFormat(I.language).format(n);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const value = (n, dec = 2) => n === null || n === undefined || n === '' ? t('notReported') : Number(n).toLocaleString(I.language, {maximumFractionDigits: dec});
@@ -111,7 +111,7 @@ function ensureQuickPanel(){
 }
 function ensureHelpPanel(){
   if(!helpPanel && window.SeismicQuickStart)helpPanel=window.SeismicQuickStart.mountHelp($('helpWorkspace'),{
-    getLanguage:()=>I.language,version:'2026.11.10',onNavigate:name=>setTab(name)
+    getLanguage:()=>I.language,version:'2026.11.10.2',onNavigate:name=>setTab(name)
   });
   return helpPanel;
 }
@@ -189,10 +189,12 @@ function syncURL() {
 function viewURL(view=currentView()){
   const url=new URL(V.serialize(view,location.href));
   if(state.map?.getDisplayMode?.()==='heat')url.searchParams.set('display','heat');else url.searchParams.delete('display');
+  if(state.map?.getColorMode?.()==='depth')url.searchParams.set('pointColor','depth');else url.searchParams.delete('pointColor');
   return url.href;
 }
 function setTab(name, persist = true) {
-  if(state.expanded && !['catalog','home','quick'].includes(name))setExpanded(false);
+  const previousTab=state.tab;
+  if(state.expanded && !['catalog','home','quick','sources'].includes(name))setExpanded(false);
   state.tab = name;
   for (const tab of ['home', 'catalog', 'sources', 'analysis', 'revisions', 'comparison', 'sql', 'methods','quick','top','recurrence','help']) {
     const active = tab === name; $(tab + 'Panel').hidden = !active;
@@ -200,12 +202,13 @@ function setTab(name, persist = true) {
   }
   document.body.dataset.view=name;
   if(name==='quick')ensureQuickPanel()?.activate();
-  const mapMount=name==='quick' ? quickPanel?.getMapMount() : name==='home' ? $('homeMapMount') : $('catalogMapMount');
-  if(mapMount && $('mapCard').parentElement!==mapMount){
+  const mapMount=name==='quick' ? quickPanel?.getMapMount() : name==='home' ? $('homeMapMount') : name==='sources' ? sourceMapMount() : $('catalogMapMount');
+  const mapMoved=mapMount && $('mapCard').parentElement!==mapMount;
+  if(mapMoved){
     if(mapMount.insertBefore)mapMount.insertBefore($('mapCard'),mapMount.firstChild);
     else mapMount.append($('mapCard'));
   }
-  if (['catalog','home','quick'].includes(name) && state.map) requestAnimationFrame(() => {state.map.resize(); drawMap();});
+  if (['catalog','home','quick','sources'].includes(name) && state.map && (mapMoved||previousTab!==name)) requestAnimationFrame(() => {state.map.resize(); drawMap();});
   if (name === 'sources' || name === 'home') renderSources();
   if (name === 'analysis'){renderAnalysis();renderCoverage();}
   if(name==='revisions')ensureRevisionStory();
@@ -214,8 +217,8 @@ function setTab(name, persist = true) {
   if(name==='top')ensureHistoryPanel('top')?.activate();
   if(name==='recurrence')ensureHistoryPanel('recurrence')?.activate();
   if(name==='help')ensureHelpPanel()?.activate?.();
-  const sharedTools=document.querySelector('.view-tools');if(sharedTools)sharedTools.hidden=['quick','top','recurrence','help'].includes(name);
-  $('loadStatus').hidden=['top','recurrence','help'].includes(name);
+  const sharedTools=document.querySelector('.view-tools');if(sharedTools)sharedTools.hidden=['quick','top','recurrence','help','comparison'].includes(name);
+  $('loadStatus').hidden=['top','recurrence','help','comparison'].includes(name);
   if (persist) syncURL();
 }
 function populate(id, values) {
@@ -276,6 +279,7 @@ function showWarnings() {
   $('linkWarning').textContent = state.invalidLink.length ? t('invalidLink', {fields: state.invalidLink.join(', ')}) : '';
 }
 function buttons() {
+  for(const id of ['sourceExplore','sourceInspect','sourceExport','sourceStageAnalysis','sourceStageExport'])$(id).disabled=!state.ready||!state.formValid;
   for(const id of ['quickTab','topTab','recurrenceTab'])$(id).disabled=!state.registry;
   if($('loadingProgress'))$('loadingProgress').hidden=state.ready || !!state.loadError;
   if(!state.ready || !state.formValid)sqlPanel?.invalidate();
@@ -313,6 +317,7 @@ function render() {
   $('typeCount').textContent = fmt(new Set(rows.map(e => e.magType).filter(Boolean)).size);
   $('filterSummary').textContent = t('filterSummary', {n: fmt(rows.length), total: fmt(state.events.length), from: state.applied.yearFrom, to: state.applied.yearTo, min: value(state.applied.magMin,1)});
   $('mapSelection').textContent=catalogLabel(state.catalog)+' · '+(state.applied.country ? regionLabel(state.applied.country) : t('allCountries'))+(state.applied.admin1?' · '+admin1Label(state.applied.admin1):'')+' · '+state.applied.yearFrom+'–'+state.applied.yearTo+' · M ≥ '+value(state.applied.magMin,1);
+  if(state.tab==='sources')renderSourceFocus();
   if($('workbenchSelection'))$('workbenchSelection').textContent=fmt(rows.length)+' '+t('sourceRows');
   renderFilterChips();drawMap();drawHistogram();renderTable();renderExplorerInsights();renderSearchSuggestions();updateMapEvidence();
   if (state.tab === 'analysis') renderAnalysis();
@@ -399,12 +404,41 @@ function renderSources() {
   if (!state.registry) return;
   $('homeCatalogCount').textContent=fmt(state.registry.catalogs.length);
   $('homeRecordCount').textContent=fmt(state.registry.catalogs.reduce((n,c)=>n+c.event_count,0));
-  if($('sourceCards') && window.SeismicSourceWorkbench)$('sourceCards').innerHTML=window.SeismicSourceWorkbench.cards(state.registry.catalogs,{lang:I.language,verified:id=>state.cache.has(id)});
+  if($('sourceCards') && window.SeismicSourceWorkbench)$('sourceCards').innerHTML=window.SeismicSourceWorkbench.cards(state.registry.catalogs,{lang:I.language,verified:id=>state.cache.has(id),active:state.catalog?.id});
   if($('workbenchSources') && window.SeismicSourceWorkbench)$('workbenchSources').innerHTML=window.SeismicSourceWorkbench.inputs(state.registry.catalogs,I.language,state.catalog?.id);
+  if(window.SeismicSourceWorkbench){
+    const W=window.SeismicSourceWorkbench,options={lang:I.language,active:state.catalog?.id,
+      verified:id=>state.cache.has(id),extent:id=>state.cache.get(id)?.timeExtent};
+    $('sourceAtlasInputs').innerHTML=W.inputs(state.registry.catalogs,I.language,state.catalog?.id);
+    $('sourceTimeTracks').innerHTML=W.timeline(state.registry.catalogs,options);
+    renderSourceFocus();
+    setSourceView(state.sourceView);
+  }
   $('sourceInventoryRows').innerHTML=state.registry.catalogs.map(c=>{
     const known=c.provider==='usgs' || c.depth_unit==='km';
     return `<tr><td><strong>${esc(catalogLabel(c))}</strong><small>${esc(c.id)}</small></td><td>${esc(c.provider_name)}</td><td>${c.years[0]}–${c.years[1]}<small>M ≥ ${value(c.minimum_magnitude,1)}</small></td><td>${fmt(c.event_count)}</td><td>${esc(t(c.identifier_kind==='derived_row_key' ? 'derivedId' : 'officialId'))}<small>${esc(t(known ? 'documentedDepth' : 'unknownDepthUnit'))}</small></td><td><button data-source-catalog="${esc(c.id)}">${esc(t('openThisCatalog'))}</button><div class="source-links"><a href="${esc(safeURL(c.events_url))}" download>${esc(t('packagedData'))}</a><a href="${esc(safeURL(c.manifest_url))}" download>${esc(t('fieldManifest'))}</a></div><details><summary>${esc(t('sourceHash'))}</summary><code class="hash">${esc(c.sha256)}</code></details></td></tr>`;
   }).join('');
+}
+function renderSourceFocus(){
+  if(!state.registry||!window.SeismicSourceWorkbench)return;
+  const W=window.SeismicSourceWorkbench,options={lang:I.language,active:state.catalog?.id,selectedRows:state.filtered.length,selectionLabel:$('mapSelection').textContent,
+    verified:id=>state.cache.has(id),extent:id=>state.cache.get(id)?.timeExtent};
+  $('sourceAtlasFocus').innerHTML=W.focus(state.registry.catalogs,options);
+  const s=state.catalog?.id!=='all-catalogs'?W.identity(state.catalog?.id):null;
+  $('sourceTimeFocus').innerHTML=(s?`<span class="catalogue-key" style="--catalogue-color:${s.color}"><i class="source-swatch shape-${s.shape}" aria-hidden="true"></i><b>${s.code} ${esc(s.label)}</b></span> `:'')+esc($('mapSelection').textContent)+' · '+fmt(state.filtered.length)+' '+esc(t('sourceRows'));
+}
+function sourceMapMount(){return $(state.sourceView==='time'?'sourceTimeMapMount':'sourceAtlasMapMount');}
+function setSourceView(view){
+  const previousView=state.sourceView;
+  state.sourceView=view==='time'?'time':'atlas';
+  $('sourceAtlasPanel').hidden=state.sourceView!=='atlas';$('sourceTimePanel').hidden=state.sourceView!=='time';
+  $('sourceAtlasView').setAttribute('aria-pressed',String(state.sourceView==='atlas'));
+  $('sourceTimeView').setAttribute('aria-pressed',String(state.sourceView==='time'));
+  if(state.tab==='sources'){
+    const mount=sourceMapMount(),moved=mount && $('mapCard').parentElement!==mount;
+    if(moved)mount.append($('mapCard'));
+    if(moved||previousView!==state.sourceView)requestAnimationFrame(()=>{state.map?.resize();drawMap();});
+  }
 }
 let analysisCacheRows=null,analysisCache=null,analysisGroupKey='';
 let fingerprintRows=null,fingerprintRequest=0;
@@ -581,8 +615,24 @@ async function exportFullPackage(){
   finally{$('exportPackage').disabled=!state.ready||!state.formValid;}
 }
 for(const [id,tab] of [['welcomeExplore','catalog'],['welcomeSources','sources'],['stepSources','sources'],['stepExplore','catalog'],['stepAnalyze','analysis'],['stepExport','analysis'],['editAnalysisQuery','catalog']]) $(id).addEventListener('click',()=>{setTab(tab);if(id==='stepExport')$('deliverablesCard').scrollIntoView?.({block:'center'});});
-$('sourceInventoryRows').addEventListener('click',async event=>{const button=event.target.closest('[data-source-catalog]');if(!button)return;await loadCatalog(button.dataset.sourceCatalog,false);if(state.ready)setTab('catalog');});
-if($('sourceCards'))$('sourceCards').addEventListener('click',async event=>{const button=event.target.closest('[data-source-catalog]');if(!button)return;await loadCatalog(button.dataset.sourceCatalog,false);if(state.ready)setTab('catalog');});
+async function activateSourceCatalogue(id,tab='sources'){
+  const definition=id==='all-catalogs'?combinedDefinition():state.registry?.catalogs.find(c=>c.id===id);
+  const defaults=definition?V.catalogDefaults(definition):null;
+  const alreadyFull=state.ready&&state.formValid&&state.catalog?.id===id&&$('sort').value==='recent'&&defaults&&Object.keys(defaults).every(key=>state.applied[key]===defaults[key]);
+  if(!alreadyFull)await loadCatalog(id,false);
+  if(!state.ready||state.catalog?.id!==id)return false;
+  state.map?.setColorMode?.('catalogue');state.map?.setDisplayMode?.('points');
+  setTab(tab);state.map?.fitRecords();updateDisplayEvidence();syncURL();return true;
+}
+$('sourceInventoryRows').addEventListener('click',async event=>{const button=event.target.closest('[data-source-catalog]');if(button)await activateSourceCatalogue(button.dataset.sourceCatalog);});
+if($('sourceCards'))$('sourceCards').addEventListener('click',async event=>{
+  const button=event.target.closest('[data-source-catalog]');
+  if(button){await activateSourceCatalogue(button.dataset.sourceCatalog);return;}
+  // Clicking noninteractive card content is a convenience; the heading and
+  // action button remain explicit keyboard-accessible selection controls.
+  if(event.target.closest('a,button,details,summary,input,select'))return;
+  const card=event.target.closest('[data-source-card]');if(card)await activateSourceCatalogue(card.dataset.sourceCard);
+});
 if($('exploreAnalysis'))$('exploreAnalysis').addEventListener('click',()=>setTab('analysis'));
 if($('toggleFiltersMobile'))$('toggleFiltersMobile').addEventListener('click',()=>{
   state.filtersOpen=!state.filtersOpen;document.body.classList.toggle('filters-open',state.filtersOpen);
@@ -606,7 +656,7 @@ $('exportPackage').addEventListener('click',exportFullPackage);
 $('refreshInlineReport').addEventListener('click',()=>{const html=analysisReportHtml();if(html!==null){$('inlineReportFrame').srcdoc=html;$('printInlineReport').disabled=false;}});
 $('printInlineReport').addEventListener('click',()=>{$('inlineReportFrame').contentWindow?.print();});
 
-function drawMap() {if (['catalog','home','quick'].includes(state.tab) && state.map){state.map.setRecords(state.filtered);state.mapDrawnRows=state.filtered;}}
+function drawMap() {if (['catalog','home','quick','sources'].includes(state.tab) && state.map && state.mapDrawnRows!==state.filtered){state.map.setRecords(state.filtered);state.mapDrawnRows=state.filtered;}}
 function currentCartography(){
   if(state.tab==='quick' && state.quickAction!=='map')return null;
   const evidence=state.map?.getDisplayEvidence?.();
@@ -736,7 +786,7 @@ function describeDataset() {
   $('datasetDescription').textContent = t(c.id==='all-catalogs' ? 'combinedDataset' : 'datasetText', {n: fmt(state.events.length), files: fmt(state.activePacks.reduce((n,p)=>n+p.manifest.files.length,0)), latest: state.latest}) + ' ' + $('catalogCoverage').textContent;
   describeSsn(c);
   $('manifestLink').href = c.id==='all-catalogs' ? 'data/catalogs.json' : c.manifest_url;
-  $('depthMax').disabled = !depthKnown();$('depthNotice').hidden = depthKnown();$('depthLegend').hidden = !depthKnown();
+  $('depthMax').disabled = !depthKnown();$('depthNotice').hidden = depthKnown();$('depthLegend').hidden = !depthKnown() || state.map?.getColorMode?.()==='catalogue';
   $('depthHeader').textContent = t(c.id==='all-catalogs' ? 'mixedDepth' : depthKnown() ? 'depthKm' : 'reportedDepthShort');
   $('placeHeader').textContent = t(derivedKey() ? 'placeLocalKey' : 'placeId');
 }
@@ -758,6 +808,7 @@ function restoreFromURL() {
   applyFilters(false);renderRevision();describeDataset();showWarnings();actionStatus('');
   state.selectedEvent = '';if ($('detail').open) $('detail').close();
   state.map.setRegion(state.catalog.bounds);if (view.map) state.map.setView(view.map);else state.map.reset();
+  state.map.setColorMode?.(new URL(location.href).searchParams.get('pointColor')==='depth'?'depth':'catalogue');
   state.map.setDisplayMode?.(new URL(location.href).searchParams.get('display')==='heat'?'heat':'points');updateDisplayEvidence();
   $('mapBase').value = view.base;state.map.setBase(view.base, false);state.map.languageChanged();
   setTab(view.tab, false);if (view.event) detail(view.event, false);
@@ -813,7 +864,7 @@ $('download').addEventListener('click', exportCsv);$('query').addEventListener('
 $('revisionEvent').addEventListener('change', () => {renderRevision();syncURL();});
 $('language').addEventListener('change', () => changeLanguage($('language').value));
 $('fitMap').addEventListener('click', () => state.map?.fitRecords());$('resetMap').addEventListener('click', () => state.map?.reset());
-window.addEventListener('resize', () => {if(['catalog','home','quick'].includes(state.tab))state.map?.resize();});
+window.addEventListener('resize', () => {if(['catalog','home','quick','sources'].includes(state.tab))state.map?.resize();});
 window.addEventListener('popstate',()=>{restoreLocation().catch(()=>{state.invalidLink=['adm'];showWarnings();$('admin1Status').textContent=t('geoLayerFailed');});});
 I.apply(V.parseURL(location.href).view.lang);
 async function fetchAsset(url) {
@@ -832,9 +883,10 @@ async function loadPackage(c) {
     const index=state.geography.catalogs[c.id];
     if(!Array.isArray(events.data.fields) || !Array.isArray(events.data.rows) || !index || index.events_sha256!==events.hash || index.row_count!==events.data.rows.length || index.country_ids.length!==index.row_count)throw Error(t('invalidPackage'));
     const allowed=new Set(state.geography.regions.map(r=>r.id));
-    const rows=events.data.rows.map((row,n)=>{const e=Object.fromEntries(events.data.fields.map((key,i)=>[key,row[i]]));e.year=Number(e.time.slice(0,4));e.country_id=index.country_ids[n];return e;});
+    let firstOrigin='',lastOrigin='';
+    const rows=events.data.rows.map((row,n)=>{const e=Object.fromEntries(events.data.fields.map((key,i)=>[key,row[i]]));e.year=Number(e.time.slice(0,4));e.country_id=index.country_ids[n];if(!firstOrigin||e.time<firstOrigin)firstOrigin=e.time;if(e.time>lastOrigin)lastOrigin=e.time;return e;});
     if(rows.some(e=>!Number.isFinite(e.latitude) || !Number.isFinite(e.longitude) || !Number.isFinite(e.mag) || !Number.isInteger(e.year) || !allowed.has(e.country_id)))throw Error(t('invalidPackage'));
-    const pack={catalog:c,events:rows,fields:[...events.data.fields,'country_id'],manifest:manifest.data,hashes:{events:events.hash,manifest:manifest.hash}};
+    const pack={catalog:c,events:rows,fields:[...events.data.fields,'country_id'],manifest:manifest.data,hashes:{events:events.hash,manifest:manifest.hash},timeExtent:{first:firstOrigin,last:lastOrigin}};
     attachAdministrativeRows(pack);state.cache.set(c.id,pack);return pack;
   })();
   state.packageLoads.set(c.id,pending);
@@ -903,9 +955,11 @@ async function initialize() {
     state.geography=geography.data;state.geographyHash=geography.hash;state.basemap=basemap.data;
     state.registry = registry.data;state.registryHash = registry.hash;state.revisions = revisions.data;showRevisions();
     state.map = createSeismicMap({element: $('map'),basemap: basemap.data,onSelect: detail,onViewChange: syncURL,onDisplayChange:updateDisplayEvidence,translate: t,formatNumber: fmt,
+      sourceStyle:event=>window.SeismicSourceWorkbench?.identity(event._catalog_id||state.catalog?.id),
       onHighlight:id=>{state.highlightedEvent=id;renderTable();},
       onCountrySelect:promptCountry,onAdmin1Select:id=>{if(realCountry(state.applied.country)){$('admin1').value=id;applyFilters();state.map?.fitAdmin1?.(id);}},
       onBaseChange: id => {$('mapBase').value = id;syncURL();},onBaseStatus: key => {state.baseStatus = key;$('baseStatus').textContent = t(key);}});
+    state.map.setColorMode?.(new URL(location.href).searchParams.get('pointColor')==='depth'?'depth':'catalogue');
     state.map.setDisplayMode?.(new URL(location.href).searchParams.get('display')==='heat'?'heat':'points');updateDisplayEvidence();
     if(!new URL(location.href).searchParams.has('v')){await loadCatalog('all-catalogs',false);setTab('home');requestAnimationFrame(()=>state.map.fitRecords());}
     else {if(new URL(location.href).searchParams.get('adm'))await ensureAdmin1();await restoreLocation();}
@@ -922,6 +976,7 @@ function syncAdminContext(){
   if(state.admin1){state.map?.setAdmin1Context?.({geometry:state.admin1Geometry,countryId:'MEX'});return;}
   ensureAdmin1().then(()=>{if(!state.applied.country && ['ssn-mx-historical','usgs-mx-historical'].includes(state.catalog?.id))state.map?.setAdmin1Context?.({geometry:state.admin1Geometry,countryId:'MEX'});}).catch(()=>{});
 }
+let catalogueLegendRows=null,catalogueLegendCounts=new Map();
 function updateDisplayEvidence(evidence){
   const heat=(evidence?.mode || state.map?.getDisplayMode?.())==='heat';
   document.body.dataset.mapDisplay=heat?'heat':'points';
@@ -929,10 +984,31 @@ function updateDisplayEvidence(evidence){
   const en=I.language==='en',e=evidence||state.map?.getDisplayEvidence?.();
   $('heatEvidence').textContent=en?'One weight per visible source row · 8 px cells · 32 px radius · scale relative to this viewport. Not energy, physical density or hazard.':'Un peso por fila visible · celdas de 8 px · radio de 32 px · escala relativa a este encuadre. No es energía, densidad física ni amenaza.';
   if(heat && e)$('heatEvidence').textContent+=' '+fmt(e.visible_rows||0)+(en?' visible of ':' visibles de ')+fmt(e.selected_rows||0)+(en?' selected.':' seleccionadas.');
+  if(heat)$('heatEvidence').textContent+=' '+t('heatNoSourceColors');
+  const sourceColors=(state.map?.getColorMode?.()||'catalogue')==='catalogue';
+  $('mapPointColor').value=sourceColors?'catalogue':'depth';$('mapPointColor').disabled=heat;
+  $('depthLegend').hidden=sourceColors||!depthKnown();$('catalogueLegend').hidden=!sourceColors;
+  if(sourceColors&&window.SeismicSourceWorkbench){
+    if(catalogueLegendRows!==state.filtered){catalogueLegendRows=state.filtered;catalogueLegendCounts=new Map();for(const row of state.filtered){const id=row._catalog_id||state.catalog?.id;catalogueLegendCounts.set(id,(catalogueLegendCounts.get(id)||0)+1);}}
+    $('catalogueLegend').innerHTML=state.activePacks.map(p=>{const s=window.SeismicSourceWorkbench.identity(p.catalog.id);return `<span class="catalogue-key" style="--catalogue-color:${s.color}"><i class="source-swatch shape-${s.shape}" aria-hidden="true"></i><b>${s.code}</b><span>${esc(s.label)}</span><small>${fmt(catalogueLegendCounts.get(p.catalog.id)||0)}</small></span>`;}).join('');
+  }
 }
 $('mapDisplay').addEventListener('change',()=>{state.map?.setDisplayMode?.($('mapDisplay').value);updateDisplayEvidence();syncURL();});
-$('workbenchSources').addEventListener('click',async event=>{const button=event.target.closest('[data-workbench-catalog]');if(!button)return;await loadCatalog(button.dataset.workbenchCatalog,false);if(state.ready){setTab('home');state.map?.fitRecords();}});
-$('workbenchAll').addEventListener('click',async()=>{await loadCatalog('all-catalogs',false);if(state.ready){setTab('home');state.map?.fitRecords();}});
+$('mapPointColor').addEventListener('change',()=>{state.map?.setColorMode?.($('mapPointColor').value);updateDisplayEvidence();syncURL();});
+$('sourceAtlasView').addEventListener('click',()=>setSourceView('atlas'));
+$('sourceTimeView').addEventListener('click',()=>setSourceView('time'));
+$('sourceAtlasInputs').addEventListener('click',async event=>{const button=event.target.closest('[data-workbench-catalog]');if(button)await activateSourceCatalogue(button.dataset.workbenchCatalog);});
+$('sourceTimeTracks').addEventListener('click',async event=>{const button=event.target.closest('[data-source-catalog]');if(button)await activateSourceCatalogue(button.dataset.sourceCatalog);});
+$('sourceAll').addEventListener('click',()=>activateSourceCatalogue('all-catalogs'));
+$('sourceExplore').addEventListener('click',()=>{if(state.ready&&state.formValid)setTab('catalog');});
+$('sourceInspect').addEventListener('click',()=>{if(state.ready&&state.formValid){setTab('catalog');$('records')?.closest?.('.records-card')?.scrollIntoView?.({block:'start'});}});
+$('sourceExport').addEventListener('click',()=>{if(state.ready&&state.formValid)exportFullPackage();});
+$('sourceStageInputs').addEventListener('click',()=>{$('sourceProfiles').open=true;$('sourceProfiles').scrollIntoView?.({block:'start'});});
+$('sourceStageNormalize').addEventListener('click',()=>$('sourceNormalization').scrollIntoView?.({block:'start'}));
+$('sourceStageAnalysis').addEventListener('click',()=>{if(state.ready&&state.formValid)setTab('analysis');});
+$('sourceStageExport').addEventListener('click',()=>{if(state.ready&&state.formValid)exportFullPackage();});
+$('workbenchSources').addEventListener('click',async event=>{const button=event.target.closest('[data-workbench-catalog]');if(button)await activateSourceCatalogue(button.dataset.workbenchCatalog,'home');});
+$('workbenchAll').addEventListener('click',async()=>{await activateSourceCatalogue('all-catalogs','home');});
 $('workbenchSourceInfo').addEventListener('click',()=>setTab('sources'));
 $('workbenchStats').addEventListener('click',()=>{if(state.ready&&state.formValid)setTab('analysis');});
 $('workbenchCsv').addEventListener('click',()=>{if(state.ready&&state.formValid)exportCsv();});

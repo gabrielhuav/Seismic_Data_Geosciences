@@ -81,4 +81,41 @@ for(const id of ['usgs-na-2020-2025','usgs-mx-historical','nrcan-ca-historical',
  let pairs=0;for(let i=0;i<matching.length;i++)for(let j=i+1;j<matching.length;j++){const a=matching[i],b=matching[j],phi1=a.latitude*Math.PI/180,phi2=b.latitude*Math.PI/180,dlambda=(b.longitude-a.longitude)*Math.PI/180;const angle=Math.acos(Math.min(1,Math.max(-1,Math.sin(phi1)*Math.sin(phi2)+Math.cos(phi1)*Math.cos(phi2)*Math.cos(dlambda))));if(angle*6371.0088<=100)pairs++;}
  assert.equal(recurrence.pair_count,pairs);assert.equal(recurrence.records.length,matching.length);assert(recurrence.pairs.every(p=>p.record_a!==p.record_b));actual.push({catalogue:id,top_type:filters.magType,largest:result.ranked_records[0]?.reported_magnitude,recurrence_type:recurrence.filters.magType,large_records:recurrence.records.length,pairs:recurrence.pair_count});
 });
+function combinedFixture(id,provider,events){return {...basic,catalog:{id,provider,years:[1900,2026],...(provider==='usgs'?{}:{identifier_kind:'derived_row_key'})},hashes:{events:'sha-'+id,manifest:'manifest-'+id},geographyEvidence:{index_sha256:'country-sha',admin1:{index_sha256:'admin-sha'}},events};}
+test('combined overview preserves all agencies and exact types but groups only original identical USGS IDs',()=>{
+ const na=combinedFixture('usgs-na-2020-2025','usgs',[event('same',7,0,{updated:'2025-01-01T00:00:00Z'})]);
+ const mx=combinedFixture('usgs-mx-historical','usgs',[event('same',9,0,{updated:'2024-01-01T00:00:00Z',magType:'mw'})]);
+ const ssn=combinedFixture('ssn-mx-historical','ssn',[event('same',8,0,{magType:null})]),can=combinedFixture('nrcan-ca-historical','nrcan',[event('same',7.5,0,{magType:'ML',depth:100})]);
+ const data=[na,mx,ssn,can],before=JSON.stringify(data),result=H.computeCombinedTop(data);
+ assert.equal(result.filters.scope,'footprint');assert.equal(result.filters.magType,H.ALL_TYPES);assert.equal(result.source_catalogue_count,4);assert.equal(result.source_records,4);assert.equal(result.grouped_candidate_records,3);assert.equal(result.identical_usgs_ids_grouped,1);assert.equal(result.eligible_records,3);
+ assert.deepEqual(result.ranked_records.map(e=>e.catalogue_id),['ssn-mx-historical','nrcan-ca-historical','usgs-na-2020-2025']);
+ assert.equal(result.ranked_records[0].magnitude_type,null);assert.equal(result.ranked_records[1].depth_km,null);const grouped=result.ranked_records[2];assert.equal(grouped.reported_magnitude,7);assert.equal(grouped.provenance.length,2);assert.deepEqual(grouped.provenance.map(p=>p.reported_magnitude),[7,9]);assert.equal(grouped.provenance[1].hashes.events,'sha-usgs-mx-historical');assert.equal(JSON.stringify(data),before);
+});
+test('USGS representative never selects the largest magnitude; missing/invalid/tied UTC updates use fixed NA priority before filtering',()=>{
+ const make=(updatedA,updatedB)=>[combinedFixture('usgs-na-2020-2025','usgs',[event('x',7,0,{updated:updatedA,country_id:'USA',admin1_id:'USA-X'})]),combinedFixture('usgs-mx-historical','usgs',[event('x',9,0,{updated:updatedB})])];
+ for(const [a,b] of [[null,'2026-01-01T00:00:00Z'],['2020-02-30T00:00:00Z','2026-01-01T00:00:00Z'],['2025-01-01T00:00:00Z','2025-01-01T00:00:00Z']]){
+  const data=make(a,b),result=H.computeCombinedTop(data);assert.equal(result.ranked_records[0].catalogue_id,'usgs-na-2020-2025');assert.equal(result.ranked_records[0].reported_magnitude,7);assert.equal(H.computeCombinedTop(data,{scope:'MEX'}).eligible_records,0);
+ }
+ const newerMexico=H.computeCombinedTop(make('2024-01-01T00:00:00Z','2025-01-01T00:00:00Z'));assert.equal(newerMexico.ranked_records[0].catalogue_id,'usgs-mx-historical');
+});
+test('combined Top10 exports every representative and grouped alternative with source/type/hash evidence in 17 columns',()=>{
+ const data=[combinedFixture('usgs-na-2020-2025','usgs',[event('id,quote',7,0,{updated:'2025-01-01T00:00:00Z',place:'A "place"'})]),combinedFixture('usgs-mx-historical','usgs',[event('id,quote',8,0,{updated:null,magType:null})])];
+ const result=H.computeCombinedTop(data),rows=parseCSV(H.csv(result));assert(rows.every(r=>r.length===17));assert.equal(rows.filter(r=>r[0]==='record').length,1);assert.equal(rows.filter(r=>r[0]==='provenance').length,2);const evidence=JSON.parse(rows.find(r=>r[0]==='evidence').at(-1));assert.equal(evidence.input.catalogues.length,2);assert(evidence.rule.representative.includes('Magnitude never'));assert.equal(result.ranked_records[0].reported_magnitude,7);assert.equal(result.ranked_records[0].provenance[1].magnitude_type,null);
+});
+test('real four-catalogue overview starts with all preserved rows and preserves the advanced single-catalogue query',()=>{
+ const data=registry.catalogs.map(c=>input(c.id)),result=H.computeCombinedTop(data);assert.equal(result.source_records,287936);assert.equal(result.collapsed_usgs_source_rows,2163);assert.equal(result.grouped_candidate_records,285773);assert.equal(result.ranked_records.length,10);assert.equal(result.input.catalogues.length,4);assert(result.limits.some(v=>v.includes('not a magnitude-homogeneous')));assert(result.ranked_records.every(e=>e.catalogue_id&&e.provider&&e.provenance.length));
+ const ssn=data.find(d=>d.catalog.id==='ssn-mx-historical'),filters={scope:'MEX',admin1:'MEX-2729',magType:H.MISSING,yearFrom:1900,yearTo:2026},single=H.computeTop(ssn,filters),combined=H.computeCombinedTop(data,{...filters,catalogueId:ssn.catalog.id});assert.equal(combined.eligible_records,single.eligible_records);assert.deepEqual(combined.ranked_records.map(e=>e.source_record_key),single.ranked_records.map(e=>e.record_key));
+ actual.push({combined:'four preserved archives',source_rows:result.source_records,grouped_candidates:result.grouped_candidate_records,eligible_records:result.eligible_records,collapsed_identical_usgs_rows:result.collapsed_usgs_source_rows,top:result.ranked_records.map(e=>({rank:e.rank,source:e.catalogue_id,id:e.source_record_key,M:e.reported_magnitude,type:e.magnitude_type,time:e.time}))});
+});
+test('UTC ordering is chronological across whole-second and fractional source formats',()=>{
+ const ssn=combinedFixture('ssn-mx-historical','ssn',[event('whole',7,0,{time:'2020-01-01T00:00:00Z',magType:null})]),usgs=combinedFixture('usgs-na-2020-2025','usgs',[event('fraction',7,0,{time:'2020-01-01T00:00:00.100Z'})]);
+ assert.deepEqual(H.computeCombinedTop([usgs,ssn]).ranked_records.map(e=>e.source_record_key),['whole','fraction']);
+ const single=combinedFixture('usgs-na-2020-2025','usgs',[event('fraction',7,0,{time:'2020-01-01T00:00:00.100Z'}),event('whole',7,0,{time:'2020-01-01T00:00:00Z'})]);
+ assert.deepEqual(H.computeTop(single,{magType:'mww'}).ranked_records.map(e=>e.record_key),['whole','fraction']);
+});
+test('representative UTC update comparison preserves arbitrary decimal fractions beyond milliseconds',()=>{
+ const na=combinedFixture('usgs-na-2020-2025','usgs',[event('same',9,0,{updated:'2025-01-01T00:00:00.0001Z'})]),mx=combinedFixture('usgs-mx-historical','usgs',[event('same',7,0,{updated:'2025-01-01T00:00:00.0009Z'})]);
+ const result=H.computeCombinedTop([na,mx]);assert.equal(result.ranked_records[0].catalogue_id,'usgs-mx-historical');assert.equal(result.ranked_records[0].reported_magnitude,7);assert.deepEqual(result.ranked_records[0].provenance.map(p=>p.reported_update_utc),['2025-01-01T00:00:00.0001Z','2025-01-01T00:00:00.0009Z']);
+ mx.events[0].updated='2025-01-01T00:00:00.000100000Z';assert.equal(H.computeCombinedTop([na,mx]).ranked_records[0].catalogue_id,'usgs-na-2020-2025');
+});
 console.log(JSON.stringify({passed,actual}));

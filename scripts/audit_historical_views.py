@@ -15,11 +15,13 @@ from __future__ import annotations
 import argparse
 import csv
 from datetime import datetime, timezone
+from decimal import Decimal
 import hashlib
 import io
 import json
 import math
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -59,7 +61,7 @@ def year(row):
     return value if type(value) is int else int(str(row.get('time', ''))[:4])
 
 def ordered(rows):
-    return sorted(rows, key=lambda row: (-row['mag'], row.get('time') or '', key(row)))
+    return sorted(rows, key=lambda row: (-row['mag'], utc_sort_key(row.get('time')), key(row)))
 
 def point(row):
     return finite(row.get('latitude')) and -90 <= row['latitude'] <= 90 and finite(row.get('longitude')) and -180 <= row['longitude'] <= 180
@@ -150,6 +152,42 @@ def oracle(rows,filters,mode,geometries):
     pairs.sort(key=lambda item:(item[2],item[0],item[1]))
     return {'eligible_records':len(selected),'located_records':len(located),'paired_records':len(participants),'pair_count':len(pairs),'nearby_unassigned_records':len(extra),'keys':[key(row) for row in located],'pairs':pairs,'context_distances':extra,'land_records':len(land)}
 
+def parse_utc(value):
+    match=re.fullmatch(r'(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d)(?:\.(\d+))?(?:Z|\+00:00)',value) if isinstance(value,str) else None
+    if not match:return None
+    try: return (datetime.fromisoformat(match[1]+'+00:00'),Decimal('0.'+(match[2] or '0')))
+    except ValueError: return None
+
+def utc_sort_key(value):
+    parsed=parse_utc(value)
+    return (0,*parsed,'') if parsed is not None else (1,datetime.min.replace(tzinfo=timezone.utc),Decimal(0),str(value or ''))
+
+def update_time(row): return parse_utc(row.get('updated'))
+
+def combined_oracle(inputs,filters):
+    chosen=inputs if filters['catalogueId']=='all' else [data for data in inputs if data['catalog']['id']==filters['catalogueId']]
+    groups={}; source_rows=0
+    priority=lambda member:({'usgs-na-2020-2025':0,'usgs-mx-historical':1}.get(member[0]['id'],2),member[0]['id'])
+    for data in chosen:
+        catalog=data['catalog']
+        for row in data['events']:
+            qualified=catalog['id']+'~'+key(row)
+            original=catalog['provider']=='usgs' and catalog.get('identifier_kind','source_event_id')=='source_event_id'
+            group_key='usgs-original:'+key(row) if original else 'source-row:'+qualified
+            groups.setdefault(group_key,[]).append((catalog,row,qualified)); source_rows+=1
+    eligible=[]
+    for members in groups.values():
+        if len(members)>1 and all(update_time(row) is not None for _,row,_ in members):
+            latest=max(update_time(row) for _,row,_ in members)
+            member=min([m for m in members if update_time(m[1])==latest],key=priority)
+        else: member=min(members,key=priority)
+        catalog,row,qualified=member
+        if finite(row.get('mag')) and filters['yearFrom']<=year(row)<=filters['yearTo'] and (filters['magType']=='__all__' or kind(row)==filters['magType']) and in_land(row,filters):
+            eligible.append((catalog,row,qualified,members))
+    eligible.sort(key=lambda item:(-item[1]['mag'],utc_sort_key(item[1].get('time')),key(item[1]),item[2]))
+    top=[{'record_key':qualified,'source_record_key':key(row),'catalogue_id':catalog['id'],'magnitude':row['mag'],'time':row.get('time'),'magnitude_type':None if kind(row)==MISSING else kind(row),'provenance':[{'catalogue_id':c['id'],'source_record_key':key(r),'magnitude':r.get('mag'),'time':r.get('time'),'updated':r.get('updated')} for c,r,_ in members]} for catalog,row,qualified,members in eligible[:10]]
+    return {'source_catalogue_count':len(chosen),'source_records':source_rows,'grouped_candidate_records':len(groups),'identical_usgs_ids_grouped':sum(len(members)>1 for members in groups.values()),'collapsed_usgs_source_rows':source_rows-len(groups),'eligible_records':len(eligible),'keys':[item['record_key'] for item in top],'top':top}
+
 NODE_CODE = r'''
 const fs=require('fs'),crypto=require('crypto'),H=require('./system/dist/history-explorer.js');
 const requests=JSON.parse(fs.readFileSync(0,'utf8')),base='system/dist/',load=p=>JSON.parse(fs.readFileSync(base+p,'utf8'));
@@ -157,26 +195,27 @@ const reg=load('data/catalogs.json'),countries=load('data/country-index.json'),a
 const geometry=load(countries.geometry_path),admin1Geometry=load(admin.geometry_path);
 const hash=x=>crypto.createHash('sha256').update(JSON.stringify(x)).digest('hex');
 const cache=new Map(),before=new Map(),results=[];
-for(const request of requests){
- let data;
- if(request.fixture)data=request.fixture;
- else {if(!cache.has(request.filters.catalogueId)){
-  const catalog=reg.catalogs.find(c=>c.id===request.filters.catalogueId),raw=load(catalog.events_url),id=catalog.id;
+function dataFor(id){if(!cache.has(id)){
+  const catalog=reg.catalogs.find(c=>c.id===id),raw=load(catalog.events_url);
   const events=raw.rows.map((row,i)=>({...Object.fromEntries(raw.fields.map((f,j)=>[f,row[j]])),country_id:countries.catalogs[id].country_ids[i],admin1_id:admin.catalogs[id].admin1_ids[i]}));
   const data={catalog,events,admin1:admin,geometry,admin1Geometry,hashes:{events:catalog.sha256,manifest:catalog.manifest_sha256},geographyEvidence:{index_sha256:hash(countries),admin1:{index_sha256:hash(admin)}}};
   cache.set(id,data);before.set(id,hash(data));
- }data=cache.get(request.filters.catalogueId);}
- const b=request.fixture?hash(data):null;
+ }return cache.get(id);}
+for(const request of requests){
+ const fixture=!!(request.fixture||request.combinedFixture);
+ const data=request.mode==='combined'?(request.combinedFixture||reg.catalogs.map(c=>dataFor(c.id))):(request.fixture||dataFor(request.filters.catalogueId));
+ const b=fixture?hash(data):null;
  let result;
- try{result=request.mode==='top'?H.computeTop(data,request.filters):H.computeRecurrence(data,request.filters);}
+ try{result=request.mode==='combined'?H.computeCombinedTop(data,request.filters):request.mode==='top'?H.computeTop(data,request.filters):H.computeRecurrence(data,request.filters);}
  catch(e){results.push({name:request.name,error:e.message});continue;}
- results.push({name:request.name,result,csv:H.csv(result),fixture_unchanged:request.fixture?b===hash(data):null});
+ results.push({name:request.name,result,csv:H.csv(result),fixture_unchanged:fixture?b===hash(data):null});
 }
 const unchanged=[...cache].map(([id,data])=>({catalogue:id,unchanged:before.get(id)===hash(data)}));
 process.stdout.write(JSON.stringify({results,unchanged}));
 '''
 
 def validate_csv(text,result):
+    if result['schema']=='seismic-combined-reported-top10/1': return validate_combined_csv(text,result)
     records=list(csv.DictReader(io.StringIO(text)))
     assert len(next(csv.reader(io.StringIO(text))))==17
     assert all(len(row)==17 and None not in row for row in records)
@@ -203,6 +242,27 @@ def validate_csv(text,result):
         assert (row['record_key'],row['record_b'])==(pair['record_a'],pair['record_b'])
         assert abs(float(row['distance_km'])-pair['distance_km'])<1e-9
     return {'columns':17,'evidence_rows':1,'record_rows':len(actual),'pair_rows':len(pairs),'status':'pass'}
+
+def validate_combined_csv(text,result):
+    rows=list(csv.DictReader(io.StringIO(text)))
+    assert all(len(row)==17 and None not in row for row in rows)
+    evidence=[row for row in rows if row['section']=='evidence'];assert len(evidence)==1
+    assert json.loads(evidence[0]['value'])=={name:result[name] for name in ['schema','filters','input','rule','limits']}
+    actual=[row for row in rows if row['section']=='record']; provenance=[row for row in rows if row['section']=='provenance']
+    assert len(actual)==len(result['ranked_records'])
+    assert len(provenance)==sum(len(row['provenance']) for row in result['ranked_records'])
+    for csvrow,row in zip(actual,result['ranked_records']):
+        assert csvrow['record_key']==row['record_key'] and csvrow['source_record_key']==row['source_record_key']
+        for column,field in [('time_utc','time'),('reported_update_utc','reported_update_utc'),('catalogue_id','catalogue_id'),('provider','provider'),('magnitude_type','magnitude_type'),('country_id','country_id'),('admin1_id','admin1_id'),('place','place')]: assert csvrow[column]==(row.get(field) or '')
+        assert int(csvrow['rank'])==row['rank']
+        for field in ['latitude','longitude','reported_magnitude','depth_km']:
+            assert csvrow[field]=='' if row.get(field) is None else abs(float(csvrow[field])-row[field])<1e-9
+        alternatives=[p for p in provenance if int(p['rank'])==row['rank']]
+        for csvp,p in zip(alternatives,row['provenance']):
+            assert csvp['record_key']==p['qualified_record_key'] and csvp['catalogue_id']==p['catalogue_id']
+            assert float(csvp['reported_magnitude'])==p['reported_magnitude'] and csvp['magnitude_type']==(p['magnitude_type'] or '')
+            assert json.loads(csvp['value'])=={name:p[name] for name in ['hashes','geography','update_utc_valid']}
+    return {'columns':17,'evidence_rows':1,'record_rows':len(actual),'provenance_rows':len(provenance),'status':'pass'}
 
 def main():
     global OUT, NODE
@@ -267,10 +327,21 @@ def main():
     for offset,name in [(-1e-8,'below'),(0,'at'),(BOUNDARY_TOLERANCE_KM/2,'within_epsilon'),(10*BOUNDARY_TOLERANCE_KM,'outside_epsilon'),(1e-6,'above')]:
         fx={**fixture,'catalog':{**fixture['catalog'],'provider':'usgs'},'events':[e('a'),e('b',lon=math.degrees((50+offset)/R))]}
         cases.append({'name':'radius_'+name,'mode':'recurrence','filters':filters,'fixture':fx})
+    combined_filters={'catalogueId':'all','scope':'footprint','admin1':'','yearFrom':1900,'yearTo':2026,'magType':'__all__','includeOffshore':False}
+    for name,changes in [('combined_overview',{}),('combined_guerrero',{'scope':'MEX','admin1':'MEX-2729'}),('combined_north_america_land',{'scope':'NA'}),('combined_advanced_guerrero',{'catalogueId':'ssn-mx-historical','scope':'MEX','admin1':'MEX-2729','magType':MISSING})]:
+        cases.append({'name':name,'mode':'combined','filters':{**combined_filters,**changes}})
+    for name,updated_a,updated_b in [('newer_update','2024-01-01T00:00:00Z','2025-01-01T00:00:00Z'),('missing_update',None,'2025-01-01T00:00:00Z'),('submillisecond_update','2025-01-01T00:00:00.0001Z','2025-01-01T00:00:00.0009Z')]:
+        inputs=[{'catalog':{'id':cid,'provider':provider,'years':[1900,2026],**({'identifier_kind':'derived_row_key'} if provider!='usgs' else {})},'events':[e('same',mag=mag,updated=updated,magType=magtype)],'admin1':fixture['admin1'],'hashes':{'events':'synthetic-'+cid},'geographyEvidence':{'index_sha256':'synthetic-country'}} for cid,provider,mag,updated,magtype in [('usgs-na-2020-2025','usgs',7,updated_a,'mww'),('usgs-mx-historical','usgs',6,updated_b,'mw'),('ssn-mx-historical','ssn',8,None,None)]]
+        cases.append({'name':'combined_fixture_'+name,'mode':'combined','filters':combined_filters,'combinedFixture':inputs})
+    chronology_inputs=[{'catalog':{'id':cid,'provider':provider,'years':[1900,2026],**({'identifier_kind':'derived_row_key'} if provider=='ssn' else {})},'events':[e(identifier,mag=7,time=origin,magType=literal)],'admin1':fixture['admin1'],'hashes':{'events':'synthetic-'+cid},'geographyEvidence':{'index_sha256':'synthetic-country'}} for cid,provider,identifier,origin,literal in [('usgs-na-2020-2025','usgs','fraction','2020-01-01T00:00:00.100Z','mww'),('ssn-mx-historical','ssn','whole','2020-01-01T00:00:00Z',None)]]
+    cases.append({'name':'combined_fixture_utc_chronology','mode':'combined','filters':combined_filters,'combinedFixture':chronology_inputs})
     oracle_results={}
+    real_inputs=[{'catalog':catalog,'events':datasets[catalog['id']]} for catalog in registry['catalogs']]
     for case in cases:
-        rows=case['fixture']['events'] if case.get('fixture') else datasets[case['filters']['catalogueId']]
-        oracle_results[case['name']]=oracle(rows,case['filters'],case['mode'],geometries)
+        if case['mode']=='combined': oracle_results[case['name']]=combined_oracle(case.get('combinedFixture',real_inputs),case['filters'])
+        else:
+            rows=case['fixture']['events'] if case.get('fixture') else datasets[case['filters']['catalogueId']]
+            oracle_results[case['name']]=oracle(rows,case['filters'],case['mode'],geometries)
     paper={name:oracle_results[name] for name in ['guerrero_top','guerrero_land_50','guerrero_context_50']}
     OUT.mkdir(exist_ok=True,parents=True)
     (OUT/'oracle_python_preliminary.json').write_text(json.dumps(paper,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
@@ -279,20 +350,29 @@ def main():
     actual=json.loads(proc.stdout)
     comparisons=[]
     for item in actual['results']:
-        name=item['name'];expected=oracle_results[name];result=item['result'];case=next(c for c in cases if c['name']==name)
+        name=item['name'];expected=oracle_results[name];case=next(c for c in cases if c['name']==name)
         assert 'error' not in item,(name,item)
-        for field in ['eligible_records','located_records','pair_count','paired_records','nearby_unassigned_records']:
+        result=item['result']
+        for field in ['eligible_records','located_records','pair_count','paired_records','nearby_unassigned_records','source_records','grouped_candidate_records','identical_usgs_ids_grouped','collapsed_usgs_source_rows','source_catalogue_count']:
             if field in expected: assert result[field]==expected[field],(name,field,result[field],expected[field])
         records=result.get('ranked_records',result.get('records'))
         assert [r['record_key'] for r in records]==expected['keys'],name
-        catalog=case['fixture']['catalog'] if case.get('fixture') else next(c for c in registry['catalogs'] if c['id']==case['filters']['catalogueId'])
-        assert all(row['identifier_kind']==catalog.get('identifier_kind','source_event_id') for row in records)
+        if case['mode']=='combined':
+            meta={data['catalog']['id']:data['catalog'] for data in case.get('combinedFixture',real_inputs)}
+            for row,expected_row in zip(records,expected['top']):
+                assert row['source_record_key']==expected_row['source_record_key'] and row['catalogue_id']==expected_row['catalogue_id']
+                assert row['reported_magnitude']==expected_row['magnitude'] and row['time']==expected_row['time'] and row['magnitude_type']==expected_row['magnitude_type']
+                assert len(row['provenance'])==len(expected_row['provenance'])
+                for alternative,p in zip(row['provenance'],expected_row['provenance']): assert alternative['catalogue_id']==p['catalogue_id'] and alternative['record_key']==p['source_record_key'] and alternative['reported_magnitude']==p['magnitude'] and alternative['time']==p['time'] and alternative['reported_update_utc']==p['updated']
+        else: meta={case['filters']['catalogueId']:case['fixture']['catalog'] if case.get('fixture') else next(c for c in registry['catalogs'] if c['id']==case['filters']['catalogueId'])}
+        for row in records:
+            catalog=meta[row.get('catalogue_id',case['filters']['catalogueId'])]
+            assert row['identifier_kind']==catalog.get('identifier_kind','source_event_id')
+            if catalog['provider']=='nrcan' and catalog.get('depth_unit')!='km': assert row['depth_km'] is None
         if case['filters']['magType']==MISSING:
             assert all(row['magnitude_type'] is None for row in records)
-        else:
+        elif case['filters']['magType']!='__all__':
             assert all(row['magnitude_type']==case['filters']['magType'] for row in records)
-        if catalog['provider']=='nrcan' and catalog.get('depth_unit')!='km':
-            assert all(row['depth_km'] is None for row in records)
         assert all('event_id' not in row and 'physical_event_id' not in row for row in records)
         max_pair_error=0.0
         if case['mode']=='recurrence':
@@ -316,6 +396,8 @@ def main():
     for path,receipt in READS.items():
         assert hashlib.sha256(path.read_bytes()).hexdigest()==receipt['sha256'],str(path)
     report={'schema':'seismic-independent-history-oracle/1','checked_utc':datetime.now(timezone.utc).isoformat(),'status':'pass','cases':len(comparisons),'comparisons':comparisons,'verified_sources':list(READS.values()),'javascript_inputs_unchanged':actual['unchanged'],'python_method':'Independent raw-row predicates and Python tuple sorting; independent Haversine asin formula; spherical context uses 3-D unit-vector projection onto finite minor arcs, not JavaScript bearing/cross-track formulas.','numeric_boundary_contract':{'distance_absolute_tolerance_km':BOUNDARY_TOLERANCE_KM,'meaning':'One micrometre numerical comparison tolerance for pairs and optional geographic context; not a positional uncertainty or displayed rounding. Evaluates d <= radius + tolerance.','fixtures':'50 km - 1e-8 km; exactly 50 km; 50 km + half tolerance; 50 km + ten tolerances; 50 km + 1e-6 km. The last two must be excluded.'},'limitations':['Geographic assignment uses the independently hash-verified existing indexes, not a new external jurisdiction survey.','Synthetic fixtures establish calculation semantics, not observed catalogue properties.','Source records are not asserted independent physical earthquakes; no hazard, risk or forecast is estimated.']}
+    report['utc_comparison']={'python':'Calendar-valid whole seconds use native datetime; arbitrary decimal fractions use Decimal without conversion to float or microsecond truncation.','javascript':'Calendar-valid whole seconds and exact zero-padded decimal strings; no millisecond truncation.','cases':'Mixed whole-second/.100Z origin order and .0001Z/.0009Z representative updates.'}
+    report['case_groups']={'original_single_catalogue_and_proximity':23,'combined_real':4,'combined_synthetic':4}
     (OUT/'oracle_historical_views.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
     print(json.dumps({'status':'pass','cases':len(comparisons),'report':str(OUT/'oracle_historical_views.json'),'summaries':[{k:v for k,v in row.items() if k not in ['csv','filters','top','pairs','geographic_context_distances_km']} for row in comparisons]},ensure_ascii=False),flush=True)
 

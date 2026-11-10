@@ -1,12 +1,11 @@
 # Explorer interaction contract
 
 The explorer supports a single pinned catalogue or an explicit combined view.
-The verified public baseline is `b503c22d384a7a11d4b502370df66c34c191719f`
-(9 November 2026). Home, guided SQL, country comparison, administrative and plate
-context, and the optional count heatmap are part of that baseline. The four
-regional-access tools below are a local 10 November 2026 extension, pending a
-separately authorized commit, push and deployment. Documentation is not evidence
-that these new tools have been deployed.
+The verified public baseline is `92d07a954e8b1209b311d9ee56c815ab72f92899`
+(10 November 2026), including the initial four regional-access tools. The
+automatic four-catalogue Top 10 below is a subsequent local revision, requiring
+its own completed review and authorized publication. Documentation alone is not
+evidence that this subsequent revision has been deployed.
 
 ## Simplified access and historical tools
 
@@ -32,16 +31,31 @@ browser print dialog from that report; no server-side or autonomous PDF generato
 is implied. Exports reapply the stored selection and reject unavailable or invalid
 data. None of the four input packages is rewritten.
 
-**Historical Top 10** is an independent source-specific workspace. It selects one
-catalogue, a UTC-year interval and one literal reported magnitude type. Its region
-choices distinguish the union of Mexico/Canada/USA terrestrial classes, each
-country, a recorded first-order unit, and the catalogue footprint, which can
-include offshore records and other countries. Only subdivisions with source rows
-are offered. Results contain at most ten rows, sorted by reported magnitude
-descending, UTC time ascending and source key ascending. Ties at the tenth value
-do not expand the list. The numbered map markers, ranking display, table and
-CSV/JSON agree on those rows. The heading and coverage note expressly limit the
-ranking to the selected archive, not the strongest earthquakes ever.
+**Historical Top 10** automatically loads all four preserved catalogues and
+displays a result from their full footprint, including archived offshore rows.
+Country/state are the two simple controls; changes recompute automatically.
+Catalogue, literal magnitude type and UTC years remain in a closed advanced
+panel. A load failure offers retry and does not silently rank a partial set.
+
+The result orders reported numerical magnitudes, not a homogeneous Mw scale or
+the strongest earthquakes ever. Every row displays source and exact type, with
+unknown types explicit. Results have at most ten rows, using magnitude descending,
+UTC time ascending, source key ascending and catalogue-qualified key as final
+tie-breaker. Boundary ties do not expand the list. Numbered map markers and
+source-coloured swatches use the same ranked rows as table and CSV/JSON.
+
+Only identical original USGS IDs in the two USGS catalogues are grouped. If both
+rows have valid UTC `updated` timestamps, the later update supplies the
+representative; absence/invalidity or ties use fixed North America-before-Mexico
+priority. This resolution precedes all filters and never selects by largest
+magnitude. Both original values, types, coordinates, updates and hashes remain
+inspectable. UTC ordering validates calendar seconds and compares fractional
+seconds exactly, including submillisecond values; source formatting cannot
+reverse chronology or create false update ties. Alternatives are also
+exported as provenance rows. SSN/NRCan and possible observations
+of one physical event across agencies are not reconciled and can occupy multiple
+ranks. Coverage remains archive-specific; footprint cannot restore unarchived
+events such as Alaska1964. Advanced single-source/type selection remains available.
 
 **Historical proximity** identifies direct pairs of large reported epicentres in
 one catalogue and exact type, with default M >= 7 and distance <= 100 km. It uses
@@ -389,9 +403,11 @@ unknown-depth preservation, direct-pair selection, geodesic edge cases, contextu
 offshore inclusion, antimeridian display copies and complete CSV/JSON evidence.
 The maintained Python oracle `scripts/audit_historical_views.py` independently
 checks pair distances, three-dimensional finite-boundary context, Top 10 order,
-all 17 CSV columns and unchanged input hashes. Its 23 cases (15 real-package
-selections and eight synthetic boundary/logic cases) agreed with the JavaScript
-outputs. Run it with standard-library Python and Node.js:
+all 17 CSV columns and unchanged input hashes. Its 31 cases retain the original
+23 (15 real-package selections and eight synthetic boundary/logic cases), adding
+four real combined selections and four synthetic representative/UTC-order cases. All agreed
+with the JavaScript outputs, including USGS exact-ID alternatives and resolution
+before attribute filters. Run it with standard-library Python and Node.js:
 
 ```text
 python scripts/audit_historical_views.py --node node

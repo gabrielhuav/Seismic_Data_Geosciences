@@ -87,10 +87,10 @@ window.SeismicMapHeat = (function () {
 })();
 
 // Local cartography and one canvas keep geographic context independent of tile APIs.
-window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = () => {}, onViewChange = () => {}, onBaseChange = () => {}, onBaseStatus = () => {}, onCountrySelect = () => {}, onAdmin1Select = () => {}, onDisplayChange = () => {}, translate = key => key, formatNumber = String, getLanguage = () => document.documentElement.lang || 'es'}) {
+window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = () => {}, onViewChange = () => {}, onBaseChange = () => {}, onBaseStatus = () => {}, onCountrySelect = () => {}, onAdmin1Select = () => {}, onDisplayChange = () => {}, sourceStyle = () => null, translate = key => key, formatNumber = String, getLanguage = () => document.documentElement.lang || 'es'}) {
   let region = L.latLngBounds([[14, -190], [84, -50]]), activeBase = 'local', tiles = null, tileErrors = 0, selectedId = '', baseSelect = null, baseLabel = null;
   let selectedCountry = '', admin1Layer = null, admin1Data = null, admin1Country = '', admin1Context = false, selectedAdmin1 = '', tectonicLayer = null, tectonicData = null, overlayHover = null;
-  let displayMode='points',displayEvidence={mode:'points',selected_rows:0,visible_rows:0};
+  let displayMode='points',colorMode='depth',displayEvidence={mode:'points',color_encoding:'depth',selected_rows:0,visible_rows:0};
   const heat=window.SeismicMapHeat;
   const baseSpecs=window.SeismicBasemaps;
   const color = (name, fallback) => window.getComputedStyle?.(document.documentElement).getPropertyValue(name).trim() || fallback;
@@ -268,13 +268,23 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
       const started=window.performance?.now?.();
       const size = this._map.getSize();if (!size.x || !size.y) return;
       const ratio = Math.min(window.devicePixelRatio || 1, 2), c = this._canvas;
+      const colors={unknown:color('--point-unknown','#526f7a'),deep:color('--point-deep','#bc5b1e'),shallow:color('--point-shallow','#087568')};
+      const origin=this._map.getPixelBounds?.().min,center=origin?null:this._map.getCenter();
+      const pointKey=[this._map.getZoom(),size.x,size.y,ratio,origin?.x??center.lat,origin?.y??center.lng,selectedId,colorMode,colors.unknown,colors.deep,colors.shallow,color('--selection-halo','#fff'),color('--point-selected','#9b4b00')].join('|');
+      // Leaflet can announce one unchanged view through resize, moveend and
+      // zoomend. Retain the identical point raster; every source row and hit
+      // target remains present. No aggregation or sample is introduced.
+      if(displayMode==='points'&&this._pointCache&&this._pointCache.records===this.records&&this._pointCache.key===pointKey){
+        document.getElementById('mapStatus').textContent=translate('visible',{visible:formatNumber(displayEvidence.visible_rows),filtered:formatNumber((this.records||[]).length)});
+        if(this.records)onDisplayChange(JSON.parse(JSON.stringify(displayEvidence)));return;
+      }
+      if(displayMode==='heat')this._pointCache=null;
       // Keep the density below administrative outlines and geographic labels.
       const pane=displayMode==='heat'?heatPane:eventPane;if(c.parentElement!==pane)pane.appendChild(c);
       c.width = Math.round(size.x * ratio);c.height = Math.round(size.y * ratio);
       c.style.width = size.x + 'px';c.style.height = size.y + 'px';
       L.DomUtil.setPosition(c, this._map.containerPointToLayerPoint([0, 0]));
       const ctx = c.getContext('2d');ctx.setTransform(ratio, 0, 0, ratio, 0, 0);this.points = [];
-      const colors = {unknown: color('--point-unknown', '#526f7a'), deep: color('--point-deep', '#bc5b1e'), shallow: color('--point-shallow', '#087568')};
       let selectedPoint,visible;
       if(displayMode==='heat'){
         // A zoom can emit viewreset/zoomend/moveend for the same pixel bounds.
@@ -292,7 +302,7 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
         const cached=this._heatCache;ctx.imageSmoothingEnabled=true;ctx.drawImage(this._heatCanvas,0,0,cached.columns*heat.spec.grid_css_pixels,cached.rows*heat.spec.grid_css_pixels);
         if(selectedId){const selected=(this.records||[]).find(e=>e.id===selectedId);if(selected){const p=this._map.latLngToContainerPoint(eventLatLng(selected));if(p.x>=0&&p.y>=0&&p.x<size.x&&p.y<size.y)selectedPoint={x:p.x,y:p.y,radius:4};}}
         visible=cached.visible;
-        displayEvidence={mode:'heat',...heat.spec,selected_rows:(this.records||[]).length,visible_rows:visible,occupied_cells:cached.occupied,
+        displayEvidence={mode:'heat',color_encoding:'relative_source_row_concentration',...heat.spec,selected_rows:(this.records||[]).length,visible_rows:visible,occupied_cells:cached.occupied,
           max_smoothed_cell_weight:cached.max,viewport_css_pixels:[size.x,size.y],palette:heat.palette.map(p=>({...p})),
           limits:['One equal weight per selected row whose epicentre center is inside the viewport; no sampling.',
             'Screen-space binned counts, Gaussian smoothing and log1p colors relative to the current viewport maximum; not a density per square kilometre.',
@@ -302,18 +312,26 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
       }else{
       // Paint small symbols first so larger observations remain selectable and visible.
       this.paintOrder ||= [...(this.records||[])].sort((a,b)=>a.mag-b.mag);
+      const visibleCatalogues=new Map();
+      this.sourceStyles ||= new Map();const marker=window.SeismicSourceWorkbench?.markerPath;
       for (const e of this.paintOrder) {
         const p = this._map.latLngToContainerPoint(eventLatLng(e));
         const radius = Math.max(2, (e.mag - 2.5) * 1.25);
         if (p.x < -radius || p.x > size.x + radius || p.y < -radius || p.y > size.y + radius) continue;
         this.points.push({x: p.x, y: p.y, radius, event: e});
-        ctx.beginPath();ctx.globalAlpha = .7;ctx.fillStyle = e.depth === null ? colors.unknown : e.depth > 70 ? colors.deep : colors.shallow;
-        ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);ctx.fill();
+        const styleKey=e._catalog_id||'';
+        if(colorMode==='catalogue'&&!this.sourceStyles.has(styleKey))this.sourceStyles.set(styleKey,sourceStyle(e));
+        const identity=colorMode==='catalogue'?this.sourceStyles.get(styleKey):null;
+        if(identity?.catalogue_id&&!visibleCatalogues.has(identity.catalogue_id))visibleCatalogues.set(identity.catalogue_id,{...identity});
+        ctx.beginPath();ctx.globalAlpha = identity?.color?.length ? .88 : .7;
+        ctx.fillStyle = identity?.color || (e.depth === null ? colors.unknown : e.depth > 70 ? colors.deep : colors.shallow);
+        if(identity&&marker)marker(ctx,p.x,p.y,radius,identity.shape);else ctx.arc(p.x,p.y,radius,0,Math.PI*2);
+        ctx.fill();
         if(radius>=3.5){ctx.globalAlpha=.85;ctx.lineWidth=.7;ctx.strokeStyle=color('--selection-halo','#fff');ctx.stroke();}
         if (e.id === selectedId) selectedPoint = {x:p.x,y:p.y,radius};
       }
       visible=this.points.length;
-      displayEvidence={mode:'points',selected_rows:(this.records||[]).length,visible_rows:visible,viewport_css_pixels:[size.x,size.y]};
+      displayEvidence={mode:'points',color_encoding:colorMode,catalogue_palette:[...visibleCatalogues.values()],symbol_size:'Radius max(2, (reported M - 2.5) * 1.25) CSS pixels; magnitude types are not converted.',selected_rows:(this.records||[]).length,visible_rows:visible,viewport_css_pixels:[size.x,size.y]};
       }
       if (selectedPoint) {
         ctx.globalAlpha = 1;ctx.beginPath();ctx.arc(selectedPoint.x,selectedPoint.y,Math.max(8,selectedPoint.radius+4),0,Math.PI*2);
@@ -321,6 +339,7 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
         ctx.lineWidth=2.5;ctx.strokeStyle=color('--point-selected','#9b4b00');ctx.stroke();
       }
       ctx.globalAlpha = 1;
+      if(displayMode==='points')this._pointCache={records:this.records,key:pointKey};
       document.getElementById('mapStatus').textContent = translate('visible', {visible: formatNumber(visible), filtered: formatNumber((this.records || []).length)});
       if(this.records)onDisplayChange(JSON.parse(JSON.stringify(displayEvidence)));
       if(Number.isFinite(started)){
@@ -328,7 +347,7 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
         if(timing)timing.textContent=translate('canvasTiming',{ms:formatNumber(Math.round((window.performance.now()-started)*10)/10)});
       }
     },
-    setRecords(records) {if(this.records!==records){this.records=records;this.paintOrder=null;}this.redraw();}
+    setRecords(records) {if(this.records!==records){this.records=records;this.paintOrder=null;this.sourceStyles=null;}this.redraw();}
   });
   const events = new EventsLayer().addTo(map);
   function nearestRecord(point) {
@@ -342,8 +361,8 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
     const nearest=nearestRecord(ev.containerPoint);
     element.style.cursor=nearest||overlayHover ? 'pointer' : '';
     if(hoverTip){map.closeTooltip(hoverTip);hoverTip=null;}
-    if(nearest)hoverTip=L.tooltip({direction:'top',offset:[0,-10],className:'seismic-hover'})
-      .setLatLng(eventLatLng(nearest)).setContent(`<strong>M ${safe(formatNumber(nearest.mag))} ${safe(nearest.magType || translate('unknownType'))}</strong><br>${safe(nearest.place)}<br>${safe(nearest.time)}`).openOn(map);
+    if(nearest){const identity=sourceStyle(nearest);hoverTip=L.tooltip({direction:'top',offset:[0,-10],className:'seismic-hover'})
+      .setLatLng(eventLatLng(nearest)).setContent(`<strong>M ${safe(formatNumber(nearest.mag))} ${safe(nearest.magType || translate('unknownType'))}</strong>${identity?'<br>'+safe(identity.code+' · '+identity.label):''}<br>${safe(nearest.place)}<br>${safe(nearest.time)}`).openOn(map);}
     else if(overlayHover&&ev.latlng)hoverTip=L.tooltip({direction:'top',offset:[0,-8],className:'seismic-hover'}).setLatLng(ev.latlng).setContent(safe(featureName(overlayHover.feature))).openOn(map);
   });
   map.on('mouseout',()=>{overlayHover=null;element.style.cursor='';if(hoverTip){map.closeTooltip(hoverTip);hoverTip=null;}});
@@ -358,7 +377,8 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
     if (!nearest) {map.closePopup();return;}
     const e = nearest;
     select(e.id);
-    const content = `<strong>${safe(e.place)}</strong><p class="map-popup-meta">${safe(formatNumber(e.mag))} ${safe(e.magType || translate('unknownType'))} · ${safe(e.time)}<br>${safe(e.id)}</p><button class="map-inspect" data-map-event="${safe(e.id)}">${safe(translate('inspectRecord'))}</button>`;
+    const identity=sourceStyle(e);
+    const content = `<strong>${safe(e.place)}</strong><p class="map-popup-meta">${safe(formatNumber(e.mag))} ${safe(e.magType || translate('unknownType'))} · ${safe(e.time)}${identity?'<br>'+safe(identity.code+' · '+identity.label):''}<br>${safe(e.id)}</p><button class="map-inspect" data-map-event="${safe(e.id)}">${safe(translate('inspectRecord'))}</button>`;
     L.popup({maxWidth: 290}).setLatLng(eventLatLng(e)).setContent(content).openOn(map);
   });
   element.addEventListener('click', event => {
@@ -396,6 +416,8 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
     setAdmin1Context({geometry,countryId}={}) {setAdmin1({geometry,countryId,contextOnly:true});},
     setDisplayMode(mode) {if(!['points','heat'].includes(mode))throw new Error('Unknown seismic map display mode');if(mode!==displayMode){displayMode=mode;map.closePopup();if(hoverTip){map.closeTooltip(hoverTip);hoverTip=null;}events.redraw();}return displayMode;},
     getDisplayMode() {return displayMode;},
+    setColorMode(mode) {if(!['catalogue','depth'].includes(mode))throw new Error('Unknown seismic point color mode');if(mode!==colorMode){colorMode=mode;events.redraw();}return colorMode;},
+    getColorMode() {return colorMode;},
     getDisplayEvidence() {return JSON.parse(JSON.stringify(displayEvidence));},
     setCountry(id) {selectedCountry=String(id||'');if(admin1Country&&admin1Country!==selectedCountry&&(!admin1Context||selectedCountry))clearAdmin1();countries.setStyle(countryStyle);},
     fitCountry(id) {return fitGeometry(visualBasemap.features.find(f=>countryId(f.properties)===id));},

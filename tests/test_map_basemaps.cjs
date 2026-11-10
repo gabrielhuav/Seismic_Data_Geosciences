@@ -9,7 +9,7 @@ class Element {
   addEventListener(key,callback){(this.listeners[key]??=[]).push(callback);}
   querySelector(){return null;}
   get options(){return this.children;}
-  getContext(){return {setTransform(){},beginPath(){},arc(){},fill(){},stroke(){},drawImage(){},putImageData(){},createImageData(w,h){return {data:new Uint8ClampedArray(w*h*4)};}};}
+  getContext(){if(!this.context){const canvas=this;canvas.painted=[];this.context={setTransform(){},beginPath(){this.path=[];},arc(...args){this.path.push(['arc',...args]);},rect(...args){this.path.push(['rect',...args]);},moveTo(...args){this.path.push(['moveTo',...args]);},lineTo(...args){this.path.push(['lineTo',...args]);},closePath(){this.path.push(['closePath']);},fill(){canvas.painted.push({color:this.fillStyle,path:this.path.map(p=>[...p])});},stroke(){},drawImage(){},putImageData(){},createImageData(w,h){return {data:new Uint8ClampedArray(w*h*4)};}};}return this.context;}
   remove(){}
   fire(type,event={}){for(const callback of this.listeners[type]||[])callback(event);}
 }
@@ -45,7 +45,7 @@ const L={map:(_,options)=>{map.options=options;return map;},latLngBounds:values=
 L.control.scale=()=>({addTo(){}});
 const document={documentElement:{},createElement:tag=>new Element(tag),getElementById:id=>nodeById[id]};
 const context={window:{devicePixelRatio:1,matchMedia:()=>({matches:true,addEventListener(){}})},document,L};
-vm.createContext(context);vm.runInContext(fs.readFileSync('system/dist/map.js','utf8'),context);
+vm.createContext(context);vm.runInContext(fs.readFileSync('system/dist/source-workbench.js','utf8'),context);vm.runInContext(fs.readFileSync('system/dist/map.js','utf8'),context);
 const specs=context.window.SeismicBasemaps,ids=['local','osm','osm-hot','usgs-topo','nasa-blue-marble'];
 let count=0;
 function test(name,run){run();count++;console.log('PASS '+name);}
@@ -66,6 +66,7 @@ const polygon=(properties,ring)=>({type:'Feature',properties,geometry:{type:'Pol
 const basemap={type:'FeatureCollection',features:[polygon({ADMIN:'Mexico',ISO_A3:'MEX'},[[-105,20],[-102,20],[-102,23],[-105,20]]),polygon({ADMIN:'France',ISO_A3:'-99'},[[-54,3],[-52,3],[-52,5],[-54,3]])]},original=JSON.stringify(basemap);
 const mapElement=new Element();
 const api=context.window.createSeismicMap({element:mapElement,basemap,onSelect(){},
+  sourceStyle:record=>context.window.SeismicSourceWorkbench.identity(record._catalog_id||'usgs-na-2020-2025'),
   translate:key=>language+':'+key,onBaseChange:id=>changes.push(id),onBaseStatus:key=>statuses.push(key),onCountrySelect:id=>countryRequests.push(id),onAdmin1Select:id=>admin1Requests.push(id),onDisplayChange:e=>displayChanges.push(e)});
 const picker=controls.find(control=>control.element?.className==='map-base-control').element.children[0].children[1];
 test('default local base creates no remote tile layer and respects reduced motion',()=>{
@@ -173,6 +174,29 @@ test('heat is a presentation-only mode with explicit evidence and geographic cli
     api.setDisplayMode('points');assert.equal(api.getDisplayMode(),'points');assert.equal(api.getDisplayEvidence().selected_rows,3);
     assert.throws(()=>api.setDisplayMode('energy'),/Unknown/);assert.equal(JSON.stringify(fixtures),original);assert.equal(JSON.stringify(api.getView()),before);
   }finally{map.latLngToContainerPoint=savedProjection;map.getSize=savedSize;api.setDisplayMode('points');api.setRecords(records);api.highlight('');}
+});
+
+test('actual Canvas fills use four stable catalogue colours and distinct marker paths without changing source coordinates, depths or magnitudes',()=>{
+  const ids=['usgs-na-2020-2025','usgs-mx-historical','nrcan-ca-historical','ssn-mx-historical'];
+  const fixtures=ids.map((id,i)=>({...records[0],id:'colour-'+i,_catalog_id:id,mag:[3.5,4.5,6,7][i],depth:[10,80,null,20][i]})),before=JSON.stringify(fixtures),view=JSON.stringify(api.getView());
+  const canvas=panes.seismicEvents.children.find(e=>e.className?.includes('epicenter-canvas'));
+  api.setRecords(fixtures);api.setColorMode('catalogue');
+  const painted=canvas.painted.slice(-4),expected=['#2563eb','#7c3aed','#c28112','#0d9471'];
+  assert.deepEqual(painted.map(p=>p.color),expected);
+  assert.deepEqual(painted.map(p=>p.path[0][0]),['arc','rect','moveTo','moveTo']);
+  assert.equal(painted[0].path[0][3],2,'M3.5 retains its 2 CSS-pixel radius');
+  assert.equal(painted[1].path[0][3],4.4,'M4.5 square retains the magnitude-derived 2.5 CSS-pixel radial scale');
+  const evidence=api.getDisplayEvidence();assert.equal(evidence.color_encoding,'catalogue');assert.equal(evidence.catalogue_palette.length,4);
+  assert.deepEqual(Array.from(evidence.catalogue_palette,s=>s.code),['01','02','03','04']);
+  evidence.catalogue_palette[0].color='mutated';assert.equal(api.getDisplayEvidence().catalogue_palette[0].color,expected[0]);
+  const beforeRepeat=canvas.painted.length;api.setRecords(fixtures);assert.equal(canvas.painted.length,beforeRepeat,'Identical row reference, viewport and point style reuse the raster without dropping hit targets');
+  api.highlight('colour-0');assert.equal(canvas.painted.length,beforeRepeat+4,'Highlight changes must invalidate the raster');api.highlight('');
+  api.themeChanged();assert.deepEqual(canvas.painted.slice(-4).map(p=>p.color),expected,'Theme changes do not change catalogue identities');
+  api.setColorMode('depth');assert.equal(api.getDisplayEvidence().color_encoding,'depth');assert.deepEqual(canvas.painted.slice(-4).map(p=>p.path[0][0]),['arc','arc','arc','arc']);
+  assert.notDeepEqual(canvas.painted.slice(-4).map(p=>p.color),expected);
+  api.setColorMode('catalogue');api.setDisplayMode('heat');assert.equal(api.getDisplayEvidence().color_encoding,'relative_source_row_concentration');
+  assert.equal(JSON.stringify(fixtures),before);assert.equal(JSON.stringify(api.getView()),view);assert.throws(()=>api.setColorMode('risk'),/Unknown/);
+  api.setDisplayMode('points');api.setColorMode('depth');api.setRecords(records);
 });
 test('Mexico administrative context shows all 33 source units without filtering 204 fixture rows or offshore records',()=>{
   const geometry=JSON.parse(fs.readFileSync('system/dist/data/admin1.geojson','utf8')),beforeGeometry=JSON.stringify(geometry);

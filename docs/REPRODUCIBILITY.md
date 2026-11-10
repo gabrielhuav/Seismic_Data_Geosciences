@@ -1,22 +1,20 @@
 # Reproducing the local audit
 
-## Local expansion of the verified 9 November 2026 baseline
+## Local revision after the verified 10 November 2026 publication
 
-The public baseline verified on 9 November 2026 is
-`b503c22d384a7a11d4b502370df66c34c191719f`. Compressed loading, browser SQL,
-country/subdivision selection, PB2002 context, count heatmaps, guided questions,
-the source-to-output workspace and country comparison are part of that release.
-The source-tree additions described under simplified access and historical tools
-below are a local 10 November 2026 revision: Simple view, Historical Top 10,
-Historical proximity, and Help/about. They await separately authorized Git and
-publication actions. Code checks do not deploy them.
+The public baseline verified on 10 November 2026 is
+`92d07a954e8b1209b311d9ee56c815ab72f92899`. It includes Simple view, the initial
+single-catalogue Historical Top 10, Historical proximity and Help/about, alongside
+compressed loading, browser SQL, administrative/plate context and comparison.
+The automatic four-catalogue Top 10 described below is a subsequent local
+revision. It requires its own completed review and authorized publication;
+code checks alone do not deploy it.
 
-The baseline defaults to English, offers Spanish and provides eight
+The baseline defaults to English, offers Spanish and provides twelve
 workspaces: Home, Catalogue, Sources, Analysis, Revisions, Evidence/methods,
-SQL and country comparison. The four input packages still contain 287,936 source
+SQL, country comparison and the four regional-access tools. The four input packages still contain 287,936 source
 rows; these changes add no seismic observations or revision-pilot events.
-The four additional local workspaces bring navigation to twelve destinations;
-the source records, original event/manifest hashes and 36-event pilot are intact.
+The source records, original event/manifest hashes and 36-event pilot are intact.
 
 An unversioned entry opens all four packages on Home. Versioned links retain
 their explicit selection. Source cards expose active-session verification,
@@ -135,7 +133,54 @@ PDF option is the browser print/save dialogue, not a new PDF backend. Moving to
 the full workspace keeps the applied source and predicates. Draft criteria must
 be submitted before replacing the result or generating an export.
 
-`SeismicHistoryExplorer.computeTop(data, filters)` emits
+The Top 10 interface now loads all four available catalogues automatically,
+starts with their full archived footprint and recomputes after country/state
+changes. Source catalogue, literal type and inclusive UTC years are advanced
+options. No update button is needed. A failed package prevents a partial result
+from being presented as a complete four-catalogue result; verified session data
+are reused without modifying source arrays.
+
+`SeismicHistoryExplorer.computeCombinedTop(datasets, filters)` emits
+`seismic-combined-reported-top10/1`. Its default `catalogueId: all`,
+`magType: __all__` preserves all reported numerical magnitudes and literal types.
+These heterogeneous values are neither converted nor presented as a homogeneous
+Mw ranking. Each ranked row includes catalogue/provider, original or derived key,
+reported type and all grouped provenance alternatives. Identical original USGS
+IDs across the two USGS packages are the only grouped identities. SSN and NRCan
+keys, and possible cross-agency observations of one earthquake, stay separate.
+
+USGS identity resolution precedes year/type/geographic predicates and ranking.
+Only if both source rows have valid explicit UTC `updated` values is the newer
+update selected. Otherwise, and on ties, fixed priority is USGS North America
+before USGS Mexico. The largest magnitude never selects the representative.
+Calendar-valid UTC whole seconds are compared chronologically; fractional
+seconds are compared as exact decimals, so `.0009Z` follows `.0001Z` and `.100Z`
+follows the same whole second without a fraction. No millisecond truncation
+creates a false tie. The Python oracle uses native datetime seconds and Decimal
+fractions independently of JavaScript's zero-padded fraction strings.
+All alternate magnitudes/types, coordinates, dates, updates and source hashes
+remain in JSON and provenance rows of the 17-column combined CSV. This is
+reproducible record selection, not a measurement-accuracy assessment.
+
+The complete overview retains 287,936 original rows and groups 2,163 identical
+USGS IDs into 285,773 candidate records. The four-source Guerrero terrestrial
+selection has 23,391 candidates; advanced SSN/unknown-type selection retains the
+original 21,167. These counts do not establish independent physical earthquakes.
+Available periods differ: North America 2020–2025, Mexico-region USGS and direct
+SSN 1900–2026 partial, NRCan 1985–2019. Full footprint retains archived offshore
+rows but cannot add missing historical events such as Alaska1964.
+
+The retained `catalogs.json.selection_rule` text describes the legacy
+single-catalogue mode and is outdated as a description of current operation;
+it does not execute a predicate or prohibit combined views. Current query/result
+schemas and their explicit selection rules define
+composition and the combined Top 10. Registry bytes and their geographic pins
+are preserved, rather than rewriting scientific provenance for that old label.
+Preserving those input bytes does not freeze the interface: the current code
+loads four datasets, and combined results enumerate their four input evidences.
+The legacy text is not a second operational selection contract.
+
+The compatible `SeismicHistoryExplorer.computeTop(data, filters)` still emits
 `seismic-historical-top10/1`. It accepts a single catalogue, inclusive UTC-year
 bounds, one exact case-sensitive magnitude type, and a geographic scope. The
 explicit `__missing__` group retains an absent/empty source magnitude type as
@@ -195,11 +240,15 @@ They cover selection/type/coverage boundaries, help content, real-package Top 10
 ordering and pair membership, direct versus transitive links, finite-boundary
 distances, antimeridian display copies, unknown values and complete evidence
 exports. The maintained standard-library Python oracle is
-`scripts/audit_historical_views.py`. It evaluates 23 cases: 15 real-package
-selections and eight synthetic boundary/logic cases. It independently calculates
+`scripts/audit_historical_views.py`. It evaluates 31 cases: the original 23
+(15 real-package selections and eight synthetic boundary/logic cases), plus
+four real combined selections and four synthetic representative/UTC-order cases.
+It independently calculates
 raw-row selections, Top 10 order, haversine pairs and three-dimensional finite-arc
 context distances; it also compares all 17 CSV columns, unknown depths,
-derived-key semantics and unchanged input hashes. All 23 cases agreed with the
+derived-key semantics and unchanged input hashes. Combined checks additionally
+verify exact-ID grouping, representative resolution before filters and complete
+alternative provenance. All 31 cases agreed with the
 JavaScript outputs in the recorded validation.
 
 Run it on Linux or another host with Python and Node.js installed:

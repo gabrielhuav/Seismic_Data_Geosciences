@@ -5,6 +5,25 @@ Leer AGENTS.md completo. Los resultados de antecedentes no son verificaciones nu
 
 ## Estado actual
 
+- REVISIÓN EDITORIAL Y SISTEMA 2026.11.10.2 TERMINADOS LOCALMENTE: Sources combina
+  Atlas y Time and coverage, con cuatro identidades de fuente iguales a las del
+  mapa. Top10 carga los cuatro catálogos automáticamente; país/estado sencillos,
+  detalles avanzados plegados, procedencia y cobertura explícitas. 287.936 filas
+  de origen, 285.773 candidatos tras agrupar sólo IDs USGS exactos entre paquetes.
+- Word/PDF coincidentes: 19 páginas, nueve figuras auténticas y cuatro tablas;
+  cuerpo 3.267 palabras frente a 5.492 (-40,5135%). 41 controles y las 19 páginas
+  revisadas visualmente. Autores, CRediT y declaración académica de IA intactos.
+- Gabriel autorizó UN nuevo commit y UN push después de verificar sistema y
+  capturas; aún sin consumir al preparar este plan. Identidad humana Gabriel
+  Hurtado <gabrielhurtadoaviles@gmail.com>, sin IA ni trailers en Git. El despliegue
+  manual nuevo y las excepciones HTTP de ESTE push requieren aceptación expresa.
+  Plan/recibos: outputs/editorial_release_2026-11-10/. PC encendida.
+
+
+## Estado conservado anterior (histórico; prevalece Estado actual)
+
+### Estado previo al cierre de la publicación del10nov2026
+
 - PUBLICACIÓN AUTORIZADA10nov2026: Gabriel autorizó UN commit humano, UN push a
   origin/main y UN despliegue manual de esta ampliación. Autor/committer Gabriel
   Hurtado <gabrielhurtadoaviles@gmail.com>, sin IA, coautores, trailers ni firmas
@@ -48,8 +67,6 @@ Leer AGENTS.md completo. Los resultados de antecedentes no son verificaciones nu
   CONSUMIDOS. Mantener Git humano de Gabriel sin IA/coautores/trailers en metadatos.
   Recibos/QA/respaldo: outputs/regional_tools_2026-11-10/ . Preview propio8787 cerrado
   tras QA; reiniciarlo antes de otra visita local. PC ENCENDIDA; históricos intactos.
-
-## Estado conservado anterior (histórico; prevalece Estado actual)
 
 ### Estado previo a la ampliación local del10nov2026
 
@@ -781,12 +798,86 @@ fuera de muestra. No agregar ML ni modelos geotécnicos sin necesidad científic
 
 ## Siguiente paso
 
-Completar UNA VEZ el commit, push y despliegue autorizados10nov2026, con identidad
-humana. Ejecutar gate HTTP nuevo; pedir excepción expresa de ESTE push si procede.
-Verificar luego CI, bytes públicos y funciones en navegador integrado, escritorio
-y móvil emulado. Registrar SHA/run reales, sin otro commit/amend. PC encendida.
+Crear UNA VEZ el commit humano y completar el push ya autorizados de esta revisión,
+tras el gate HTTP nuevo y la aceptación expresa de sus excepciones. Pedir sólo el
+despliegue manual NUEVO que falta autorizar. Después verificar CI, 82 assets HTTPS
+y navegador real público; registrar SHA/run finales sin otro commit/amend.
+PC encendida; no envío editorial ni pagos.
 
 ## Bitácora
+
+- REVISIÓN EDITORIAL Y SISTEMA 2026.11.10.2 TERMINADOS LOCALMENTE: Sources combina
+  Atlas y Time and coverage, con cuatro identidades de fuente iguales a las del
+  mapa. Top10 carga los cuatro catálogos automáticamente; país/estado sencillos,
+  detalles avanzados plegados, procedencia y cobertura explícitas. 287.936 filas
+  de origen, 285.773 candidatos tras agrupar sólo IDs USGS exactos entre paquetes.
+- Word/PDF coincidentes: 19 páginas, nueve figuras auténticas y cuatro tablas;
+  cuerpo 3.267 palabras frente a 5.492 (-40,5135%). 41 controles y las 19 páginas
+  revisadas visualmente. Autores, CRediT y declaración académica de IA intactos.
+- Gabriel autorizó UN nuevo commit y UN push después de verificar sistema y
+  capturas; aún sin consumir al preparar este plan. Identidad humana Gabriel
+  Hurtado <gabrielhurtadoaviles@gmail.com>, sin IA ni trailers en Git. El despliegue
+  manual nuevo y las excepciones HTTP de ESTE push requieren aceptación expresa.
+  Plan/recibos: outputs/editorial_release_2026-11-10/. PC encendida.
+
+### Estado sustituido al preparar la revisión editorial
+
+- PUBLICADO Y VERIFICADO el 10 de noviembre de 2026: commit
+  92d07a954e8b1209b311d9ee56c815ab72f92899, 23 rutas, en origin/main.
+  Autor y committer: Gabriel Hurtado <gabrielhurtadoaviles@gmail.com>;
+  sin IA, coautores, trailers ni firma criptográfica en los metadatos Git.
+  GitHub Pages: https://gabrielhuav.github.io/Seismic_Data_Geosciences/
+  Workflow manual 42788452935, intento 1, SUCCESS; validate y deploy correctos.
+  CI confirmó 80 pruebas Python, 16 suites JS, oráculo histórico 23/23 y 4.720
+  verificaciones de proyecciones retenidas. Las tres autorizaciones están
+  CONSUMIDAS: no otro commit, amend, push, despliegue o reintento sin permiso nuevo.
+- Gabriel aceptó «Sí, acepto las excepciones y completa el push y despliegue» para
+  ESTE push: cinco HTTP 403 editoriales y muestra de 339/36.872 rutas USGS;
+  36.533 rutas no visitadas. No reutilizar estas excepciones en otro push.
+- HTTPS: 82/82 archivos públicos, HTTP 200 y bytes/SHA-256 exactos frente al commit
+  (114,708,703 bytes). Tres exclusiones de contexto/fuente privada/PDF dan 404.
+  Sólo system/dist se sirve; Word/PDF están en el repositorio, fuera de Pages.
+  Fuentes, plantilla, tesis y evidencias privadas no se publicaron.
+- Interfaz pública real: cuatro paquetes/287.936 filas; vista simple con tres
+  acciones, selección SSN/Guerrero de 21.167 filas; Top10 USGS NA mww con diez
+  filas entre 104 terrestres; proximidad SSN completa de 88 filas/195 pares/78
+  participantes; ayuda versión2026.11.10 y doce FAQ. Móvil390x844 sin desborde;
+  es emulación, no prueba en teléfono físico. No es riesgo, amenaza ni pronóstico.
+- Word/PDF DEL COMMIT PUBLICADO: outputs/paper/Seismic_CG_manuscript.docx y .pdf;
+  31 páginas/15 figuras/cuatro tablas editables, 277 palabras de resumen/5.492 de
+  cuerpo; 47 controles y revisión visual completa. Trece figuras previas intactas.
+  Plantilla y 17 partes conservadas; autores, CRediT, licencias y declaración
+  académica veraz de asistencia de IA intactos.
+  SHA DOCX 8fc3d8d79b152e217809244c014787ac5650391a3189a30ab85ce99181a691be;
+  SHA PDF afeb0a1b0986529ce341a271550be93814653ef0ef76ea15069ade21def86c34.
+- NUEVA REVISIÓN LOCAL SOLICITADA DESPUÉS de esta publicación: reducir la extensión
+  del artículo al menos 40 %, revisar figuras5–11, ampliar detalles de figura12 y
+  preparar cinco conceptos de figura3 mediante ImageGen. También coordinar colores
+  de las fuentes con el mapa. Es trabajo en curso; no hay nueva pareja Word/PDF
+  final verificada ni elección/aprobación de los conceptos registrada en este cierre.
+- Nueva prioridad local de Top10: todos los cuatro catálogos por defecto, resultado
+  automático y controles simples de país/estado, con cobertura completa inicial
+  para conservar offshore. Preparar procedencia por fila, advertencia de magnitudes
+  reportadas heterogéneas y agrupación sólo de IDs USGS idénticos; no reconciliar
+  SSN/USGS u otras agencias por coincidencia. Proximidad conserva fuente/tipo únicos.
+  Estas nuevas modificaciones NO tienen permiso adicional de commit/push/despliegue.
+- Recibos de publicación y capturas: outputs/regional_release_2026-11-10/,
+  publication_result.json, workflow_success.json, public_assets_verification.json
+  y captures/public_browser_qa.json. Este cierre queda LOCAL, sin otro Git.
+  PC ENCENDIDA; proyectos, enlaces y contenedores históricos intactos.
+
+
+
+- 10nov2026: publicación cerrada y verificada: commit humano92d07a9 (23 rutas),
+  un push y run42788452935 SUCCESS/intento1. Aceptación expresa para ese push de
+  cinco403 editoriales y muestra339/36872USGS,36533sinvisitar. HTTPS82/82assets
+  exactos y tres exclusiones404; UI pública real y móvil emulado comprobados.
+  Word/PDF del commit31p/15fig/4tablas. Autorizaciones consumidas; este cierre local
+  no ejecuta otro Git. PC encendida. Evidencia: regional_release_2026-11-10/.
+- 10nov2026, DESPUÉS de publicar: solicitada nueva revisión LOCAL: reducción del
+  artículo >=40 %, figuras5–11, zoom figura12, cinco conceptos figura3 con ImageGen,
+  colores coordinados fuente→mapa y Top10 automático de cuatro catálogos con filtros
+  simples. Trabajos en curso, sin afirmar finalización ni permisos Git adicionales.
 
 - PUBLICACIÓN AUTORIZADA10nov2026: Gabriel autorizó UN commit humano, UN push a
   origin/main y UN despliegue manual de esta ampliación. Autor/committer Gabriel

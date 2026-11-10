@@ -70,7 +70,7 @@ test('antimeridian display keeps each ring continuous and leaves all source coor
 // map tile requests or network access. DOM controls and map behavior are bounded stubs.
 class Element {
   constructor(id='') {this.id=id;this.value='';this.checked=false;this.hidden=false;this.disabled=false;this.open=false;this.children=[];this.listeners={};this.textContent='';this.dataset={};this.classes=new Set();this.classList={toggle:(name,on)=>on ? this.classes.add(name) : this.classes.delete(name)};}
-  append(child) {this.children.push(child);if(this.children.length===1 && child.value!==undefined)this.value=child.value;}
+  append(child) {if(child.parentElement)child.parentElement.children=child.parentElement.children.filter(c=>c!==child);this.children.push(child);child.parentElement=this;if(this.children.length===1 && child.value!==undefined)this.value=child.value;}
   replaceChildren(...children) {this.children=[];this.value='';for(const child of children)this.append(child);}
   querySelector(selector) {const option=selector.match(/^option\[value="([^"]*)"\]$/);return option ? this.children.find(child=>child.value===option[1]) : null;}
   setAttribute(name,value) {this[name]=value;}
@@ -85,15 +85,18 @@ async function main() {
   for(const key of Object.keys(V.defaults)) elements.get(key).value=V.defaults[key];
   elements.get('sort').value='recent';elements.get('mapBase').value='local';
   const documentListeners={};
-  const document={documentElement:new Element(),querySelector:()=>({}),querySelectorAll:()=>[],getElementById:id=>elements.get(id),createElement:()=>new Element(),body:new Element(),
+  const sharedViewTools=new Element('sharedViewTools');
+  const document={documentElement:new Element(),querySelector:selector=>selector==='.view-tools'?sharedViewTools:{},querySelectorAll:()=>[],getElementById:id=>elements.get(id),createElement:()=>new Element(),body:new Element(),
     addEventListener(type,callback){(documentListeners[type]??=[]).push(callback);}};
   for(const element of elements.values())element.focus=()=>{document.activeElement=element;};
   elements.get('mapCard').parentElement=document.body;document.body.children=[elements.get('mapCard'),elements.get('catalogSelect')];
+  for(const id of ['homeMapMount','catalogMapMount','sourceAtlasMapMount','sourceTimeMapMount']){elements.get(id).parentElement=document.body;document.body.children.push(elements.get(id));}
   const location={href:'https://example.org/?v=3&catalog=usgs-na-2020-2025'};
   const map={records:[],view:[50,-120,3],base:'local',setRecords(rows){this.records=rows;},getView(){return this.view;},setView(v){this.view=v;},setRegion(b){this.region=b;},reset(){this.view=[50,-120,3];},setBase(id){this.base=id;},getBase(){return this.base;},languageChanged(){},resize(){},fitRecords(){},highlight(id){this.highlighted=id;},focusRecord(id){this.highlighted=id;this.view=[60,-120,5.5];},themeChanged(){}};
-  Object.assign(map,{displayMode:'points',contextCountry:'',
+  Object.assign(map,{displayMode:'points',colorMode:'catalogue',contextCountry:'',
     setDisplayMode(mode){this.displayMode=mode;this.onDisplayChange?.(this.getDisplayEvidence());},getDisplayMode(){return this.displayMode;},
-    getDisplayEvidence(){return {mode:this.displayMode,selected_rows:this.records.length,visible_rows:this.records.length,counting_unit:'visible source rows'};},
+    setColorMode(mode){this.colorMode=mode;this.onDisplayChange?.(this.getDisplayEvidence());},getColorMode(){return this.colorMode;},
+    getDisplayEvidence(){return {mode:this.displayMode,color_encoding:this.displayMode==='heat'?'relative_source_row_concentration':this.colorMode,selected_rows:this.records.length,visible_rows:this.records.length,counting_unit:'visible source rows'};},
     setAdmin1Context({countryId}){this.contextCountry=countryId;},clearAdmin1(){this.contextCountry='';},
     setAdmin1({countryId,selectedId}){this.contextCountry='';this.admin1Country=countryId;this.selectedAdmin1=selectedId;}});
   let tamper='', delayed='';const fetchCounts=new Map();
@@ -105,7 +108,7 @@ async function main() {
     return {ok:true,arrayBuffer:async()=>buffer.buffer.slice(buffer.byteOffset,buffer.byteOffset+buffer.byteLength)};
   };
   const context={window:{SeismicViewState:V,SeismicCatalogComposition:C,SeismicAnalytics:A,SeismicResearchCharts:R,SeismicDiagnostics:require('../system/dist/diagnostics.js'),SeismicExportPackage:require('../system/dist/export-package.js'),addEventListener(){}},document,location,history:{replaceState(_,__,url){location.href=url;}},navigator:{},fetch,
-    crypto:crypto.webcrypto,TextDecoder,TextEncoder,URL,Intl,Blob,setTimeout,clearTimeout,requestAnimationFrame:callback=>callback(),createSeismicMap:options=>{map.onDisplayChange=options.onDisplayChange;return map;}};
+    crypto:crypto.webcrypto,TextDecoder,TextEncoder,URL,Intl,Blob,setTimeout,clearTimeout,requestAnimationFrame:callback=>callback(),createSeismicMap:options=>{map.onDisplayChange=options.onDisplayChange;map.sourceStyle=options.sourceStyle;return map;}};
   vm.createContext(context);vm.runInContext(fs.readFileSync('system/dist/i18n.js','utf8'),context);
   vm.runInContext(fs.readFileSync('system/dist/source-workbench.js','utf8'),context);
   context.window.document=document;context.window.localStorage={getItem:()=>null,setItem(){}};
@@ -597,6 +600,48 @@ async function main() {
   const quickEvidence=JSON.parse(await context.savedDownload.blob.text());
   assert.equal(quickEvidence.result.row_count,21167);assert.equal(quickEvidence.selection.admin1,guerrero);
   checks++;console.log('PASS quick state presets retain Guerrero, full source years, native statistics and the same exported record selection');
+  const comparisonPrevious=vm.runInContext('state.filtered',context);
+  vm.runInContext("setTab('comparison')",context);
+  assert.equal(sharedViewTools.hidden,true,'Independent comparison must not expose global catalogue Share/JSON actions');
+  assert.equal(elements.get('loadStatus').hidden,true,'Independent comparison must not label itself with the preceding SSN package');
+  assert.equal(vm.runInContext('state.filtered',context),comparisonPrevious);assert.equal(vm.runInContext('state.catalog.id',context),'ssn-mx-historical');
+  vm.runInContext("setTab('catalog')",context);assert.equal(sharedViewTools.hidden,false);assert.equal(elements.get('loadStatus').hidden,false);
+  checks++;console.log('PASS independent comparison hides unrelated global source/query controls and restores them on returning without altering the preceding SSN selection');
+  const W=context.window.SeismicSourceWorkbench;
+  for(const c of catalogs){
+    map.setDisplayMode('heat');map.setColorMode('depth');
+    await Promise.all(elements.get('sourceCards').listeners.click.map(fn=>fn({target:{closest:selector=>selector==='[data-source-catalog]'?{dataset:{sourceCatalog:c.id}}:null}})));
+    assert.equal(vm.runInContext('state.catalog.id',context),c.id);assert.equal(vm.runInContext('state.tab',context),'sources');
+    assert.equal(map.records.length,c.event_count);assert.equal(map.colorMode,'catalogue');assert.equal(map.displayMode,'points');
+    const identity=W.identity(c.id);assert.equal(map.sourceStyle(map.records[0]).color,identity.color);assert.equal(map.sourceStyle(map.records[0]).shape,identity.shape);
+    for(const id of ['workbenchSources','sourceAtlasInputs','sourceAtlasFocus','catalogueLegend'])assert(elements.get(id).innerHTML.includes(identity.color),id+' must retain the map source colour');
+    assert(elements.get('catalogueLegend').innerHTML.includes(identity.label));
+    assert.equal(elements.get('mapCard').parentElement,elements.get('sourceAtlasMapMount'));
+    const rows=vm.runInContext('state.filtered.map(e=>e.id).join()',context);
+    for(const fn of elements.get('sourceTimeView').listeners.click)fn();
+    assert.equal(vm.runInContext('state.sourceView',context),'time');assert.equal(elements.get('mapCard').parentElement,elements.get('sourceTimeMapMount'));
+    assert.equal(vm.runInContext('state.filtered.map(e=>e.id).join()',context),rows);assert.equal(elements.get('sourceTimePanel').hidden,false);
+    assert(elements.get('sourceTimeTracks').innerHTML.includes(identity.color));
+    const range=vm.runInContext('state.cache.get(state.catalog.id).timeExtent',context),times=map.records.map(e=>e.time);
+    assert.equal(range.first,times.reduce((a,b)=>a<b?a:b));assert.equal(range.last,times.reduce((a,b)=>a>b?a:b));
+    for(const fn of elements.get('sourceAtlasView').listeners.click)fn();
+    assert.equal(elements.get('mapCard').parentElement,elements.get('sourceAtlasMapMount'));
+  }
+  const sameSourceRows=vm.runInContext('state.filtered',context);
+  await vm.runInContext("activateSourceCatalogue('ssn-mx-historical')",context);
+  assert.equal(vm.runInContext('state.filtered',context),sameSourceRows,'Selecting an already complete source must retain its row array rather than reload and repaint it');
+  for(const fn of elements.get('sourceAll').listeners.click)await fn();
+  assert.equal(map.records.length,287936);assert.equal(vm.runInContext('state.activePacks.length',context),4);
+  for(const c of catalogs)assert.equal(map.sourceStyle(map.records.find(e=>e._catalog_id===c.id)).color,W.identity(c.id).color);
+  const combinedKeys=vm.runInContext('state.filtered.map(e=>e.id).join()',context);
+  elements.get('mapPointColor').value='depth';for(const fn of elements.get('mapPointColor').listeners.change)fn();
+  assert.equal(new URL(location.href).searchParams.get('pointColor'),'depth');assert.equal(elements.get('depthLegend').hidden,false);assert.equal(elements.get('catalogueLegend').hidden,true);
+  assert.equal(vm.runInContext('state.filtered.map(e=>e.id).join()',context),combinedKeys);
+  await vm.runInContext('restoreLocation()',context);assert.equal(map.colorMode,'depth');
+  elements.get('mapPointColor').value='catalogue';for(const fn of elements.get('mapPointColor').listeners.change)fn();
+  assert.equal(new URL(location.href).searchParams.has('pointColor'),false);assert.equal(elements.get('depthLegend').hidden,true);
+  for(const fn of elements.get('sourceStageAnalysis').listeners.click)fn();assert.equal(vm.runInContext('state.tab',context),'analysis');assert.equal(vm.runInContext('state.filtered.map(e=>e.id).join()',context),combinedKeys);
+  checks++;console.log('PASS Sources Atlas/tracks and Home share real package identities, colour/shape keys, observed UTC extents and the same filtered map; depth remains presentation only');
   console.log(JSON.stringify({passed:checks},null,2));
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});
