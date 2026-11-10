@@ -586,6 +586,17 @@ async function main() {
   assert.equal(new URL(location.href).searchParams.has('display'),false);assert.equal(elements.get('heatLegend').hidden,true);
   assert.deepEqual(JSON.parse(vm.runInContext('JSON.stringify(state.filtered.map(e=>e.id))',context)),hiddenMapQuery.result.ordered_event_ids);
   checks++;console.log('PASS heat display/permalinks preserve filters and IDs; exports bind visible cartography or explicitly omit stale hidden-map evidence');
+  const guerrero=vm.runInContext("state.admin1.regions.find(r=>r.country_id==='MEX'&&r.label.en==='Guerrero').id",context);
+  context.quickCriteria={catalog:'ssn-mx-historical',country:'MEX',admin1:guerrero,yearFrom:1900,yearTo:2026,magMin:3.5,magType:'',action:'statistics'};
+  const quickAnswer=await vm.runInContext('applyQuickSelection(quickCriteria)',context);
+  assert.equal(vm.runInContext('state.applied.admin1',context),guerrero,'Loading a quick preset must populate subdivision options before writing its value');
+  assert.equal(quickAnswer.count,21167);assert.equal(quickAnswer.summary.record_count,21167);
+  assert(quickAnswer.selectionLabel.includes('Guerrero'));
+  assert(vm.runInContext('state.filtered.every(e=>e.country_id===\"MEX\"&&e.admin1_id===quickCriteria.admin1)',context));
+  vm.runInContext('exportQuery()',context);
+  const quickEvidence=JSON.parse(await context.savedDownload.blob.text());
+  assert.equal(quickEvidence.result.row_count,21167);assert.equal(quickEvidence.selection.admin1,guerrero);
+  checks++;console.log('PASS quick state presets retain Guerrero, full source years, native statistics and the same exported record selection');
   console.log(JSON.stringify({passed:checks},null,2));
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

@@ -6,18 +6,20 @@ Mexico paper snapshot, NRCan Canada and surroundings (1985–2019), and the
 native SSN download (1900–6 November 2026, partial year; M≥3.5). Text
 search, provider/catalogue selectors and scientific filters operate on the
 selected catalogue or an explicit combined view. The verified public baseline
-is `590f6e79ad6d5d78d70e286ab0c60bd4e856fdce` (8 November 2026).
-This local revision adds compressed transport, guided browser queries,
+is `b503c22d384a7a11d4b502370df66c34c191719f` (9 November 2026).
+That baseline includes compressed transport, guided browser queries,
 administrative selection, tectonic context, count heatmaps, a functional Home
-workspace and descriptive country comparison; those additions await
-authorized publication. Records retain their source and are not counted as
+workspace and descriptive country comparison. The local 10 November revision
+adds Simple view, Historical Top 10, Historical proximity and Help/about;
+those four additions await separately authorized commit, push and publication.
+Records retain their source and are not counted as
 independent physical earthquakes. Retained origin-product revisions remain a
 separate 36-event pilot. This is a research audit interface, not a forecasting
 or operational alert service.
 
 Unversioned entry opens Home with all four catalogues and their 287,936 source
-rows on the map, with English as the default and Spanish available. Eight
-workspaces connect Home, Catalogue, Sources, Analysis, Revisions,
+rows on the map, with English as the default and Spanish available. The eight
+baseline workspaces connect Home, Catalogue, Sources, Analysis, Revisions,
 Evidence/methods, SQL and country comparison. Home is a working source-to-output
 pipeline: four input buttons and an explicit combined choice control the live
 catalogue map, while adjacent actions open results, export the selected CSV/query
@@ -31,6 +33,49 @@ reported magnitude summaries by catalogue and exact type, documented-km depth
 summaries, annual source-row counts and conditional descriptive Pearson
 associations. Unknown types and undocumented units remain explicit; no magnitude
 conversion or cross-provider event reconciliation is inferred.
+
+Four local access tools extend this navigation to twelve workspaces. **Simple
+view** offers three large task buttons: historical map, descriptive statistics
+and personal report. A short source/place form narrows the catalogue footprint
+to an optional Mexico/Canada/USA land class and recorded state/province; years,
+minimum reported M and exact type are adjustable. The form reuses the ordinary
+loader/filter engine, shared map, descriptive summaries and existing record CSV,
+analysis/query-evidence JSON, ZIP and HTML report actions. PDF comes from the
+browser print/save dialogue. The full workspace retains the applied selection.
+Unknown types remain separate, and SSN's 2026 coverage is visibly partial.
+
+**Historical Top 10** ranks at most ten available source records in one catalogue,
+literal magnitude-type group, UTC-year interval and region. `NA` means the union
+of Mexico/Canada/USA land classes; country, recorded first-order unit and complete
+catalogue footprint are distinct choices. The footprint may include offshore and
+other land classes. Sorting uses reported M descending, UTC time ascending and
+source key ascending, with no expansion for ties at the tenth value. Numbered
+Leaflet markers, ranking, table and CSV/JSON evidence preserve the same records.
+This is a ranking within the selected archive, not the strongest earthquakes ever:
+USGS North America covers only 2020–2025, NRCan 1985–2019, the frozen Mexico snapshot
+has its nominal 1900–2026 window, and direct SSN ends on 6 November 2026.
+
+**Historical proximity** displays direct pairs of reported M >= 7 epicentres
+within a chosen 25/50/100/200 km radius (default 100 km), from one catalogue and
+literal type. Inclusive haversine distance uses spherical radius 6,371.0088 km.
+The default SSN-footprint view expressly retains its unknown magnitude type.
+Links do not form transitive clusters or verified repeating earthquakes. Optional
+country/state context includes unassigned/offshore rows within 100 km of finite
+great-circle boundary segments in generalized Natural Earth geometry. It retains
+original geographic classes, never annexes land already assigned to another
+country/subdivision, and is separate from ordinary land containment. Downloads
+retain selected keys, every direct pair, distances, methods, criteria and hashes.
+No recurrence rate, hazard, risk, earthquake probability or forecast is estimated;
+zero pairs do not establish safety. Maps preserve source coordinates and unwrap
+only display copies at the antimeridian. **Fit records** restores their extent.
+
+**Help and about** supplies interface version `2026.11.10`, twelve searchable
+ES/EN questions, human authors, academic correspondence at `ghurtadoa@ipn.mx`,
+repository/issue links and licence information. The repository code is MIT;
+SSN/UNAM, NRCan, USGS and third-party data/component terms remain distinct.
+These additions use local `quick-start.js` and `history-explorer.js`, without
+Docker, an SQL backend or a new source package. They do not change any original
+catalogue bytes or add observations to the separate revision pilot.
 
 Source cards explain each package's scientific purpose, adaptation contract,
 coverage and interpretation limits before its evidence details. The technical
@@ -63,6 +108,8 @@ node tests/test_sql_guided.cjs
 node tests/test_country_comparison.cjs
 node tests/test_revision_story.cjs
 node tests/test_source_workbench.cjs
+node tests/test_quick_start.cjs
+node tests/test_history_explorer.cjs
 python -m http.server 8787 --bind 127.0.0.1 --directory system/dist
 ```
 
@@ -70,7 +117,8 @@ Open http://127.0.0.1:8787. No Python, Docker or database server is needed on th
 deployed host. The app reads packaged JSON, with verified gzip transport where
 supported, and performs filters and exports locally. The optional SQL workspace
 uses a temporary SQLite database only in browser memory. Public build assets
-exclude context, drafts, author contact details and the historical SSN warehouse.
+exclude context, manuscript drafts and the historical SSN warehouse. The Help
+panel intentionally exposes the corresponding author's academic contact.
 
 `asset-loader.js` verifies compressed length/SHA-256 before decompression and
 original length/SHA-256 before parsing. Progress reports transfer, verification,

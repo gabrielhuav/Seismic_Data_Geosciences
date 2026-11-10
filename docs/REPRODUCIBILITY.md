@@ -1,19 +1,22 @@
 # Reproducing the local audit
 
-## Local expansion of the verified 8 November 2026 baseline
+## Local expansion of the verified 9 November 2026 baseline
 
-The public baseline verified on 8 November 2026 is
-`590f6e79ad6d5d78d70e286ab0c60bd4e856fdce`. Its visual-feedback interface,
-ZIP exports, native diagnostics and SSN coverage are already released.
-The source-tree additions documented here—compressed loading, browser SQL,
+The public baseline verified on 9 November 2026 is
+`b503c22d384a7a11d4b502370df66c34c191719f`. Compressed loading, browser SQL,
 country/subdivision selection, PB2002 context, count heatmaps, guided questions,
-the source-to-output workspace and country comparison—are local
-until a separately authorized release. Code checks do not deploy them.
+the source-to-output workspace and country comparison are part of that release.
+The source-tree additions described under simplified access and historical tools
+below are a local 10 November 2026 revision: Simple view, Historical Top 10,
+Historical proximity, and Help/about. They await separately authorized Git and
+publication actions. Code checks do not deploy them.
 
-The local revision defaults to English, offers Spanish and provides eight
+The baseline defaults to English, offers Spanish and provides eight
 workspaces: Home, Catalogue, Sources, Analysis, Revisions, Evidence/methods,
 SQL and country comparison. The four input packages still contain 287,936 source
 rows; these changes add no seismic observations or revision-pilot events.
+The four additional local workspaces bring navigation to twelve destinations;
+the source records, original event/manifest hashes and 36-event pilot are intact.
 
 An unversioned entry opens all four packages on Home. Versioned links retain
 their explicit selection. Source cards expose active-session verification,
@@ -103,6 +106,117 @@ The source auditor reads the historical SSN-derived SQL only in read mode. Its s
 
 The frozen CSV input is versioned in `data/source_manifest.json`; `--download` obtains missing bytes and verifies their pinned hashes. The historical SQL is not redistributed or required by the revision audit.
 
+## Simplified access and historical tools in the local revision
+
+`quick-start.js` and `history-explorer.js`, with their local styles, add no data
+acquisition or catalogue. Their inputs are the same four hash-verified packages:
+
+| Package | Archived coverage | Selected source rows |
+| --- | --- | ---: |
+| `usgs-na-2020-2025` | North American footprint, 2020–2025 | 14,041 |
+| `usgs-mx-historical` | Mexico-region frozen paper snapshot, nominal 1900–2026 window | 24,994 |
+| `nrcan-ca-historical` | Canada and surroundings, observed 1985–2019 | 6,613 |
+| `ssn-mx-historical` | Direct SSN, observed 1900–6 November 2026; partial 2026 | 242,288 |
+
+These windows are not completeness guarantees. In particular, the North American
+package is a six-calendar-year archive, not a complete twentieth-century record
+of Canada or the USA. All packages retain the original M >= 3.5 cartographic
+selection. No new offshore nationality, official SSN/NRCan identifier or missing
+magnitude type is inferred.
+
+Simple view validates a source-specific selection and delegates its execution to
+the existing catalogue loader and filter engine. A complete-footprint selection
+includes unassigned/offshore rows; a country and optional recorded subdivision
+apply the same existing terrestrial classes. The same filtered records feed the
+shared map, `SeismicAnalytics`, and the existing CSV, analysis/query JSON, ZIP and
+HTML report builders. An optional literal-type choice narrows the selection;
+otherwise descriptive summaries retain separate exact-type groups. A report's
+PDF option is the browser print/save dialogue, not a new PDF backend. Moving to
+the full workspace keeps the applied source and predicates. Draft criteria must
+be submitted before replacing the result or generating an export.
+
+`SeismicHistoryExplorer.computeTop(data, filters)` emits
+`seismic-historical-top10/1`. It accepts a single catalogue, inclusive UTC-year
+bounds, one exact case-sensitive magnitude type, and a geographic scope. The
+explicit `__missing__` group retains an absent/empty source magnitude type as
+unknown; it is not a converted Mw scale. `NA` selects the union of terrestrial
+`MEX`, `CAN` and `USA`; country and recorded admin-1 choices are narrower. The
+separate `footprint` option retains the catalogue's offshore and other land
+classes. The stable ordering is reported magnitude descending, UTC time ascending
+and source key ascending, with a maximum of ten rows rather than inclusion of
+every boundary tie. Filters, ranking rule, ordered source keys, geographic
+evidence and package hashes travel with CSV and JSON.
+
+`SeismicHistoryExplorer.computeRecurrence(data, filters)` emits
+`seismic-historical-proximity/1`. Despite its internal function name, the product
+is descriptive historical proximity. It selects one catalogue/type, inclusive
+UTC years and reported magnitude >= the selected threshold (default 7; selectable
+7–9). For each unordered pair of distinct retained source keys it computes
+great-circle haversine distance on a sphere of radius 6,371.0088 km. Pairs are
+included at distance <= 25, 50, 100 or 200 km, with 100 km the default. The
+pair and nearby-context predicates apply `distance <= threshold + 1e-9 km`
+before display rounding. This absolute one-micrometre tolerance is exported as
+`rule.numeric_tolerance_km` for floating-point stability; it is not geographic or
+epicentral uncertainty. The calculation handles the antimeridian; missing/invalid coordinates are not paired.
+Source keys are checked for ambiguity rather than silently creating extra pairs.
+No transitive grouping, declustering or temporal independence is inferred.
+
+Optional nearby context is a separate, fixed 100 km operation. It measures the
+minimum spherical distance from an unassigned/offshore point to finite minor
+great-circle arcs of the selected generalized Natural Earth country/admin-1
+boundary. Contextual rows retain their original classes and receive an explicit
+selection basis and distance; existing land assigned to another country or
+subdivision is not annexed. This geometric context is not jurisdiction, shoreline
+accuracy or rupture extent. It does not alter ordinary country-index labels.
+
+The pair result preserves all located selected records, every accepted direct
+pair, distances, geographic selection/exclusion counts, original identifiers or
+derived-key semantics, documented-kilometre depths, input hashes and method limits.
+Unknown Canadian depth remains null. Maps reuse the main map's continuous display
+transform on copies and do not change the coordinates used by the oracle or
+exports. Changing draft criteria invalidates downloads until recalculation.
+No recurrence rate, repeating rupture, fault mechanism, hazard, exposure, seismic
+risk or earthquake probability is produced; an empty result does not mean safety.
+
+Help/about in `quick-start.js` separates interface version `2026.11.10` from source
+observation dates, provides twelve searchable ES/EN questions, human author and
+academic contact information, and distinguishes the MIT code licence from data
+and component licences. It introduces no external analytical service, Docker
+container or database backend.
+
+Run the two new local JavaScript suites from the repository root:
+
+```text
+node tests/test_quick_start.cjs
+node tests/test_history_explorer.cjs
+```
+
+They cover selection/type/coverage boundaries, help content, real-package Top 10
+ordering and pair membership, direct versus transitive links, finite-boundary
+distances, antimeridian display copies, unknown values and complete evidence
+exports. The maintained standard-library Python oracle is
+`scripts/audit_historical_views.py`. It evaluates 23 cases: 15 real-package
+selections and eight synthetic boundary/logic cases. It independently calculates
+raw-row selections, Top 10 order, haversine pairs and three-dimensional finite-arc
+context distances; it also compares all 17 CSV columns, unknown depths,
+derived-key semantics and unchanged input hashes. All 23 cases agreed with the
+JavaScript outputs in the recorded validation.
+
+Run it on Linux or another host with Python and Node.js installed:
+
+```text
+python scripts/audit_historical_views.py --node node
+```
+
+`--node` accepts an executable name or explicit path and otherwise defaults to
+`node` on PATH. No Windows runtime path is embedded. `--output-dir` overrides the
+default private directory `outputs/validation/historical_tools`; relative output
+paths resolve against the repository root. The JSON report
+`oracle_historical_views.json` identifies inputs, checks and the declared
+1e-9 km numerical boundary tolerance. It does not rewrite scientific inputs.
+Genuine browser captures and complete Word/PDF review are additional gates,
+not consequences of a passing code suite. No publication is implied here.
+
 ## Rebuilding the complete explorer
 
 The committed `system/dist` artifact is ready to serve. The offline
@@ -161,7 +275,7 @@ backgrounds are runtime services selected by the
 reader; builds do not fetch their tiles. Their coverage and attribution are
 documented in [CATALOGS.md](CATALOGS.md).
 
-The local country/combined-view revision adds a sidecar, not a fifth source
+The country/combined-view implementation adds a sidecar, not a fifth source
 catalogue. `build_country_index.py` uses only the standard library, reads the
 hash-verified four event packages and pinned local Natural Earth geometry, and
 writes `system/dist/data/country-index.json`. The index retains one label per
@@ -198,7 +312,7 @@ is also derived for export, without rewriting the original 27-field package.
 Combined exports
 also retain per-row source catalogue, distributor, snapshot, packaged key,
 identifier semantics, depth unit and exact-USGS overlap flags. Country and
-combined-view behavior is included in the published baseline `49372d0`.
+combined-view behavior is included in the published baseline `b503c22`.
 
 ## Verified static transport
 
@@ -414,8 +528,8 @@ node tests/test_view_state.cjs
 node tests/test_system_labels.cjs
 ```
 
-The descriptive workspace is part of public baseline `590f6e7`. The local
-extensions described above require their own authorized deployment. Manuscript
+The descriptive workspace is part of public baseline `b503c22`. The four new local
+tools described above require their own authorized deployment. Manuscript
 capture and Word/PDF verification remain separate from code checks.
 
 The optional historical SSN diagnostic requires its separately identified
@@ -470,11 +584,13 @@ Earlier Matplotlib figure generators remain as offline audit tools; their
 outputs are not the current interface figures. Do not overwrite current capture
 assets with that older pipeline. PNG DPI metadata does not add native detail.
 
-The expanded local revision calls for thirteen figures, adding genuine SQL,
+The `b503c22` manuscript has thirteen figures, including genuine SQL,
 administrative/plate-interface and common-filter country-comparison captures.
-Do not substitute diagrams or mock-ups for those interface states, or attribute
-them to baseline `590f6e7`. Capture receipts must identify the evaluated local
-revision; publication status must match the actual release after authorization.
+The four local regional-access tools require corresponding genuine captures and
+method descriptions where appropriate. Do not substitute mock-ups for actual
+interface states or attribute unreleased tools to that baseline. Capture receipts
+must identify the evaluated local revision; publication status must match the
+actual release after authorization.
 
 `paper/figures/manuscript_figures.json` fixes image paths and SHA-256 values.
 The DOCX builder requires one numbered caption and inline anchor per

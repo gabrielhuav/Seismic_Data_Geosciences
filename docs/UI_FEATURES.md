@@ -1,12 +1,89 @@
 # Explorer interaction contract
 
 The explorer supports a single pinned catalogue or an explicit combined view.
-Country and combined-view features are present in the published baseline
-`49372d02198a614a07dda1a3ecbb8a21d754ff68`. The additional research-workflow
-views below are a source-tree extension; their presence here does not establish
-deployment to the public site.
+The verified public baseline is `b503c22d384a7a11d4b502370df66c34c191719f`
+(9 November 2026). Home, guided SQL, country comparison, administrative and plate
+context, and the optional count heatmap are part of that baseline. The four
+regional-access tools below are a local 10 November 2026 extension, pending a
+separately authorized commit, push and deployment. Documentation is not evidence
+that these new tools have been deployed.
 
-## Research workflow views — local revision 7 November 2026
+## Simplified access and historical tools
+
+**Simple view** starts with three large task buttons: historical map, descriptive
+statistics and personal report. Each opens a short form for a single catalogue,
+its complete footprint or a Mexico/Canada/USA land class, and an optional state or
+province with recorded rows. Years and minimum reported magnitude can be adjusted;
+the literal magnitude type is optional. When all types are selected, statistics
+remain separated by catalogue and exact type, with an explicit unknown-type group.
+The form shows the source's actual coverage; SSN 2026 is a partial year.
+
+Submitting this form applies the ordinary catalogue/filter engine rather than a
+second data-selection implementation. Its map is the same movable map card used
+by Home and Catalogue. The simplified statistical display uses the existing
+descriptive summary, including documented-kilometre sample counts and unknowns.
+Its annual counts are source rows, not occurrence rates. Switching to the complete
+workspace retains the applied selection. Editing criteria requires another
+submission before they replace the displayed result.
+
+The report path reuses existing record CSV, analysis/query-evidence JSON, ZIP,
+downloadable HTML and printable report-preview actions. PDF is produced by the
+browser print dialog from that report; no server-side or autonomous PDF generator
+is implied. Exports reapply the stored selection and reject unavailable or invalid
+data. None of the four input packages is rewritten.
+
+**Historical Top 10** is an independent source-specific workspace. It selects one
+catalogue, a UTC-year interval and one literal reported magnitude type. Its region
+choices distinguish the union of Mexico/Canada/USA terrestrial classes, each
+country, a recorded first-order unit, and the catalogue footprint, which can
+include offshore records and other countries. Only subdivisions with source rows
+are offered. Results contain at most ten rows, sorted by reported magnitude
+descending, UTC time ascending and source key ascending. Ties at the tenth value
+do not expand the list. The numbered map markers, ranking display, table and
+CSV/JSON agree on those rows. The heading and coverage note expressly limit the
+ranking to the selected archive, not the strongest earthquakes ever.
+
+**Historical proximity** identifies direct pairs of large reported epicentres in
+one catalogue and exact type, with default M >= 7 and distance <= 100 km. It uses
+inclusive haversine distance with spherical radius 6,371.0088 km; selectable pair
+radii are 25, 50, 100 and 200 km. Pair and nearby-context boundary comparisons use
+`distance <= threshold + 1e-9 km` before display rounding; this one-micrometre
+absolute tolerance stabilizes numerical arithmetic, not geographic uncertainty.
+Every unordered pair of distinct source keys is
+evaluated. There are no transitive clusters: A close to B and B close to C does
+not imply A close to C. The initial SSN-footprint view keeps its missing magnitude
+type explicit. Other catalogues, periods, countries and recorded subdivisions
+remain selectable, including honest empty outcomes.
+
+An optional country/subdivision context adds unassigned or offshore rows within
+100 km of the selected generalized land boundary. The minimum distance is to
+finite minor great-circle segments of the pinned Natural Earth polygons; it is
+not distance to an infinite line or a nearest-city lookup. Existing country and
+subdivision classes are preserved, and land already assigned to a different
+country or subdivision is not annexed. The complete catalogue footprint is a
+separate choice. The map, pair table and CSV/JSON expose source keys, dates,
+reported values, distances, criteria, methods and input hashes. Maps reuse the
+main map's continuous antimeridian display transform on copies of the geometry;
+source coordinates and calculations remain unchanged. **Fit records** restores
+the selected extent.
+
+These pairs are archive observations, not verified repeating ruptures, causal
+sequences, fault recurrence intervals, completeness-adjusted rates, earthquake
+probabilities, ground-shaking hazard or seismic risk. Aftershocks and same-day
+records are retained without an independence claim. SSN/NRCan derived row keys do
+not become official physical-event IDs. A zero-pair result does not establish
+safety. Unapplied criteria disable downloads of stale results.
+
+**Help and about** provides interface version `2026.11.10`, the human authors,
+academic contact `ghurtadoa@ipn.mx`, repository/issue links, twelve searchable
+ES/EN questions and answers, and licence information. Code is MIT-licensed;
+SSN/UNAM, NRCan, USGS and third-party component/data rights remain separate. The
+interface version is distinct from each frozen catalogue's observation dates.
+The local files `quick-start.js` and `history-explorer.js` implement these views
+without Docker, a backend database or a new remote data service. Local code and
+independent raw-data checks precede real-browser and manuscript verification.
+
+## Research workflow views in the verified baseline
 
 The navigation adds **Home**, **Sources** and **Analysis** alongside the catalogue,
 retained revisions and evidence/methods views. A bare URL opens Home; existing
@@ -95,8 +172,9 @@ change the filter, reported coordinates, CSV, row counts or underlying evidence.
 The **Data source / Fuente de datos** selector offers three distributors: USGS,
 NRCan and direct SSN/UNAM. Four catalogues remain individually selectable;
 the combined option displays their source records together without treating the
-sum as independent earthquakes. The initial selection remains USGS North America. Selecting
-SSN requests and verifies its larger package on demand; its exact byte size is
+sum as independent earthquakes. An unversioned entry opens all four catalogues
+on Home; versioned links preserve their explicit catalogue selection. Selecting
+SSN loads or reuses its verified package; its exact byte size is
 reported during loading when supplied by the registry. Scientific controls and
 exports remain disabled until the hash-checked package is ready.
 
@@ -273,6 +351,8 @@ node tests/test_catalog_frontend.cjs
 node tests/test_catalog_composition.cjs
 node tests/test_map_basemaps.cjs
 node tests/test_system_labels.cjs
+node tests/test_quick_start.cjs
+node tests/test_history_explorer.cjs
 python -m unittest discover -s tests -p test_country_index.py
 ```
 
@@ -302,3 +382,23 @@ independent physical earthquakes.
 Final visual review and manuscript screenshots use the completed interface in a
 real browser. The historical water and public-works projects were inspected as
 interaction references and remain unchanged.
+
+The two new local suites cover simplified-form validation, available regional
+choices, source coverage and help content, plus Top 10 ordering, literal-type and
+unknown-depth preservation, direct-pair selection, geodesic edge cases, contextual
+offshore inclusion, antimeridian display copies and complete CSV/JSON evidence.
+The maintained Python oracle `scripts/audit_historical_views.py` independently
+checks pair distances, three-dimensional finite-boundary context, Top 10 order,
+all 17 CSV columns and unchanged input hashes. Its 23 cases (15 real-package
+selections and eight synthetic boundary/logic cases) agreed with the JavaScript
+outputs. Run it with standard-library Python and Node.js:
+
+```text
+python scripts/audit_historical_views.py --node node
+```
+
+`--node` also accepts an explicit executable path; its default discovers `node`
+on PATH. `--output-dir` selects a private report directory, defaulting to
+`outputs/validation/historical_tools`. The JSON report records source hashes and
+the 1e-9 km numerical boundary tolerance. A recorded code run does not replace
+visual or physical-device testing.

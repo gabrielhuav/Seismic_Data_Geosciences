@@ -1,0 +1,23 @@
+/* Research tools remain direct, while the quick route hides advanced navigation. */
+header { flex-wrap:wrap; }
+header nav { min-width:0; flex-wrap:wrap; justify-content:center; }
+.tools-nav { margin:0; padding:10px clamp(16px,2vw,36px); display:flex; gap:10px; justify-content:center; flex-wrap:wrap; background:var(--paper); border-bottom:1px solid var(--line); }
+.tools-nav button { min-height:42px; padding:9px 20px; border:1px solid var(--line); font-size:12px; }
+.tools-nav #quickTab { background:var(--green); color:var(--on-accent); border-color:var(--green); }
+.tools-nav button[aria-current] { outline:2px solid var(--green); outline-offset:2px; font-weight:750; }
+body[data-view="quick"] header>nav,body[data-view="quick"] .build-version,body[data-view="quick"] #integrityStatus { display:none; }
+body[data-view="quick"] .tools-nav #topTab,body[data-view="quick"] .tools-nav #recurrenceTab { display:none; }
+body[data-view="quick"] header { justify-content:space-between; }
+@media (min-width:1451px) { header nav { flex:1 1 760px; } }
+@media (min-width:701px) and (max-width:1450px) {
+  header { gap:14px; }
+  header>nav { order:5; flex:1 0 100%; width:100%; margin-left:0; }
+  header>.appearance-controls { margin-left:auto; }
+  header>.build-version { display:none; }
+}
+@media (max-width:700px) {
+  .tools-nav { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+  .tools-nav button { white-space:normal; min-width:0; padding:9px 8px; font-size:11px; }
+  header>nav { width:100%; margin:0; }
+  header .brand { padding-right:0; }
+}

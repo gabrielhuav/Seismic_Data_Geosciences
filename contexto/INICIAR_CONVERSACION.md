@@ -6,6 +6,101 @@ Lee completos AGENTS.md, MEMORIA_COMPARTIDA.md y NUEVA_PC.md antes de actuar.
 
 ## Estado actual
 
+- PUBLICACIÓN AUTORIZADA10nov2026: Gabriel autorizó UN commit humano, UN push a
+  origin/main y UN despliegue manual de esta ampliación. Autor/committer Gabriel
+  Hurtado <gabrielhurtadoaviles@gmail.com>, sin IA, coautores, trailers ni firmas
+  automáticas. Estado al preparar: ninguna acción consumida. Gate HTTP NUEVO de
+  ESTE push, cero fallos o aceptación expresa actual; no heredar excepciones.
+  23rutas candidatas,82assets públicos; finales31p/15fig/4tablas ya revisados.
+  Plan/recibos privados: outputs/regional_release_2026-11-10/. PC encendida.
+
+- AMPLIACIÓN LOCAL TERMINADA Y REVISADA el 10 de noviembre de 2026, primero
+  sistema y después artículo. Top 10 por catálogo/tipo literal, Norteamérica terrestre
+  (MEX/CAN/USA), país y estado con registros; periodo/cobertura/empates explícitos.
+  Cobertura completa del catálogo permite consultar offshore sin reasignar países.
+- Vista simplificada: tres accesos a mapa, descriptivos y reporte personalizado;
+  reutiliza filtros y exportaciones nativos. Se corrigió conservación del estado y
+  reinicio de años al cambiar fuente. Ayuda: 12 FAQ con búsqueda, versión2026.11.10,
+  contacto ghurtadoa@ipn.mx y MIT del software separado de derechos de datos/terceros.
+- Proximidad histórica M>=7: pares directos Haversine R=6371,0088 km, radios25/50/
+  100/200 km; tolerancia numérica absoluta1e-9 km declarada, antes de redondear.
+  Contexto opcional100 km a arcos de límites generalizados conserva clases originales
+  y excluye vecinos ya asignados. No estima riesgo, amenaza, pronóstico ni retorno.
+  SSN/Guerrero1900–2026(tipo ausente,2026parcial):21.167 filas elegibles; Top10
+  máximo7,8 en1957-07-28. M>=7/radio50terrestre:14filas,10pares,12participantes;
+  con contexto:23filas,15pares,18participantes. No implican eventos independientes.
+- QA:80pruebasPython/16suitesJS aprobadas,14pruebas específicas de History;
+  oráculo Python mantenible scripts/audit_historical_views.py:23/23casos(15reales,
+  8sintéticos). Datos/índices/hashes originales intactos. Gate LOCAL sin fallos;
+  no se ejecutó un gate HTTP nuevo ni se heredaron excepciones para otro push.
+  IAB comprobó consulta/reporte21.167, Top10, pares, ayuda y EN/ES/claro/oscuro;
+  anchos390/1253/1920 sin desborde horizontal. Móvil emulado, no teléfono físico.
+- Word/PDF FINALES LOCALES: outputs/paper/Seismic_CG_manuscript.docx y .pdf;
+  31páginas/15figuras intercaladas/4tablas editables,277palabras de resumen/5492cuerpo.
+  Trece figuras previas intactas, dos capturas nuevas auténticas y horizontales.
+  Se corrigió el hueco previo de p6 moviendo sólo anchor4.47controlesdocumentales
+  pasan y31páginas cubiertas por revisión visual(10nuevas+21PNGidénticas porSHA).
+  Plantilla/17partes conservadas; autores, CRediT, licencias y declaración académica
+  veraz de IA intactos. SHA DOCX 8fc3d8d79b152e217809244c014787ac5650391a3189a30ab85ce99181a691be;
+  SHA PDF afeb0a1b0986529ce341a271550be93814653ef0ef76ea15069ade21def86c34.
+- PUBLICACIÓN VIGENTE: b503c22d384a7a11d4b502370df66c34c191719f (9nov), Pages
+  https://gabrielhuav.github.io/Seismic_Data_Geosciences/ . Esta ampliación NO tiene
+  nuevo commit/push/despliegue ni autorización para esas acciones. Permisos anteriores
+  CONSUMIDOS. Mantener Git humano de Gabriel sin IA/coautores/trailers en metadatos.
+  Recibos/QA/respaldo: outputs/regional_tools_2026-11-10/ . Preview propio8787 cerrado
+  tras QA; reiniciarlo antes de otra visita local. PC ENCENDIDA; históricos intactos.
+
+## Estado conservado anterior (histórico; prevalece Estado actual)
+
+### Estado previo a la ampliación local del10nov2026
+
+- PUBLICADO Y VERIFICADO el 9 de noviembre de 2026: commit
+  b503c22d384a7a11d4b502370df66c34c191719f, 81 archivos, en origin/main.
+  Autor y committer: Gabriel Hurtado <gabrielhurtadoaviles@gmail.com>;
+  sin atribuciones de IA, coautores ni trailers en el commit; sin firma criptográfica.
+  GitHub Pages: https://gabrielhuav.github.io/Seismic_Data_Geosciences/
+  Workflow manual 42581918947, intento 1, SUCCESS; validación y deploy correctos.
+  CI: 80 pruebas Python, 14 suites JS y oráculo de 4.720 casos sin discrepancias.
+- Gabriel aceptó «Sí, push sin IA» para ESTE push: seis HTTP 403 editoriales/NRCan,
+  un timeout SSN, 14 HTTP 504 HTML de GitHub corroborados por API 200 y muestreo
+  de 339/36.872 rutas USGS (36.533 sin visitar). No reutilizar estas excepciones.
+  Las autorizaciones de UN commit, UN push y UN despliegue están CONSUMIDAS.
+  No ejecutar otro commit, amend, push, publicación o reintento sin permiso nuevo.
+- Publicación HTTPS: 77/77 archivos públicos, HTTP 200 y bytes/SHA-256 idénticos
+  a los blobs del commit (114.604.768 bytes). Tres rutas de contexto/fuente privada/
+  PDF excluidas de Pages devuelven 404. Word/PDF sí están en el repositorio público.
+  Sólo system/dist se sirve; fuentes privadas, tesis y evidencias no se sirven.
+- Verificación real en navegador integrado: inglés por defecto, cuatro catálogos,
+  287.936 filas; calor conserva selección. Clic México pide confirmación (45 filas),
+  Oaxaca selecciona ocho; estados mexicanos y placas PB2002 visibles.
+  SQL en navegador devuelve 659 filas mww, media M 5,311 y profundidad 32,83 km;
+  comparación USGS 2020–2025, M>=4,5 mww: Canadá 15 y México 53.
+  Escritorio 1920x1080 y emulación móvil 390x844 sin desborde horizontal de página;
+  no constituye prueba en teléfono físico. No backend SQL ni Docker.
+- Word/PDF finales del commit: outputs/paper/Seismic_CG_manuscript.docx y .pdf;
+  30 páginas, 13 figuras intercaladas y cuatro tablas editables. No se regeneraron
+  durante el despliegue. SHA DOCX 97faf4cf9764fef9e255c78611cd62d31553ae5ba9a570291a5c191fb44b4e38;
+  SHA PDF ef351f1befab60d7ae8eacb11a38f073967460f1e99f23b50e6b9bb36740dac8.
+  Créditos humanos, licencias y declaración académica veraz de asistencia de IA intactos.
+- Evidencias locales: outputs/refined_release_2026-11-09/publication_result.json,
+  workflow_success.json, public_assets_verification.json y captures/public_browser_qa.json.
+  Continuidad de este cierre local, SIN nuevo commit/amend/push. PC ENCENDIDA.
+  Históricos, repositorios, enlaces y contenedores ajenos intactos.
+
+### Estado previo a la publicación del 9nov2026 (superado)
+
+- COMMIT HUMANO CREADO9nov2026: b503c22d384a7a11d4b502370df66c34c191719f,
+  81rutas;autor/committerGabrielHurtado<gabrielhurtadoaviles@gmail.com>,sinIA,
+  coautores,trailersni gpgsig. Autorización de UN commit CONSUMIDA: no repetir/amend.
+  Push y UN despliegue ya autorizados por «hazlo», todavía NO ejecutados.
+  Falta respuesta a excepción NUEVA de ESTE push segúnAGENTS:6HTTP403
+  (editoriales/NRCan),1timeoutSSN,14HTML504GitHub(recursos corroboradosAPI200),
+  muestra339/36872USGS(36533sinvisitar). Cero falloslocales;77/77blobsGitidénticos
+  a losbytes probados. .gitattributes conserva el artefacto exacto enWindows/Linux.
+  Plan/recibos: outputs/refined_release_2026-11-09/. Preguntaasíncronaenviada,
+  sinrespuestaal cerrar; el tiempo transcurrido NO es aceptación. PC ENCENDIDA.
+  Esta continuidad posterior al commit queda local, sin otro commit/amend.
+
 - PUBLICACIÓN AUTORIZADA9nov2026 por Gabriel: «No se han subido estos cambios al
   github pages? hazlo, sin autoría de IA, con mi firma». Se prepara UN commit humano,
   UN push y UN despliegue manual de esta revisión; sin IA en metadatos/trailers.
@@ -42,9 +137,6 @@ Lee completos AGENTS.md, MEMORIA_COMPARTIDA.md y NUEVA_PC.md antes de actuar.
   Cada nueva acción requiere permiso propio y gate de enlaces NUEVO para ese push.
   Git humano de Gabriel sin IA/trailers/firmas; asistencia académica veraz conservada.
   Sólo system/dist se sirve; históricos intactos. NO apagar la PC.
-
-
-## Estado conservado anterior (histórico; prevalece Estado actual)
 
 ### Estado previo al refinamiento del9nov2026
 
@@ -352,13 +444,48 @@ Lee completos AGENTS.md, MEMORIA_COMPARTIDA.md y NUEVA_PC.md antes de actuar.
 
 ## Siguiente paso
 
-Completar el commit/push/despliegue autorizado9nov2026, cada acción sólo una vez.
-Ver plan privado outputs/refined_release_2026-11-09/release_plan.md e inventario.
-Resolver o pedir aceptación de los fallos del gate NUEVO antes del push; las
-excepciones antiguas no valen. Verificar luego bytes/funciones públicas frente
-al commit desplegado y registrar su SHA/run real. No apagar, pagar ni enviar.
+Completar UNA VEZ el commit, push y despliegue autorizados10nov2026, con identidad
+humana. Ejecutar gate HTTP nuevo; pedir excepción expresa de ESTE push si procede.
+Verificar luego CI, bytes públicos y funciones en navegador integrado, escritorio
+y móvil emulado. Registrar SHA/run reales, sin otro commit/amend. PC encendida.
 
 ## Bitácora
+
+- PUBLICACIÓN AUTORIZADA10nov2026: Gabriel autorizó UN commit humano, UN push a
+  origin/main y UN despliegue manual de esta ampliación. Autor/committer Gabriel
+  Hurtado <gabrielhurtadoaviles@gmail.com>, sin IA, coautores, trailers ni firmas
+  automáticas. Estado al preparar: ninguna acción consumida. Gate HTTP NUEVO de
+  ESTE push, cero fallos o aceptación expresa actual; no heredar excepciones.
+  23rutas candidatas,82assets públicos; finales31p/15fig/4tablas ya revisados.
+  Plan/recibos privados: outputs/regional_release_2026-11-10/. PC encendida.
+
+- 10nov2026: cuatro funciones implementadas localmente antes del artículo. Top10,
+  vista simplificada y ayuda funcionales; proximidad M>=7 expresada como pares
+  descriptivos, sin estimación de riesgo. Oráculo independiente23/23 y pruebas pasan.
+  Word/PDF31p/15fig/4tablas coincidentes;47controles y revisión visual completa,
+  hueco p6 corregido. Finales promovidos como pareja; respaldos/recibos privados.
+  Sin commit/push/despliegue/pago/envío. Preview propio cerrado, PC encendida.
+
+
+- 9nov2026: recibida aceptación expresa «Sí, push sin IA» para las excepciones de
+  ESTE push. Push humano b503c22 verificado en origin/main; UN dispatch de Pages,
+  run 42581918947 SUCCESS en intento 1. Verificados 77/77 assets HTTPS por bytes y
+  SHA-256, tres exclusiones 404 y flujos reales del observatorio en escritorio/móvil
+  emulado. Captura pública final y recibos guardados. Autorizaciones consumidas;
+  cierre de continuidad local sin otro commit. PC encendida; históricos intactos.
+
+
+- COMMIT HUMANO CREADO9nov2026: b503c22d384a7a11d4b502370df66c34c191719f,
+  81rutas;autor/committerGabrielHurtado<gabrielhurtadoaviles@gmail.com>,sinIA,
+  coautores,trailersni gpgsig. Autorización de UN commit CONSUMIDA: no repetir/amend.
+  Push y UN despliegue ya autorizados por «hazlo», todavía NO ejecutados.
+  Falta respuesta a excepción NUEVA de ESTE push segúnAGENTS:6HTTP403
+  (editoriales/NRCan),1timeoutSSN,14HTML504GitHub(recursos corroboradosAPI200),
+  muestra339/36872USGS(36533sinvisitar). Cero falloslocales;77/77blobsGitidénticos
+  a losbytes probados. .gitattributes conserva el artefacto exacto enWindows/Linux.
+  Plan/recibos: outputs/refined_release_2026-11-09/. Preguntaasíncronaenviada,
+  sinrespuestaal cerrar; el tiempo transcurrido NO es aceptación. PC ENCENDIDA.
+  Esta continuidad posterior al commit queda local, sin otro commit/amend.
 
 - PUBLICACIÓN AUTORIZADA9nov2026 por Gabriel: «No se han subido estos cambios al
   github pages? hazlo, sin autoría de IA, con mi firma». Se prepara UN commit humano,
