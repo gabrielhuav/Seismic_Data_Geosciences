@@ -33,6 +33,8 @@ def sha(b): return hashlib.sha256(b).hexdigest()
 
 
 def clean(text):
+    # Compact article links remain genuine clickable relationships in Word/PDF.
+    text=re.sub(r"\[([^\]]+)\]\((https://gabrielhuav\.github\.io/Seismic_Data_Geosciences/\?figure=[^)]+)\)",r"\1",text)
     text=re.sub(r"\[([^\]]+)\]\(([^)]+)\)",r"\1 (\2)",text)
     return text.replace("`", "").replace("**", "").replace("−", "-").replace("–", "-").replace("—", "; ")
 
@@ -134,7 +136,22 @@ def main(include_highlights=True):
         for j,line in enumerate(clean(text).split("\n")):
             if j: run.append(node("br"))
             t=node("t"); t.set("{http://www.w3.org/XML/1998/namespace}space","preserve"); t.text=line; run.append(t)
-        p.append(run); return p
+        figure_links=list(re.finditer(r"\[([^\]]+)\]\((https://gabrielhuav\.github\.io/Seismic_Data_Geosciences/\?figure=[^)]+)\)",text))
+        if not figure_links:
+            p.append(run); return p
+        def append_text(value,parent=p,linked=False):
+            part=node("r"); properties=deepcopy(rp)
+            if linked:
+                for color in properties.findall(w("color")):properties.remove(color)
+                properties.append(node("color",val="155DA0"));properties.append(node("u",val="single"))
+            part.append(properties);literal=node("t");literal.set("{http://www.w3.org/XML/1998/namespace}space","preserve");literal.text=clean(value);part.append(literal);parent.append(part)
+        at=0
+        for match in figure_links:
+            append_text(text[at:match.start()])
+            rid="rIdArticleView"+str(len(rel)+1)
+            relation=E.SubElement(rel,"{"+relns+"}Relationship",Id=rid,Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink",Target=match.group(2),TargetMode="External")
+            hyperlink=node("hyperlink");hyperlink.set("{"+R+"}id",rid);hyperlink.set(w("history"),"1");append_text(match.group(1),hyperlink,True);p.append(hyperlink);at=match.end()
+        append_text(text[at:]);return p
     def table(rows):
         t=node("tbl"); prop=node("tblPr");prop.append(node("tblW",w=9360,type="dxa"));prop.append(node("tblLayout",type="fixed"))
         borders=node("tblBorders")

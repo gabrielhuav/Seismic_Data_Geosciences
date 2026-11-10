@@ -52,6 +52,7 @@ jobs:
           node tests/test_source_workbench.cjs
           node tests/test_history_explorer.cjs
           node tests/test_quick_start.cjs
+          node tests/test_article_views.cjs
       - name: Reproduce historical rankings and direct spatial pairs with an independent Python oracle
         run: python scripts/audit_historical_views.py --node node
       - name: Reproduce the independent retained-product validation

@@ -119,7 +119,11 @@
     }
     function submit(event){if(event.target.matches('.quick-form')){event.preventDefault();draft=read();run(draft);}}
     element.addEventListener('click',click);element.addEventListener('change',change);element.addEventListener('submit',submit);render();
-    return {activate(){if(result?.selection.action==='map')return run(result.selection);if(action&&!data&&catalogs().length)return load(draft?.catalog||catalogs()[0].id,false);return Promise.resolve(result);},refreshLanguage(){render();if(result?.selection.action==='map')options.showMap?.(q('#quickMapMount'));},dispose(){disposed=true;request++;element.removeEventListener('click',click);element.removeEventListener('change',change);element.removeEventListener('submit',submit);element.innerHTML='';},getResult:()=>result,getMapMount:()=>q('#quickMapMount')};
+    return {async restore(selection){
+      action=selection.action;result=null;draft={...selection};data=null;await load(selection.catalog,false);
+      if(!data||error)throw Error('QUICK_RESTORE');draft={...selection};render(false);await run(selection);
+      if(!result)throw Error('QUICK_RESTORE');return result;
+    },activate(){if(result?.selection.action==='map')return run(result.selection);if(action&&!data&&catalogs().length)return load(draft?.catalog||catalogs()[0].id,false);return Promise.resolve(result);},refreshLanguage(){render();if(result?.selection.action==='map')options.showMap?.(q('#quickMapMount'));},dispose(){disposed=true;request++;element.removeEventListener('click',click);element.removeEventListener('change',change);element.removeEventListener('submit',submit);element.innerHTML='';},getResult:()=>result,getMapMount:()=>q('#quickMapMount')};
   }
 
   const faqs={en:[

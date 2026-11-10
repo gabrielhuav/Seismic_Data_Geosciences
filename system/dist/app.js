@@ -111,7 +111,7 @@ function ensureQuickPanel(){
 }
 function ensureHelpPanel(){
   if(!helpPanel && window.SeismicQuickStart)helpPanel=window.SeismicQuickStart.mountHelp($('helpWorkspace'),{
-    getLanguage:()=>I.language,version:'2026.11.10.2',onNavigate:name=>setTab(name)
+    getLanguage:()=>I.language,version:'2026.11.10.3',onNavigate:name=>setTab(name)
   });
   return helpPanel;
 }
@@ -190,6 +190,7 @@ function viewURL(view=currentView()){
   const url=new URL(V.serialize(view,location.href));
   if(state.map?.getDisplayMode?.()==='heat')url.searchParams.set('display','heat');else url.searchParams.delete('display');
   if(state.map?.getColorMode?.()==='depth')url.searchParams.set('pointColor','depth');else url.searchParams.delete('pointColor');
+  if(state.articleFigure)url.searchParams.set('figure',state.articleFigure);
   return url.href;
 }
 function setTab(name, persist = true) {
@@ -1018,4 +1019,51 @@ $('workbenchReport').addEventListener('click',()=>{if(!state.ready||!state.formV
 $('workbenchSql').addEventListener('click',()=>{if(state.ready&&state.formValid)setTab('sql');});
 $('workbenchCompare').addEventListener('click',()=>{if(state.ready&&state.formValid)setTab('comparison');});
 
-initialize();
+// Figure links restore the real computation and presentation, not an image viewer.
+const requestedArticleView=window.SeismicArticleViews?.resolve(location.href);
+if(requestedArticleView){
+  state.articleFigure=requestedArticleView.profile.id;
+  history.replaceState(null,'',requestedArticleView.url);
+  window.SeismicPreferences?.set({theme:requestedArticleView.profile.theme,mode:requestedArticleView.profile.appearance});
+}
+function leaveArticlePreset(){
+  if(!state.articleFigure||document.body.dataset.articleStatus!=='ready')return;
+  state.articleFigure='';delete document.body.dataset.articleFigure;delete document.body.dataset.articleStatus;syncURL();
+}
+for(const eventName of ['input','change'])document.addEventListener(eventName,leaveArticlePreset,true);
+document.addEventListener('click',event=>{
+  if(event.target.closest('button[id$="Tab"],#sourceAtlasView,#sourceTimeView,[data-source-catalog],[data-workbench-catalog],[data-quick-action],[data-quick-back],[data-quick-full],#fitMap,#resetMap,#expandMap,.history-fit'))leaveArticlePreset();
+},true);
+document.addEventListener('pointerdown',event=>{if(event.target.closest('#map'))leaveArticlePreset();},true);
+async function restoreArticleView(profile){
+  if(!state.ready)throw Error('ARTICLE_DATA_NOT_READY');
+  if(profile.sourceView)setSourceView(profile.sourceView);
+  if(profile.quick)await ensureQuickPanel().restore(profile.quick);
+  if(profile.history)await ensureHistoryPanel('recurrence').restore(profile.history);
+  if(profile.tab==='top'){
+    const result=await ensureHistoryPanel('top').activate();
+    if(result?.eligible_records!==285773)throw Error('ARTICLE_TOP10_SELECTION');
+  }
+  if(profile.tab==='comparison'){
+    const result=await ensureComparisonPanel().activate();
+    if(!result)throw Error('ARTICLE_COMPARISON_SELECTION');
+  }
+  if(profile.expectedRows!==undefined && state.filtered.length!==profile.expectedRows)throw Error('ARTICLE_ROW_COUNT');
+  if(profile.tectonics!==undefined){$('tectonicToggle').checked=profile.tectonics;await showTectonics();}
+  if(profile.expanded)setExpanded(true);
+  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  if(!profile.quick && ['catalog','home','sources'].includes(profile.tab)){
+    state.map.resize();const center=new URL(requestedArticleView.url).searchParams.get('c');
+    if(center)state.map.setView(center.split(',').map(Number));
+  }
+  document.body.dataset.articleFigure=profile.id;
+  if(profile.focus)document.querySelector(profile.focus)?.scrollIntoView?.({block:'start',behavior:'auto'});
+  // This stays a normal editable application after restoration. A fresh figure
+  // link reapplies its frozen preset; subsequent user edits remain ordinary views.
+  syncURL();
+}
+initialize().then(async()=>{
+  if(!requestedArticleView)return;
+  try{await restoreArticleView(requestedArticleView.profile);document.body.dataset.articleStatus='ready';}
+  catch(error){document.body.dataset.articleStatus='error';$('loadStatus').hidden=false;$('loadStatus').textContent='Article view could not be reproduced: '+error.message;}
+});

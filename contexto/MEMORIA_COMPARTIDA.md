@@ -5,19 +5,33 @@ Leer AGENTS.md completo. Los resultados de antecedentes no son verificaciones nu
 
 ## Estado actual
 
-- REVISIÓN EDITORIAL Y SISTEMA 2026.11.10.2 TERMINADOS LOCALMENTE: Sources combina
-  Atlas y Time and coverage, con cuatro identidades de fuente iguales a las del
-  mapa. Top10 carga los cuatro catálogos automáticamente; país/estado sencillos,
-  detalles avanzados plegados, procedencia y cobertura explícitas. 287.936 filas
-  de origen, 285.773 candidatos tras agrupar sólo IDs USGS exactos entre paquetes.
-- Word/PDF coincidentes: 19 páginas, nueve figuras auténticas y cuatro tablas;
-  cuerpo 3.267 palabras frente a 5.492 (-40,5135%). 41 controles y las 19 páginas
-  revisadas visualmente. Autores, CRediT y declaración académica de IA intactos.
-- Gabriel autorizó UN nuevo commit y UN push después de verificar sistema y
-  capturas; aún sin consumir al preparar este plan. Identidad humana Gabriel
-  Hurtado <gabrielhurtadoaviles@gmail.com>, sin IA ni trailers en Git. El despliegue
-  manual nuevo y las excepciones HTTP de ESTE push requieren aceptación expresa.
-  Plan/recibos: outputs/editorial_release_2026-11-10/. PC encendida.
+- GATE NUEVO CERRADO:579/585destinos externos; cero fallos locales. Persisten
+  cincoHTTP403 editoriales y el índice article-figures.html HTTP404 pendiente de
+  primera publicación; muestra339/36872rutasUSGS,36533sinvisitar. SSN/DOISSN/NRCan
+  resolvieron con segundo cliente. No heredar excepciones del planeditorialprevio.
+- Pregunta NUEVA enviada a Gabriel para UNcommit humano de19archivos,UNpush y
+  UNdispatchmanual de esta revisión, con esas excepciones. Aún SINrespuesta;
+  el envío de la pregunta o el tiempo transcurrido NO autoriza. Plan/recibos:
+  outputs/article_views_2026-11-10/. No nuevo commit,amend,push ni dispatch aquí.
+
+- VISTAS DEL ARTÍCULO2026.11.10.3 TERMINADAS LOCALMENTE:14enlaces por figura/panel
+  restauran catálogo,hashes,filtros,mapa,subvista y resultados reales; inglés y tema
+  azul/claro explícitos. Atlas/Time,descriptivos7930,comparación15/53 y proximidad
+  14filas/10pares/12participantes comprobados en navegador integrado. Recarga
+  conserva el preset; editar criterios/navegar sale del preset. Móvil390sin desborde.
+- Capturas auténticas recapturadas DESDE los enlaces; nueve figuras y cuatro tablas
+  en Word/PDF19páginas,14hipervínculos activos en ambos formatos;43controles y las
+  19páginas revisadas visualmente. Cuerpo3267(-40,5135%). Créditos humanos y
+  declaración académica veraz de asistencia de IA intactos.
+- OBSERVADO: HEAD y remoto main ya están en0d8df07; Pages conserva92d07a9
+  (workflow42788452935, HTML público idéntico al blob). El commit anterior
+  consumió su permiso. Esta ampliación añade cambios sobre0d8df07: no amend,segundo
+  commit,push actualizado ni despliegue sin autorización expresa nueva. El plan
+  editorial anterior quedó superado por esta solicitud; no publicar el candidato
+  viejo como si incluyera estos enlaces. Gate NUEVO y excepciones por ESTE push.
+- Finales:outputs/paper/Seismic_CG_manuscript.docx y.pdf; recibos/antes/capturas/QA:
+  outputs/article_views_2026-11-10/. Sólo system/dist sirve en Pages. Se preservan
+  datos/índices originales; no Docker/backend ni predicciones. PC ENCENDIDA.
 
 
 ## Estado conservado anterior (histórico; prevalece Estado actual)
@@ -798,13 +812,61 @@ fuera de muestra. No agregar ML ni modelos geotécnicos sin necesidad científic
 
 ## Siguiente paso
 
-Crear UNA VEZ el commit humano y completar el push ya autorizados de esta revisión,
-tras el gate HTTP nuevo y la aceptación expresa de sus excepciones. Pedir sólo el
-despliegue manual NUEVO que falta autorizar. Después verificar CI, 82 assets HTTPS
-y navegador real público; registrar SHA/run finales sin otro commit/amend.
-PC encendida; no envío editorial ni pagos.
+Esperar respuesta a la pregunta NUEVA del plan article_views_2026-11-10: UNcommit
+humano de19archivos sobre0d8df07,UNpush y UNdispatchmanual,con cincoHTTP403,
+índice nuevoHTTP404 y muestra339/36872aceptados para ESTEpush. No usar respuestas
+del planeditorialviejo. Preparado tmp/publish_article_views.py con guardas de
+autorización/candidato; antes de ejecutarlo registrar la respuesta real. Luego
+verificar CI,84assets y restauración de las14vistas en Pages. No reintento sin
+autorización nueva. Word/PDF19p/9fig/4tablas/14enlaces revisados;43checks+80Python
+y suitesUI pasan. Preview propio se cierra al terminar esta espera. PCencendida.
 
 ## Bitácora
+
+- GATE NUEVO CERRADO:579/585destinos externos; cero fallos locales. Persisten
+  cincoHTTP403 editoriales y el índice article-figures.html HTTP404 pendiente de
+  primera publicación; muestra339/36872rutasUSGS,36533sinvisitar. SSN/DOISSN/NRCan
+  resolvieron con segundo cliente. No heredar excepciones del planeditorialprevio.
+- Pregunta NUEVA enviada a Gabriel para UNcommit humano de19archivos,UNpush y
+  UNdispatchmanual de esta revisión, con esas excepciones. Aún SINrespuesta;
+  el envío de la pregunta o el tiempo transcurrido NO autoriza. Plan/recibos:
+  outputs/article_views_2026-11-10/. No nuevo commit,amend,push ni dispatch aquí.
+
+
+- VISTAS DEL ARTÍCULO2026.11.10.3 TERMINADAS LOCALMENTE:14enlaces por figura/panel
+  restauran catálogo,hashes,filtros,mapa,subvista y resultados reales; inglés y tema
+  azul/claro explícitos. Atlas/Time,descriptivos7930,comparación15/53 y proximidad
+  14filas/10pares/12participantes comprobados en navegador integrado. Recarga
+  conserva el preset; editar criterios/navegar sale del preset. Móvil390sin desborde.
+- Capturas auténticas recapturadas DESDE los enlaces; nueve figuras y cuatro tablas
+  en Word/PDF19páginas,14hipervínculos activos en ambos formatos;43controles y las
+  19páginas revisadas visualmente. Cuerpo3267(-40,5135%). Créditos humanos y
+  declaración académica veraz de asistencia de IA intactos.
+- OBSERVADO: HEAD y remoto main ya están en0d8df07; Pages conserva92d07a9
+  (workflow42788452935, HTML público idéntico al blob). El commit anterior
+  consumió su permiso. Esta ampliación añade cambios sobre0d8df07: no amend,segundo
+  commit,push actualizado ni despliegue sin autorización expresa nueva. El plan
+  editorial anterior quedó superado por esta solicitud; no publicar el candidato
+  viejo como si incluyera estos enlaces. Gate NUEVO y excepciones por ESTE push.
+- Finales:outputs/paper/Seismic_CG_manuscript.docx y.pdf; recibos/antes/capturas/QA:
+  outputs/article_views_2026-11-10/. Sólo system/dist sirve en Pages. Se preservan
+  datos/índices originales; no Docker/backend ni predicciones. PC ENCENDIDA.
+
+
+- COMMIT EDITORIAL CREADO Y VERIFICADO: SHA 0d8df07e25bf5750f99d9a52dc92c240c9ad00cf,26archivos.
+  Autor/committer Gabriel Hurtado <gabrielhurtadoaviles@gmail.com>, sin atribuciones
+  IA, coautores, trailers ni firma criptográfica. UN permiso de commit consumido.
+- Sistema2026.11.10.2 y capturas reales coinciden con Word/PDF finales:19páginas,
+  nueve figuras y cuatro tablas;41controles+19páginas revisadas. Cuerpo3267palabras,
+  -40,5135%. Atlas/Time and coverage y Top10automático de cuatro fuentes terminados.
+- Push ya autorizado, PENDIENTE de aceptar excepciones de ESTE push: seisHTTP403
+  (cinco editoriales+NRCan), muestra339/36872rutasUSGS;36533sinvisitar.564/570destinos
+  verificados; cero fallos locales. AZCATLresolvió en segundo clienteTLS.
+- Se solicitó aceptación nueva y UNdespliegue manual; aún sin respuesta registrada.
+  Pages sigue en92d07a9 hasta completar publicación. No afirmar versión2publicada.
+  Plan/recibos:outputs/editorial_release_2026-11-10/. PCencendida. Este cierre
+  permanece LOCAL, sin segundo commit,amend,push ni despliegue adicional.
+
 
 - REVISIÓN EDITORIAL Y SISTEMA 2026.11.10.2 TERMINADOS LOCALMENTE: Sources combina
   Atlas y Time and coverage, con cuatro identidades de fuente iguales a las del

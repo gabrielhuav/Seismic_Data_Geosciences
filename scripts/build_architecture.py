@@ -251,6 +251,13 @@ def build(capture_system: Path | str = DEFAULT_CAPTURE, capture_url: str = DEFAU
     text(2229, 1239, "Not required by the web runtime", 21, 400, "#465f71", "end")
     text(25, 1287, "Source rows may overlap across catalogues; no cross-provider event merging or earthquake forecast.", 17, 400, "#5a6f7e")
     text(2271, 1287, "Context: Natural Earth (public domain) · PB2002: Bird (2003); Ahlenius / Nordpil / csterling (ODC-BY 1.0)", 16, 400, "#5a6f7e", "end")
+    # Responsive SVG hit areas open the implemented source/query, not a mockup.
+    for index, (_, _, key, _, _, _) in enumerate(source_specs):
+        href='index.html?v=3&amp;lang=en&amp;catalog='+key+'&amp;tab=sources'
+        out.append(f'<a href="{href}" target="_top"><title>Open {html.escape(key)} in Sources</title><rect x="25" y="{151+index*237}" width="220" height="218" fill="transparent" pointer-events="all"/></a>')
+    out.append('<a href="index.html?figure=4d&amp;lang=en" target="_top"><title>Open the real interactive map for this selection</title><rect x="277" y="204" width="1745" height="904" fill="transparent" pointer-events="all"/></a>')
+    for index in range(5):
+        out.append(f'<a href="index.html?v=4&amp;lang=en&amp;catalog=all-catalogs&amp;from=2010&amp;to=2025&amp;min=4.5&amp;tab=analysis" target="_top"><title>Open analysis and reusable exports for this selection</title><rect x="2050" y="{151+index*194}" width="221" height="176" fill="transparent" pointer-events="all"/></a>')
     out.append('</g></svg>\n')
     return "".join(out)
 

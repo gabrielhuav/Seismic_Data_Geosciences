@@ -18,7 +18,7 @@ def versioned_html(text):
             raise ValueError('Missing local frontend dependency: ' + name)
         checksum = hashlib.sha256(path.read_bytes()).hexdigest()[:12]
         return prefix + name + '?v=' + checksum + '"'
-    return re.sub(r'((?:src|href)=")([^"#]+\.(?:js|css|svg|png|jpe?g|webp|ico)(?:\?[^"#]*)?)"', replace, text)
+    return re.sub(r'((?:src|href|data)=")([^"#]+\.(?:js|css|svg|png|jpe?g|webp|ico)(?:\?[^"#]*)?)"', replace, text)
 
 
 def main():
