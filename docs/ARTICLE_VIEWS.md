@@ -1,6 +1,6 @@
 # Article figures and functional views
 
-Release2026.11.10.3 adds fourteen reproducible article targets. Open the
+Release 2026.11.11.1 retains the fourteen existing targets and adds four regional targets (eighteen total). Open the
 [figure index](https://gabrielhuav.github.io/Seismic_Data_Geosciences/article-figures.html)
 or a link in a Word/PDF figure caption. These routes require this release to be
 deployed; the older published interface does not implement them.
@@ -14,12 +14,16 @@ deployed; the older published interface does not implement them.
 | 4B | [USGS USA land](https://gabrielhuav.github.io/Seismic_Data_Geosciences/?figure=4b&lang=en) |
 | 4C | [NRCan Canada land](https://gabrielhuav.github.io/Seismic_Data_Geosciences/?figure=4c&lang=en) |
 | 4D | [Combined2010–2025, M≥4.5](https://gabrielhuav.github.io/Seismic_Data_Geosciences/?figure=4d&lang=en) |
-| 5 | [SSN Guerrero descriptives](https://gabrielhuav.github.io/Seismic_Data_Geosciences/?figure=5&lang=en) |
-| 6 | [Guerrero enlarged map and PB2002 context](https://gabrielhuav.github.io/Seismic_Data_Geosciences/?figure=6&lang=en) |
-| 7 | [USGS Canada/Mexico comparison](https://gabrielhuav.github.io/Seismic_Data_Geosciences/?figure=7&lang=en) |
-| 8 | [Simple view](https://gabrielhuav.github.io/Seismic_Data_Geosciences/?figure=8&lang=en) |
-| 9A | [Four-catalogue Top10](https://gabrielhuav.github.io/Seismic_Data_Geosciences/?figure=9a&lang=en) |
-| 9B | [SSN Guerrero proximity](https://gabrielhuav.github.io/Seismic_Data_Geosciences/?figure=9b&lang=en) |
+| 5A | [Guerrero · SSN · 19,963 rows](https://gabrielhuav.github.io/Seismic_Data_Geosciences/?figure=regional-a&lang=en) |
+| 5B | [California · USGS · 551 rows](https://gabrielhuav.github.io/Seismic_Data_Geosciences/?figure=regional-b&lang=en) |
+| 5C | [Yukon · NRCan · 225 rows](https://gabrielhuav.github.io/Seismic_Data_Geosciences/?figure=regional-c&lang=en) |
+| 5D | [Alaska · all selected · 1,112 rows](https://gabrielhuav.github.io/Seismic_Data_Geosciences/?figure=regional-d&lang=en) |
+| 6 | [SSN Guerrero descriptives](https://gabrielhuav.github.io/Seismic_Data_Geosciences/?figure=5&lang=en) |
+| 7 | [Guerrero enlarged map and PB2002 context](https://gabrielhuav.github.io/Seismic_Data_Geosciences/?figure=6&lang=en) |
+| 8 | [USGS Canada/Mexico comparison](https://gabrielhuav.github.io/Seismic_Data_Geosciences/?figure=7&lang=en) |
+| 9 | [Simple view](https://gabrielhuav.github.io/Seismic_Data_Geosciences/?figure=8&lang=en) |
+| 10A | [Four-catalogue Top10](https://gabrielhuav.github.io/Seismic_Data_Geosciences/?figure=9a&lang=en) |
+| 10B | [SSN Guerrero proximity](https://gabrielhuav.github.io/Seismic_Data_Geosciences/?figure=9b&lang=en) |
 
 `system/dist/article-views.js` is the maintained preset source. A target specifies
 the catalogue and pinned snapshot, geographic index hashes where applicable,
@@ -43,5 +47,7 @@ classification are unchanged. Separate panels have separate links.
 
 Run `node tests/test_article_views.cjs` to validate all targets, geographic hashes,
 English settings and selected row counts against the packaged inputs. Word
-hyperlink relationships and PDF URI annotations must contain the same fourteen
+hyperlink relationships and PDF URI annotations must contain the same eighteen
 targets. All pages of the exported PDF require visual review after rebuilding.
+
+Stable route IDs preserve earlier article links; they need not equal the current manuscript figure number. Regional targets request 2000–2026 but retain actual coverage limits (California 2020–2025; Alaska 739 USGS rows in 2020–2025 plus 373 NRCan rows in 2000–2019; Yukon 2000–2019; SSN through partial 2026). No source rows were added to fill missing years. The enlarged Guerrero target now selects 203 SSN land rows at M≥4.5 in 2000–2026.

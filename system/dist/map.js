@@ -255,6 +255,7 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
     return container;
   };
   baseControl.addTo(map);
+  window.SeismicMapTools?.install(map,{picker:false,getLanguage,geometry:basemap,getAdmin1:()=>admin1Data});
 
   const EventsLayer = L.Layer.extend({
     onAdd(m) {
@@ -324,14 +325,14 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
         const identity=colorMode==='catalogue'?this.sourceStyles.get(styleKey):null;
         if(identity?.catalogue_id&&!visibleCatalogues.has(identity.catalogue_id))visibleCatalogues.set(identity.catalogue_id,{...identity});
         ctx.beginPath();ctx.globalAlpha = identity?.color?.length ? .88 : .7;
-        ctx.fillStyle = identity?.color || (e.depth === null ? colors.unknown : e.depth > 70 ? colors.deep : colors.shallow);
+        ctx.fillStyle = (identity ? window.SeismicMapTools?.magnitudeColor(identity.color,e.mag) || identity.color : null) || (e.depth === null ? colors.unknown : e.depth > 70 ? colors.deep : colors.shallow);
         if(identity&&marker)marker(ctx,p.x,p.y,radius,identity.shape);else ctx.arc(p.x,p.y,radius,0,Math.PI*2);
         ctx.fill();
         if(radius>=3.5){ctx.globalAlpha=.85;ctx.lineWidth=.7;ctx.strokeStyle=color('--selection-halo','#fff');ctx.stroke();}
         if (e.id === selectedId) selectedPoint = {x:p.x,y:p.y,radius};
       }
       visible=this.points.length;
-      displayEvidence={mode:'points',color_encoding:colorMode,catalogue_palette:[...visibleCatalogues.values()],symbol_size:'Radius max(2, (reported M - 2.5) * 1.25) CSS pixels; magnitude types are not converted.',selected_rows:(this.records||[]).length,visible_rows:visible,viewport_css_pixels:[size.x,size.y]};
+      displayEvidence={mode:'points',color_encoding:colorMode,magnitude_tones:colorMode==='catalogue'?[{range:'M < 3',lightness:78},{range:'3 ≤ M < 5',lightness:59},{range:'5 ≤ M < 7',lightness:42},{range:'M ≥ 7',lightness:27}]:null,catalogue_palette:[...visibleCatalogues.values()],symbol_size:'Radius max(2, (reported M - 2.5) * 1.25) CSS pixels; magnitude types are not converted.',selected_rows:(this.records||[]).length,visible_rows:visible,viewport_css_pixels:[size.x,size.y]};
       }
       if (selectedPoint) {
         ctx.globalAlpha = 1;ctx.beginPath();ctx.arc(selectedPoint.x,selectedPoint.y,Math.max(8,selectedPoint.radius+4),0,Math.PI*2);
@@ -378,7 +379,7 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
     const e = nearest;
     select(e.id);
     const identity=sourceStyle(e);
-    const content = `<strong>${safe(e.place)}</strong><p class="map-popup-meta">${safe(formatNumber(e.mag))} ${safe(e.magType || translate('unknownType'))} · ${safe(e.time)}${identity?'<br>'+safe(identity.code+' · '+identity.label):''}<br>${safe(e.id)}</p><button class="map-inspect" data-map-event="${safe(e.id)}">${safe(translate('inspectRecord'))}</button>`;
+    const content = `<strong>${safe(e.place)}</strong><p class="map-popup-meta">${safe(formatNumber(e.mag))} ${safe(e.magType || translate('unknownType'))} · ${safe(e.time)}${identity?'<br>'+safe(identity.code+' · '+identity.label):''}<br>${safe(e.id)}</p>${window.SeismicMapTools?.shakingLinks(e,getLanguage())||''}<button class="map-inspect" data-map-event="${safe(e.id)}">${safe(translate('inspectRecord'))}</button>`;
     L.popup({maxWidth: 290}).setLatLng(eventLatLng(e)).setContent(content).openOn(map);
   });
   element.addEventListener('click', event => {

@@ -44,6 +44,7 @@ jobs:
           node tests/test_research_charts.cjs
           node tests/test_preferences.cjs
           node tests/test_map_basemaps.cjs
+          node tests/test_map_tools.cjs
           node tests/test_asset_loader.cjs
           node tests/test_sql_explorer.cjs
           node tests/test_country_comparison.cjs
@@ -68,6 +69,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 35
     needs: validate
     permissions:
       pages: write
@@ -79,3 +81,5 @@ jobs:
       - name: Deploy the validated explorer
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+        with:
+          timeout: 1800000

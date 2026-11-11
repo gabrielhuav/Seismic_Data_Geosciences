@@ -9,7 +9,7 @@ const combinedSnapshot='sha256:'+crypto.createHash('sha256').update(JSON.stringi
 function parse(profile){const query=new URLSearchParams(profile.query),c=registry.catalogs.find(c=>c.id===query.get('catalog'));return V.parseURL('https://example.org/?'+profile.query,{...options,snapshot:c?c.snapshot:combinedSnapshot});}
 let checks=0;const test=(name,fn)=>{fn();checks++;console.log('PASS '+name);};
 test('every figure/panel has an English target and safely rejects unknown IDs',()=>{
-  assert.equal(P.ids.length,14);for(const id of P.ids){const link=P.link(id,'https://example.org/Seismic_Data_Geosciences/');const resolved=P.resolve(link);assert.equal(resolved.profile.id,id);assert.equal(new URL(resolved.url).searchParams.get('lang'),'en');assert.equal(resolved.profile.theme,'blue');assert.equal(resolved.profile.appearance,'light');}
+  assert.equal(P.ids.length,18);for(const id of P.ids){const link=P.link(id,'https://example.org/Seismic_Data_Geosciences/');const resolved=P.resolve(link);assert.equal(resolved.profile.id,id);assert.equal(new URL(resolved.url).searchParams.get('lang'),'en');assert.equal(resolved.profile.theme,'blue');assert.equal(resolved.profile.appearance,'light');}
   for(const id of ['__proto__','constructor','bad','<script>']){assert.equal(P.get(id),null);assert.equal(P.resolve('https://example.org/?figure='+encodeURIComponent(id)),null);}
   const copy=P.get('5');copy.quick.magMin=9;assert.equal(P.get('5').quick.magMin,3.5);
 });

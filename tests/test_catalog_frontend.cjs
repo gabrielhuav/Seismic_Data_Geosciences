@@ -109,6 +109,7 @@ async function main() {
   };
   const context={window:{SeismicViewState:V,SeismicCatalogComposition:C,SeismicAnalytics:A,SeismicResearchCharts:R,SeismicDiagnostics:require('../system/dist/diagnostics.js'),SeismicExportPackage:require('../system/dist/export-package.js'),addEventListener(){}},document,location,history:{replaceState(_,__,url){location.href=url;}},navigator:{},fetch,
     crypto:crypto.webcrypto,TextDecoder,TextEncoder,URL,Intl,Blob,setTimeout,clearTimeout,requestAnimationFrame:callback=>callback(),createSeismicMap:options=>{map.onDisplayChange=options.onDisplayChange;map.sourceStyle=options.sourceStyle;return map;}};
+  context.window.SeismicMapTools=require('../system/dist/map-tools.js');
   vm.createContext(context);vm.runInContext(fs.readFileSync('system/dist/i18n.js','utf8'),context);
   vm.runInContext(fs.readFileSync('system/dist/source-workbench.js','utf8'),context);
   context.window.document=document;context.window.localStorage={getItem:()=>null,setItem(){}};

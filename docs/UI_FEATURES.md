@@ -418,3 +418,36 @@ on PATH. `--output-dir` selects a private report directory, defaulting to
 `outputs/validation/historical_tools`. The JSON report records source hashes and
 the 1e-9 km numerical boundary tolerance. A recorded code run does not replace
 visual or physical-device testing.
+
+
+## Candidate 2026.11.11.1
+
+Home and Atlas provide taller real maps. Hue and shape continue to identify the
+source; within a hue, reported-M lightness bands are <3, 3–<5, 5–<7 and ≥7.
+The <3 band is currently unoccupied because the retained packages start at 3.5;
+the display never invents small earthquakes or magnitude-scale equivalence.
+Descriptive cards, the 0.2-M histogram and annual counts share the same engine.
+Comparison and Simple view use a consistent responsive presentation. On small
+screens the main header scrolls away rather than obscuring the results.
+
+Every live map, including Top 10 and Proximity, exposes the same five backgrounds:
+local Natural Earth, OSM, humanitarian OSM, USGS Topo and static NASA Blue Marble.
+Remote failures return to local context. Map providers do not change selections.
+Top 10 offsets only overlapping rank labels, with leader lines to the original
+epicentres; source coordinates and exports remain unchanged.
+
+A coordinate panel shows latitude/longitude and approximate Natural Earth land
+context. Locality lookup is an explicit, cached Nominatim request, limited to one
+request per 1.1 seconds, without mousemove requests or background scans. It sends
+the selected map point, not device geolocation. OSM returns approximate mapped
+localities, not guaranteed exact addresses. The external service did not respond
+in the local browser check; coordinates and land context were verified. Neither
+lookup results nor live service availability are part of frozen seismic evidence.
+Policy: https://operations.osmfoundation.org/policies/nominatim/
+
+For original USGS identifiers and reported M≥6, map popups link to official
+ShakeMap and DYFI views, where available. Derived SSN/NRCan keys never become USGS
+identifiers, and no fuzzy event matching is attempted. These links expose official
+estimated intensity/felt reports; no wave propagation, felt radius or attenuation
+model is generated. The catalogues alone do not identify where a quake was felt.
+Reference: https://earthquake.usgs.gov/data/shakemap/

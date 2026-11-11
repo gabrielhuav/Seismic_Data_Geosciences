@@ -115,7 +115,7 @@ def build(capture_system: Path | str = DEFAULT_CAPTURE, capture_url: str = DEFAU
         '</linearGradient><linearGradient id="blue" x1="0" x2="1"><stop stop-color="#075985"/><stop offset="1" stop-color="#0e7490"/></linearGradient>'
         '<filter id="shadow" x="-10%" y="-10%" width="120%" height="125%"><feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#122f45" flood-opacity=".11"/></filter>'
         '<marker id="arrow" viewBox="0 0 12 12" refX="9" refY="6" markerWidth="5" markerHeight="5" orient="auto"><path d="M2 2L9 6L2 10" fill="none" stroke="#548496" stroke-width="2"/></marker>'
-        '</defs>',
+        '</defs><style>.architecture-hit{transition:fill .15s,stroke .15s}.architecture-link:hover .architecture-hit,.architecture-link:focus .architecture-hit{fill:var(--hit);fill-opacity:.15;stroke:var(--hit);stroke-width:4}.architecture-link:focus{outline:none}@media(prefers-reduced-motion:reduce){.architecture-hit{transition:none}}</style>',
         f'<rect width="{WIDTH}" height="{HEIGHT}" fill="url(#paper)"/>',
         '<g font-family="Arial,Helvetica,sans-serif" fill="#123047">',
     ]
@@ -252,12 +252,12 @@ def build(capture_system: Path | str = DEFAULT_CAPTURE, capture_url: str = DEFAU
     text(25, 1287, "Source rows may overlap across catalogues; no cross-provider event merging or earthquake forecast.", 17, 400, "#5a6f7e")
     text(2271, 1287, "Context: Natural Earth (public domain) · PB2002: Bird (2003); Ahlenius / Nordpil / csterling (ODC-BY 1.0)", 16, 400, "#5a6f7e", "end")
     # Responsive SVG hit areas open the implemented source/query, not a mockup.
-    for index, (_, _, key, _, _, _) in enumerate(source_specs):
+    for index, (_, _, key, _, _, color) in enumerate(source_specs):
         href='index.html?v=3&amp;lang=en&amp;catalog='+key+'&amp;tab=sources'
-        out.append(f'<a href="{href}" target="_top"><title>Open {html.escape(key)} in Sources</title><rect x="25" y="{151+index*237}" width="220" height="218" fill="transparent" pointer-events="all"/></a>')
+        out.append(f'<a class="architecture-link" style="--hit:{color}" href="{href}" target="_top"><title>Open {html.escape(key)} in Sources</title><rect x="25" y="{151+index*237}" width="220" height="218" class="architecture-hit" fill="transparent" pointer-events="all"/></a>')
     out.append('<a href="index.html?figure=4d&amp;lang=en" target="_top"><title>Open the real interactive map for this selection</title><rect x="277" y="204" width="1745" height="904" fill="transparent" pointer-events="all"/></a>')
-    for index in range(5):
-        out.append(f'<a href="index.html?v=4&amp;lang=en&amp;catalog=all-catalogs&amp;from=2010&amp;to=2025&amp;min=4.5&amp;tab=analysis" target="_top"><title>Open analysis and reusable exports for this selection</title><rect x="2050" y="{151+index*194}" width="221" height="176" fill="transparent" pointer-events="all"/></a>')
+    for index, (_, _, _, color) in enumerate(outputs):
+        out.append(f'<a class="architecture-link" style="--hit:{color}" href="index.html?v=4&amp;lang=en&amp;catalog=all-catalogs&amp;from=2010&amp;to=2025&amp;min=4.5&amp;tab=analysis" target="_top"><title>Open analysis and reusable exports for this selection</title><rect x="2050" y="{151+index*194}" width="221" height="176" class="architecture-hit" fill="transparent" pointer-events="all"/></a>')
     out.append('</g></svg>\n')
     return "".join(out)
 

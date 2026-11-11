@@ -92,7 +92,9 @@ async function applyQuickSelection(selection){
     const mount=quickPanel?.getMapMount();if(mount && $('mapCard').parentElement!==mount)mount.append($('mapCard'));
     requestAnimationFrame(()=>{state.map?.resize();drawMap();state.map?.fitRecords();});
   }
-  return {count:state.filtered.length,summary:summaryForSelection(),selectionLabel:$('mapSelection').textContent,
+  const summary=summaryForSelection();
+  const distributions=(summary.groups||[]).map(g=>({catalog_id:g.catalog_id,mag_type:g.mag_type,svg:window.SeismicResearchCharts.svgHistogram(window.SeismicResearchCharts.distribution(state.filtered,{catalogId:g.catalog_id,magType:g.mag_type,catalogs:state.activePacks.map(p=>p.catalog)}),chartOptions('magnitudeDistribution'))}));
+  return {count:state.filtered.length,summary,distributions,selectionLabel:$('mapSelection').textContent,
     reportHTML:selection.action==='report'?analysisReportHtml():null};
 }
 function ensureQuickPanel(){
@@ -111,7 +113,7 @@ function ensureQuickPanel(){
 }
 function ensureHelpPanel(){
   if(!helpPanel && window.SeismicQuickStart)helpPanel=window.SeismicQuickStart.mountHelp($('helpWorkspace'),{
-    getLanguage:()=>I.language,version:'2026.11.10.3',onNavigate:name=>setTab(name)
+    getLanguage:()=>I.language,version:'2026.11.11.1',onNavigate:name=>setTab(name)
   });
   return helpPanel;
 }
@@ -988,6 +990,8 @@ function updateDisplayEvidence(evidence){
   if(heat)$('heatEvidence').textContent+=' '+t('heatNoSourceColors');
   const sourceColors=(state.map?.getColorMode?.()||'catalogue')==='catalogue';
   $('mapPointColor').value=sourceColors?'catalogue':'depth';$('mapPointColor').disabled=heat;
+  $('magnitudeToneLegend').hidden=!sourceColors;
+  $('magnitudeToneLegend').innerHTML=(en?'Reported M tones: ':'Tonos de M reportada: ')+['<3','3–<5','5–<7','≥7'].map((v,i)=>`<span><i style="background:${window.SeismicMapTools.magnitudeColor(state.activePacks.length===1?window.SeismicSourceWorkbench.identity(state.activePacks[0].catalog.id).color:'#64748b',[1,4,6,8][i])}"></i>${esc(v)}</span>`).join('');
   $('depthLegend').hidden=sourceColors||!depthKnown();$('catalogueLegend').hidden=!sourceColors;
   if(sourceColors&&window.SeismicSourceWorkbench){
     if(catalogueLegendRows!==state.filtered){catalogueLegendRows=state.filtered;catalogueLegendCounts=new Map();for(const row of state.filtered){const id=row._catalog_id||state.catalog?.id;catalogueLegendCounts.set(id,(catalogueLegendCounts.get(id)||0)+1);}}

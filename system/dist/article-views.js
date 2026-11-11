@@ -15,17 +15,18 @@
   "2": {
     "id": "2",
     "title": "Home · four-source heat view",
-    "query": "v=4&lang=en&catalog=all-catalogs&snapshot=sha256%3A2b38efe4c043bcc4a73907944e3b40b94e9796d2fe8a55e2dd627ba99e4c96fd&geo=9063e0c34412fec41debad30f69a653486c18e0f94d5983e6a061847befe27cb&from=1900&to=2026&min=3.5&max=10&depth=1000&tab=home&c=65.36625%2C-125.44048%2C1.75&display=heat",
+    "query": "v=4&lang=en&catalog=all-catalogs&snapshot=sha256%3A2b38efe4c043bcc4a73907944e3b40b94e9796d2fe8a55e2dd627ba99e4c96fd&geo=9063e0c34412fec41debad30f69a653486c18e0f94d5983e6a061847befe27cb&from=1900&to=2026&min=3.5&max=10&depth=1000&tab=home&c=65%2C-123%2C2.5&display=heat",
     "tab": "home",
     "language": "en",
     "theme": "blue",
     "appearance": "light",
-    "expectedRows": 287936
+    "expectedRows": 287936,
+    "tectonics": true
   },
   "3": {
     "id": "3",
     "title": "Sources · Atlas",
-    "query": "v=3&lang=en&catalog=ssn-mx-historical&snapshot=sha256%3A0601c65544bc95ef865d3440e5e6d84249acdebd8edfb379669597096543f993&from=1900&to=2026&min=3.5&max=10&depth=1000&tab=sources&c=24.9614%2C-119.06243%2C3.75",
+    "query": "v=3&lang=en&catalog=ssn-mx-historical&snapshot=sha256%3A0601c65544bc95ef865d3440e5e6d84249acdebd8edfb379669597096543f993&from=1900&to=2026&min=3.5&max=10&depth=1000&tab=sources&c=23%2C-102%2C4.5",
     "tab": "sources",
     "language": "en",
     "theme": "blue",
@@ -36,7 +37,7 @@
   "3-time": {
     "id": "3-time",
     "title": "Sources · Time and coverage",
-    "query": "v=3&lang=en&catalog=nrcan-ca-historical&snapshot=sha256%3Af10b91ddbc683406e2f1a642aa8a15fba3d1b46eef3a775f2798cfdc75a31241&from=1985&to=2019&min=3.5&max=10&depth=1000&tab=sources&c=65.45324%2C-124.81336%2C1.75",
+    "query": "v=3&lang=en&catalog=nrcan-ca-historical&snapshot=sha256%3Af10b91ddbc683406e2f1a642aa8a15fba3d1b46eef3a775f2798cfdc75a31241&from=1985&to=2019&min=3.5&max=10&depth=1000&tab=sources&c=61%2C-115%2C3",
     "tab": "sources",
     "language": "en",
     "theme": "blue",
@@ -83,7 +84,7 @@
   "4d": {
     "id": "4d",
     "title": "Four catalogues ·2010–2025",
-    "query": "v=4&lang=en&catalog=all-catalogs&snapshot=sha256%3A2b38efe4c043bcc4a73907944e3b40b94e9796d2fe8a55e2dd627ba99e4c96fd&geo=9063e0c34412fec41debad30f69a653486c18e0f94d5983e6a061847befe27cb&from=2010&to=2025&min=4.5&max=10&depth=1000&c=65.24766%2C-125.06112%2C2.5&tab=catalog",
+    "query": "v=4&lang=en&catalog=all-catalogs&snapshot=sha256%3A2b38efe4c043bcc4a73907944e3b40b94e9796d2fe8a55e2dd627ba99e4c96fd&geo=9063e0c34412fec41debad30f69a653486c18e0f94d5983e6a061847befe27cb&from=2010&to=2025&min=4.5&max=10&depth=1000&c=65%2C-123%2C2.75&tab=catalog",
     "tab": "catalog",
     "language": "en",
     "theme": "blue",
@@ -116,12 +117,12 @@
   "6": {
     "id": "6",
     "title": "Guerrero · enlarged map and tectonic context",
-    "query": "v=5&lang=en&catalog=ssn-mx-historical&snapshot=sha256%3A0601c65544bc95ef865d3440e5e6d84249acdebd8edfb379669597096543f993&geo=9063e0c34412fec41debad30f69a653486c18e0f94d5983e6a061847befe27cb&adh=2604708906c7a88861c1cc4fee9e21cfb4e7b1c7a451dee54ce6536c7ff3a1a9&from=2020&to=2025&min=4.5&max=10&depth=1000&country=MEX&adm=MEX-2729&c=17.47538%2C-100.09775%2C7&tab=catalog",
+    "query": "v=5&lang=en&catalog=ssn-mx-historical&snapshot=sha256%3A0601c65544bc95ef865d3440e5e6d84249acdebd8edfb379669597096543f993&geo=9063e0c34412fec41debad30f69a653486c18e0f94d5983e6a061847befe27cb&adh=2604708906c7a88861c1cc4fee9e21cfb4e7b1c7a451dee54ce6536c7ff3a1a9&from=2000&to=2026&min=4.5&max=10&depth=1000&country=MEX&adm=MEX-2729&c=17.5%2C-100.1%2C7&tab=catalog",
     "tab": "catalog",
     "language": "en",
     "theme": "blue",
     "appearance": "light",
-    "expectedRows": 44,
+    "expectedRows": 203,
     "expanded": true,
     "tectonics": true
   },
@@ -180,6 +181,58 @@
       "includeOffshore": false,
       "offshoreKm": 100
     }
+  },
+  "regional-a": {
+    "id": "regional-a",
+    "title": "Guerrero · SSN · requested 2000–2026",
+    "query": "v=5&lang=en&catalog=ssn-mx-historical&snapshot=sha256%3A0601c65544bc95ef865d3440e5e6d84249acdebd8edfb379669597096543f993&geo=9063e0c34412fec41debad30f69a653486c18e0f94d5983e6a061847befe27cb&adh=2604708906c7a88861c1cc4fee9e21cfb4e7b1c7a451dee54ce6536c7ff3a1a9&from=2000&to=2026&min=3.5&max=10&depth=1000&country=MEX&adm=MEX-2729&c=17.5%2C-100.1%2C7&tab=catalog",
+    "tab": "catalog",
+    "language": "en",
+    "theme": "blue",
+    "appearance": "light",
+    "expectedRows": 19963,
+    "expanded": true,
+    "tectonics": true,
+    "focus": ""
+  },
+  "regional-b": {
+    "id": "regional-b",
+    "title": "California · USGS · requested 2000–2026",
+    "query": "v=5&lang=en&catalog=usgs-na-2020-2025&snapshot=8fe055ffe635875f7290906d45f70562a7896621&geo=9063e0c34412fec41debad30f69a653486c18e0f94d5983e6a061847befe27cb&adh=2604708906c7a88861c1cc4fee9e21cfb4e7b1c7a451dee54ce6536c7ff3a1a9&from=2000&to=2026&min=3.5&max=10&depth=1000&country=USA&adm=USA-3521&c=37.2%2C-119.2%2C5.75&tab=catalog",
+    "tab": "catalog",
+    "language": "en",
+    "theme": "blue",
+    "appearance": "light",
+    "expectedRows": 551,
+    "expanded": true,
+    "tectonics": true,
+    "focus": ""
+  },
+  "regional-c": {
+    "id": "regional-c",
+    "title": "Yukon · NRCan · requested 2000–2026",
+    "query": "v=5&lang=en&catalog=nrcan-ca-historical&snapshot=sha256%3Af10b91ddbc683406e2f1a642aa8a15fba3d1b46eef3a775f2798cfdc75a31241&geo=9063e0c34412fec41debad30f69a653486c18e0f94d5983e6a061847befe27cb&adh=2604708906c7a88861c1cc4fee9e21cfb4e7b1c7a451dee54ce6536c7ff3a1a9&from=2000&to=2026&min=3.5&max=10&depth=1000&country=CAN&adm=CAN-636&c=64.8%2C-133%2C5&tab=catalog",
+    "tab": "catalog",
+    "language": "en",
+    "theme": "blue",
+    "appearance": "light",
+    "expectedRows": 225,
+    "expanded": true,
+    "tectonics": true,
+    "focus": ""
+  },
+  "regional-d": {
+    "id": "regional-d",
+    "title": "Alaska · all four catalogues · requested 2000–2026",
+    "query": "v=5&lang=en&catalog=all-catalogs&snapshot=sha256%3A2b38efe4c043bcc4a73907944e3b40b94e9796d2fe8a55e2dd627ba99e4c96fd&geo=9063e0c34412fec41debad30f69a653486c18e0f94d5983e6a061847befe27cb&adh=2604708906c7a88861c1cc4fee9e21cfb4e7b1c7a451dee54ce6536c7ff3a1a9&from=2000&to=2026&min=3.5&max=10&depth=1000&country=USA&adm=USA-3563&c=62%2C-153%2C4&tab=catalog",
+    "tab": "catalog",
+    "language": "en",
+    "theme": "blue",
+    "appearance": "light",
+    "expectedRows": 1112,
+    "expanded": true,
+    "tectonics": true,
+    "focus": ""
   }
 };
   function get(id){const value=Object.hasOwn(profiles,String(id))?profiles[String(id)]:null;return value?JSON.parse(JSON.stringify(value)):null;}
