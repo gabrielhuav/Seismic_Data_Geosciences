@@ -451,3 +451,8 @@ identifiers, and no fuzzy event matching is attempted. These links expose offici
 estimated intensity/felt reports; no wave propagation, felt radius or attenuation
 model is generated. The catalogues alone do not identify where a quake was felt.
 Reference: https://earthquake.usgs.gov/data/shakemap/
+
+
+## Live architecture and readable overlays (2026.11.11.2)
+
+The Methods/figure1 architecture contains the shared working map; source controls keep the map in the frame and retain catalogue colour/shape. A startup screen reports real transfer bytes, verification and rendering; interaction starts after completion, with retry on failure. No duplicate map application or iframe is loaded. Heat renders in its own lower pane, below PB2002 halo boundaries and labels; model context remains separate from record concentration. Magnitude tones have larger swatches and explicit intervals. Guided descriptive results emphasize the principal measure and retain original calculations and counts.

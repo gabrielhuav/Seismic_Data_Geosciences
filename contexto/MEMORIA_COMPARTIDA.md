@@ -5,69 +5,21 @@ Leer AGENTS.md completo. Los resultados de antecedentes no son verificaciones nu
 
 ## Estado actual
 
-- PUBLICACIÓN11nov2026 AUTORIZADA: UNcommit humano,UNpush yUNdespliegue de esta
-  revisión; identidad Gabriel Hurtado <gabrielhurtadoaviles@gmail.com>,sinIA enGit.
-  GateHTTP NUEVO y excepciones de ESTEpush pendientes; permisos aún sin consumir.
-  Plan/recibos outputs/manuel_release_2026-11-11/. PCencendida.
-
-- REVISIÓN LOCAL11nov2026: retroalimentación de Manuel aplicada primero al sistema
-  y después al artículo. Candidata2026.11.11.1; publicación vigente f2a8ea8 /2026.11.10.3
-  intacta. Sin commit/amend/push/despliegue nuevos; permisos previos CONSUMIDOS.
-- Mapas más altos/encuadres restaurables, calor con PB2002, tonos de M por fuente,
-  hover/foco coloreado, descriptivos/comparación/vista simple rediseñados. Top10
-  separa sólo rótulos con líneas hacia epicentros originales. Cinco fondos y panel
-  de coordenadas/contexto local en mapas principal/Top10/Proximidad; retorno móvil.
-- Nueva Figura5 regional2000–2026 solicitado: GuerreroSSN19963, CaliforniaUSGS551,
-  YukonNRCan225, Alaska1112=739USGS2020–25+373NRCan2000–19. No se rellenan años
-  ausentes. MapaGuerreroampliado2000–2026/M>=4.5=203. Datos/índices originales intactos.
-- Word/PDF locales outputs/paper/Seismic_CG_manuscript.docx y.pdf:20páginas,
-  diezfiguras,cuatrotablas,18hipervínculos activos; Word31comentarios localizan
-  pasajes revisados, PDF limpio. Cuerpo3112palabras(-4.74%frente3267;-43.34%frente5492).
-  41checks finales+enlaces/comentarios,80Python/18suitesJS;20páginas cubiertas
-  visualmente(18PNGidénticos tras correcciónAlaska+2revisados). Plantilla16partes
-  byteidénticas; ContentTypes sólo añade comentarios. Autores/licencias/IAacadémica veraz intactos.
-- Localidad externa opcional Nominatim NO respondió en prueba; coordenadas y
-  país/estado aproximados sí comprobados, con fallback explícito. No garantizar
-  localidad exacta. M>=6 enlaza ShakeMap/DYFI oficiales con IDUSGSoriginal; no
-  ondas animadas, alcance sentido inventado, pronóstico o riesgo estimado.
-- Evidencia y entrega: outputs/manuel_feedback_2026-11-11/final_delivery.json;
-  document_qa_v2/ y captures/. Preview propio8787PID2520; Word de revisión abierto.
-  PCENCENDIDA; históricos/repos/servicios ajenos intactos.
-
-### Publicación vigente de referencia
-
-
-
-- RECUPERACIÓN DE PAGES AUTORIZADA por Gabriel: «corrígelo y lánzalo», con Git
-  humano sinIA. Se ejecutó UNreintento del jobdeploy130084646464 mediante el
-  conectorGitHub, conservando commitf2a8ea8 y artefacto13795984257. Intento2SUCCESS;
-  deploy130302299006 correcto. No hizo falta modificar código ni crear otro
-  commit/push. Permiso del reintento CONSUMIDO. Evidencia actual:
-  outputs/pages_recovery_2026-11-10/recovery_result.json. PCencendida.
-
-- PUBLICADO Y VERIFICADO: commit humano f2a8ea85f5fc4e8dcc1849dd568229825f2ba419,19archivos,
-  enorigin/main. Autor y committer Gabriel Hurtado <gabrielhurtadoaviles@gmail.com>;
-  sin asistentes,coautores,trailers ni firmaIA en Git. UNcommit,UNpush y UNdispatch
-  autorizados consumidos. Workflow42888520238,intento2,SUCCESS.
-- Pages2026.11.10.3:84/84assetsHTTPS200,bytes/SHA exactos al commit; tres rutas
-  privadas/contexto/PDF excluidasHTTP404. Índice article-figures.htmlHTTP200.
-  https://gabrielhuav.github.io/Seismic_Data_Geosciences/
-  https://gabrielhuav.github.io/Seismic_Data_Geosciences/article-figures.html
--14vistas/paneles públicos restaurados realmente en inglés,temaazul/claro,con
-  catálogo,filtros,mapa/subvista/resultados correspondientes al artículo. Recarga
-  conserva la vista; editar abandona el preset. Móvil emulado verificado sin
-  desborde; no es una prueba en teléfono físico. Capturas reales horizontales.
-- Word yPDF actualizados públicos en outputs/paper/Seismic_CG_manuscript.docx
-  y.pdf:19páginas,9figuras,4tablas,14hipervínculos activos,43checks y19páginas
-  visuales. Descargados del commit público y cotejados byte/hash exactamente.
-  Cuerpo3267palabras(-40,5135%). Créditos humanos/licencias y declaración académica
-  veraz de asistencia de IA conservados. No Docker/backend ni pronósticos.
-- Gabriel aceptó para ESTEpush cincoHTTP403 editoriales,índice nuevoHTTP404antes
-  de primera publicación y muestra339/36872rutasUSGS(36533sinvisitar). El índice
-  ya está publicado; no reutilizar las demás excepciones en futuros pushes.
-- Recibos/QA/capturas:outputs/article_views_2026-11-10/. Permisos CONSUMIDOS:
-  no otro commit,amend,push,dispatch o reintento sin autorización nueva. Este cierre
-  queda LOCAL,sin otro Git. PC ENCENDIDA; históricos/repos/contendedores ajenos intactos.
+- REVISIÓN LOCAL 2026.11.11.2: mapa real funcional dentro de la arquitectura,
+  selección de cuatro fuentes y progreso de carga que bloquea controles hasta
+  completar datos/render. Vista móvil comprobada sin desbordamiento.
+- Placas PB2002 sobre calor: límites con halo, contornos y leyenda independiente;
+  geometría y datos intactos. Leyenda de magnitud ampliada y UI de descriptivos
+  jerarquizada. Capturas auténticas inglesas actualizadas después del sistema.
+- Word/PDF coincidentes: 20 páginas, diez figuras, cuatro tablas, 18 enlaces;
+  texto principal 2.630 palabras frente a 3.105 (-15,3% adicional), resumen130.
+  42 controles documentales, revisión visual de20páginas y18 suitesJS correctos.
+- Gabriel autorizó UN commit humano y UN push de esta revisión, sin atribuciones
+  de IA en Git. Declaración académica veraz conservada. Aún pendientes las
+  excepciones de ESTE push (seis403 y muestra339/36872USGS,36533sinvisitar)
+  y autorización nueva para UN despliegue manual. No reutilizar autorizaciones.
+  Base publicada7fb2069/2026.11.11.1. PC encendida. Recibos privados:
+  outputs/live_architecture_2026-11-11/.
 
 
 ## Estado conservado anterior (histórico; prevalece Estado actual)
@@ -848,15 +800,178 @@ fuera de muestra. No agregar ML ni modelos geotécnicos sin necesidad científic
 
 ## Siguiente paso
 
-- Revisar los finales entregados y comentarios de síntesis. La candidata sigue LOCAL.
-- Si Gabriel solicita publicación, preparar alcance exacto y autorización NUEVA
-  para UNcommit humano,UNpush yUNdespliegue; gateHTTP fresco y aceptación expresa
-  de sus excepciones antes del push. No reutilizar permisos/excepciones anteriores.
-- Antes de publicar el paper, alinear su disponibilidad a la acción autorizada;
-  preservar Word/PDF coincidentes y revisar las páginas que cambien. No enviar a
-  revista ni pagar; NO apagar la PC. Localidad externa permanece dependiente del servicio.
+Crear UNA VEZ el commit humano y completar el push ya autorizados tras aceptar
+las excepciones de ESTE push. Pedir sólo autorización nueva para UN despliegue
+manual. Verificar luego CI,85assetsHTTPS,Word/PDF y vistas públicas reales;
+registrar recibos y SHA sin otro commit/amend. PC encendida.
 
 ## Bitácora
+
+- REVISIÓN LOCAL 2026.11.11.2: mapa real funcional dentro de la arquitectura,
+  selección de cuatro fuentes y progreso de carga que bloquea controles hasta
+  completar datos/render. Vista móvil comprobada sin desbordamiento.
+- Placas PB2002 sobre calor: límites con halo, contornos y leyenda independiente;
+  geometría y datos intactos. Leyenda de magnitud ampliada y UI de descriptivos
+  jerarquizada. Capturas auténticas inglesas actualizadas después del sistema.
+- Word/PDF coincidentes: 20 páginas, diez figuras, cuatro tablas, 18 enlaces;
+  texto principal 2.630 palabras frente a 3.105 (-15,3% adicional), resumen130.
+  42 controles documentales, revisión visual de20páginas y18 suitesJS correctos.
+- Gabriel autorizó UN commit humano y UN push de esta revisión, sin atribuciones
+  de IA en Git. Declaración académica veraz conservada. Aún pendientes las
+  excepciones de ESTE push (seis403 y muestra339/36872USGS,36533sinvisitar)
+  y autorización nueva para UN despliegue manual. No reutilizar autorizaciones.
+  Base publicada7fb2069/2026.11.11.1. PC encendida. Recibos privados:
+  outputs/live_architecture_2026-11-11/.
+
+### Estado sustituido al preparar la revisión funcional
+
+- PUBLICADO Y VERIFICADO: versión2026.11.11.1, commit humano
+  7fb20696e83e11fbc206af825b306524fbf9f3bc en origin/main. Autor y committer:
+  Gabriel Hurtado <gabrielhurtadoaviles@gmail.com>; sin atribuciones, coautores,
+  trailers ni firmas de IA en Git. Declaración académica veraz conservada.
+- Push y UN despliegue consumidos tras aceptación expresa de seisHTTP403 y
+  muestra339/36872rutasUSGS (36533sinvisitar), sólo para este push.
+  Actions43079345902: validate y deploy SUCCESS, un despacho, cero reintentos.
+- 85/85assets HTTPS idénticos al commit; tres exclusiones de Pages404. La
+  comprobación del PDF excluido recibió503 inicial y404 al repetir sólo esa URL.
+  Word/PDF públicos en el repositorio idénticos a los revisados:20páginas,
+  diezfiguras,cuatrotablas,18enlaces. No se sirven en Pages.
+- Las18vistas públicas inglesas,azul/claro coinciden en datos y composición con
+  las capturas del artículo. Móvil390x844 sin desbordamiento horizontal; retorno
+  del mapa ampliado y estadísticos probados. No equivale a estudio de usabilidad.
+  ClickNRCan:6613registros dorados; OSM40teselas cargadas y atribución.
+- Nominatim es opcional y no respondió en la prueba anterior del navegador;
+  conserva contexto poligonal local. Sin ondas simuladas ni pronóstico/riesgo.
+- Sitio:https://gabrielhuav.github.io/Seismic_Data_Geosciences/
+  Figuras:https://gabrielhuav.github.io/Seismic_Data_Geosciences/article-figures.html
+  Recibos privados:outputs/manuel_release_2026-11-11/. PC encendida.
+
+
+### 11nov2026 — publicación y verificación final
+
+- PUBLICADO Y VERIFICADO: versión2026.11.11.1, commit humano
+  7fb20696e83e11fbc206af825b306524fbf9f3bc en origin/main. Autor y committer:
+  Gabriel Hurtado <gabrielhurtadoaviles@gmail.com>; sin atribuciones, coautores,
+  trailers ni firmas de IA en Git. Declaración académica veraz conservada.
+- Push y UN despliegue consumidos tras aceptación expresa de seisHTTP403 y
+  muestra339/36872rutasUSGS (36533sinvisitar), sólo para este push.
+  Actions43079345902: validate y deploy SUCCESS, un despacho, cero reintentos.
+- 85/85assets HTTPS idénticos al commit; tres exclusiones de Pages404. La
+  comprobación del PDF excluido recibió503 inicial y404 al repetir sólo esa URL.
+  Word/PDF públicos en el repositorio idénticos a los revisados:20páginas,
+  diezfiguras,cuatrotablas,18enlaces. No se sirven en Pages.
+- Las18vistas públicas inglesas,azul/claro coinciden en datos y composición con
+  las capturas del artículo. Móvil390x844 sin desbordamiento horizontal; retorno
+  del mapa ampliado y estadísticos probados. No equivale a estudio de usabilidad.
+  ClickNRCan:6613registros dorados; OSM40teselas cargadas y atribución.
+- Nominatim es opcional y no respondió en la prueba anterior del navegador;
+  conserva contexto poligonal local. Sin ondas simuladas ni pronóstico/riesgo.
+- Sitio:https://gabrielhuav.github.io/Seismic_Data_Geosciences/
+  Figuras:https://gabrielhuav.github.io/Seismic_Data_Geosciences/article-figures.html
+  Recibos privados:outputs/manuel_release_2026-11-11/. PC encendida.
+
+### Estado sustituido al publicar
+
+- Revisión 2026.11.11.1 terminada localmente y guardada en el commit humano
+  7fb20696e83e11fbc206af825b306524fbf9f3bc (26 archivos). Autor y committer:
+  Gabriel Hurtado <gabrielhurtadoaviles@gmail.com>; sin trailers ni atribuciones
+  de IA en Git. Declaración académica veraz conservada en el artículo.
+- Word/PDF coincidentes: 20 páginas, diez figuras, cuatro tablas y 18 enlaces
+  ingleses; 42 controles aprobados y todas las páginas revisadas. 85 assets.
+- Push y UN despliegue autorizados, todavía sin ejecutar. Falta la aceptación
+  expresa de excepciones de ESTE push solicitada a Gabriel: seis HTTP403
+  (tres DOI, dos ScienceDirect, NRCan) y muestra339/36872rutas USGS.
+  Otros19fallos TLS corroborados mediante HTTP200 y validación normal.
+  API Nominatim parametrizada respondió200; en navegador el servicio opcional
+  no respondió y se conserva el contexto local. No se simulan ondas/intensidad.
+- Pages sigue en f2a8ea8 /2026.11.10.3; no afirmar que los cambios están publicados.
+  Plan y recibos privados: outputs/manuel_release_2026-11-11/. PC encendida.
+
+
+### 11nov2026 — commit creado; excepciones de push pendientes
+
+- Revisión 2026.11.11.1 terminada localmente y guardada en el commit humano
+  7fb20696e83e11fbc206af825b306524fbf9f3bc (26 archivos). Autor y committer:
+  Gabriel Hurtado <gabrielhurtadoaviles@gmail.com>; sin trailers ni atribuciones
+  de IA en Git. Declaración académica veraz conservada en el artículo.
+- Word/PDF coincidentes: 20 páginas, diez figuras, cuatro tablas y 18 enlaces
+  ingleses; 42 controles aprobados y todas las páginas revisadas. 85 assets.
+- Push y UN despliegue autorizados, todavía sin ejecutar. Falta la aceptación
+  expresa de excepciones de ESTE push solicitada a Gabriel: seis HTTP403
+  (tres DOI, dos ScienceDirect, NRCan) y muestra339/36872rutas USGS.
+  Otros19fallos TLS corroborados mediante HTTP200 y validación normal.
+  API Nominatim parametrizada respondió200; en navegador el servicio opcional
+  no respondió y se conserva el contexto local. No se simulan ondas/intensidad.
+- Pages sigue en f2a8ea8 /2026.11.10.3; no afirmar que los cambios están publicados.
+  Plan y recibos privados: outputs/manuel_release_2026-11-11/. PC encendida.
+
+### Preparación anterior
+
+- PUBLICACIÓN11nov2026 AUTORIZADA: UNcommit humano,UNpush yUNdespliegue de esta
+  revisión; identidad Gabriel Hurtado <gabrielhurtadoaviles@gmail.com>,sinIA enGit.
+  GateHTTP NUEVO y excepciones de ESTEpush pendientes; permisos aún sin consumir.
+  Plan/recibos outputs/manuel_release_2026-11-11/. PCencendida.
+
+- REVISIÓN LOCAL11nov2026: retroalimentación de Manuel aplicada primero al sistema
+  y después al artículo. Candidata2026.11.11.1; publicación vigente f2a8ea8 /2026.11.10.3
+  intacta. Sin commit/amend/push/despliegue nuevos; permisos previos CONSUMIDOS.
+- Mapas más altos/encuadres restaurables, calor con PB2002, tonos de M por fuente,
+  hover/foco coloreado, descriptivos/comparación/vista simple rediseñados. Top10
+  separa sólo rótulos con líneas hacia epicentros originales. Cinco fondos y panel
+  de coordenadas/contexto local en mapas principal/Top10/Proximidad; retorno móvil.
+- Nueva Figura5 regional2000–2026 solicitado: GuerreroSSN19963, CaliforniaUSGS551,
+  YukonNRCan225, Alaska1112=739USGS2020–25+373NRCan2000–19. No se rellenan años
+  ausentes. MapaGuerreroampliado2000–2026/M>=4.5=203. Datos/índices originales intactos.
+- Word/PDF locales outputs/paper/Seismic_CG_manuscript.docx y.pdf:20páginas,
+  diezfiguras,cuatrotablas,18hipervínculos activos; Word31comentarios localizan
+  pasajes revisados, PDF limpio. Cuerpo3112palabras(-4.74%frente3267;-43.34%frente5492).
+  41checks finales+enlaces/comentarios,80Python/18suitesJS;20páginas cubiertas
+  visualmente(18PNGidénticos tras correcciónAlaska+2revisados). Plantilla16partes
+  byteidénticas; ContentTypes sólo añade comentarios. Autores/licencias/IAacadémica veraz intactos.
+- Localidad externa opcional Nominatim NO respondió en prueba; coordenadas y
+  país/estado aproximados sí comprobados, con fallback explícito. No garantizar
+  localidad exacta. M>=6 enlaza ShakeMap/DYFI oficiales con IDUSGSoriginal; no
+  ondas animadas, alcance sentido inventado, pronóstico o riesgo estimado.
+- Evidencia y entrega: outputs/manuel_feedback_2026-11-11/final_delivery.json;
+  document_qa_v2/ y captures/. Preview propio8787PID2520; Word de revisión abierto.
+  PCENCENDIDA; históricos/repos/servicios ajenos intactos.
+
+### Publicación vigente de referencia
+
+
+
+- RECUPERACIÓN DE PAGES AUTORIZADA por Gabriel: «corrígelo y lánzalo», con Git
+  humano sinIA. Se ejecutó UNreintento del jobdeploy130084646464 mediante el
+  conectorGitHub, conservando commitf2a8ea8 y artefacto13795984257. Intento2SUCCESS;
+  deploy130302299006 correcto. No hizo falta modificar código ni crear otro
+  commit/push. Permiso del reintento CONSUMIDO. Evidencia actual:
+  outputs/pages_recovery_2026-11-10/recovery_result.json. PCencendida.
+
+- PUBLICADO Y VERIFICADO: commit humano f2a8ea85f5fc4e8dcc1849dd568229825f2ba419,19archivos,
+  enorigin/main. Autor y committer Gabriel Hurtado <gabrielhurtadoaviles@gmail.com>;
+  sin asistentes,coautores,trailers ni firmaIA en Git. UNcommit,UNpush y UNdispatch
+  autorizados consumidos. Workflow42888520238,intento2,SUCCESS.
+- Pages2026.11.10.3:84/84assetsHTTPS200,bytes/SHA exactos al commit; tres rutas
+  privadas/contexto/PDF excluidasHTTP404. Índice article-figures.htmlHTTP200.
+  https://gabrielhuav.github.io/Seismic_Data_Geosciences/
+  https://gabrielhuav.github.io/Seismic_Data_Geosciences/article-figures.html
+-14vistas/paneles públicos restaurados realmente en inglés,temaazul/claro,con
+  catálogo,filtros,mapa/subvista/resultados correspondientes al artículo. Recarga
+  conserva la vista; editar abandona el preset. Móvil emulado verificado sin
+  desborde; no es una prueba en teléfono físico. Capturas reales horizontales.
+- Word yPDF actualizados públicos en outputs/paper/Seismic_CG_manuscript.docx
+  y.pdf:19páginas,9figuras,4tablas,14hipervínculos activos,43checks y19páginas
+  visuales. Descargados del commit público y cotejados byte/hash exactamente.
+  Cuerpo3267palabras(-40,5135%). Créditos humanos/licencias y declaración académica
+  veraz de asistencia de IA conservados. No Docker/backend ni pronósticos.
+- Gabriel aceptó para ESTEpush cincoHTTP403 editoriales,índice nuevoHTTP404antes
+  de primera publicación y muestra339/36872rutasUSGS(36533sinvisitar). El índice
+  ya está publicado; no reutilizar las demás excepciones en futuros pushes.
+- Recibos/QA/capturas:outputs/article_views_2026-11-10/. Permisos CONSUMIDOS:
+  no otro commit,amend,push,dispatch o reintento sin autorización nueva. Este cierre
+  queda LOCAL,sin otro Git. PC ENCENDIDA; históricos/repos/contendedores ajenos intactos.
+
+
 
 -11nov2026: aplicada retroalimentación de Manuel; candidata local2026.11.11.1,
   mapas/UX y figura regional nuevos,18capturas realesEN,finales20p/10fig/4tablas/

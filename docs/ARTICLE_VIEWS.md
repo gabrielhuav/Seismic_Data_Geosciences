@@ -1,6 +1,6 @@
 # Article figures and functional views
 
-Release 2026.11.11.1 retains the fourteen existing targets and adds four regional targets (eighteen total). Open the
+Release 2026.11.11.2 retains the fourteen existing targets and adds four regional targets (eighteen total). Open the
 [figure index](https://gabrielhuav.github.io/Seismic_Data_Geosciences/article-figures.html)
 or a link in a Word/PDF figure caption. These routes require this release to be
 deployed; the older published interface does not implement them.
@@ -39,7 +39,8 @@ article preset, so later edits are not mislabelled as the original figure.
 The figure index reapplies the original state. Source and computation failure
 produces an explicit error rather than a fabricated substitute.
 
-The desktop figures use a1920×1080 viewport and genuine English captures.
+The desktop figures use a1920×1080 viewport and genuine English captures;
+the live architecture uses1920×1400 to retain its complete frame.
 Rectangular crops and external panel labels retain observed controls and data.
 Different viewport sizes reflow the same interface; pixel identity across screen
 sizes is not claimed. Source rows, snapshots, magnitude types and geographic
@@ -51,3 +52,6 @@ hyperlink relationships and PDF URI annotations must contain the same eighteen
 targets. All pages of the exported PDF require visual review after rebuilding.
 
 Stable route IDs preserve earlier article links; they need not equal the current manuscript figure number. Regional targets request 2000–2026 but retain actual coverage limits (California 2020–2025; Alaska 739 USGS rows in 2020–2025 plus 373 NRCan rows in 2000–2019; Yukon 2000–2019; SSN through partial 2026). No source rows were added to fill missing years. The enlarged Guerrero target now selects 203 SSN land rows at M≥4.5 in 2000–2026.
+
+
+In release2026.11.11.2, Figure1 mounts the same interactive map inside the architecture frame. Its four source buttons load that map in place; no iframe or second catalogue engine/download is required. Initial access waits for verified data, the design asset and rendering, with transfer progress and explicit retry on failure. Figure2 draws heat below PB2002 boundaries with a white halo and independent legend; Figure3 enlarges magnitude-shade keys. Figure6 uses a stronger descriptive-results hierarchy.

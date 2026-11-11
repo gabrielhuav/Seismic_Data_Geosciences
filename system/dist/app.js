@@ -30,13 +30,35 @@ let debounce;
 
 const TRANSPORT_SHA256='0ab2f5b5f1caed3ba5cd21d9919d4fe75be64fa8b168ac040f794aefb3344600';
 const downloadJobs=new Map();let lastProgressPaint=0,sqlPanel=null,sqlContextCache=null,sqlSelectionVersion=0;
+// Initial access is gated by actual data verification and view rendering.
+const startupTargets=[...document.querySelectorAll('header,main,.tools-nav')];
+startupTargets.forEach(node=>node.inert=true);
+if(I.language==='es'){$('startupTitle').textContent='Preparando el sistema';$('startupPhase').textContent='Cargando los datos conservados y comprobando las fuentes…';$('startupNote').textContent='El mapa se habilita después de verificar los datos y preparar la vista.';$('startupRetry').textContent='Reintentar carga';}
+function startupPhase(phase){if(!$('startupScreen')||$('startupScreen').hidden)return;const en=I.language==='en';const labels={download:en?'Loading preserved catalogue files…':'Cargando los archivos sísmicos conservados…',verify:en?'Verifying source hashes…':'Verificando hashes de las fuentes…',decompress:en?'Decompressing the verified payload…':'Descomprimiendo los datos verificados…',parse:en?'Reading source records…':'Leyendo los registros de las fuentes…',render:en?'Preparing the selected map and controls…':'Preparando el mapa y los controles seleccionados…'};$('startupPhase').textContent=labels[phase]||labels.verify;}
+async function waitForPresentation(){
+  await document.fonts?.ready;
+  const drawing=$('architectureDrawing');
+  if(state.tab==='methods' && drawing && 'contentDocument' in drawing && window.getComputedStyle(drawing).display!=='none' && drawing.contentDocument?.documentElement?.localName!=='svg')await new Promise((resolve,reject)=>{
+    const finish=(error)=>{clearTimeout(timer);drawing.removeEventListener('load',loaded);drawing.removeEventListener('error',failed);error?reject(error):resolve();};
+    const loaded=()=>finish(),failed=()=>finish(Error('The system design could not be loaded.'));
+    const timer=setTimeout(()=>finish(Error('The system design did not finish loading.')),15000);drawing.addEventListener('load',loaded,{once:true});drawing.addEventListener('error',failed,{once:true});
+  });
+}
+function finishStartup(){
+  const failed=!!state.loadError||document.body.dataset.articleStatus==='error';
+  if(failed){$('startupTitle').textContent=I.language==='en'?'The system could not finish loading':'No se pudo terminar la carga';$('startupPhase').textContent=state.loadError||$('loadStatus').textContent;$('startupRetry').hidden=false;$('startupProgress').removeAttribute('value');return;}
+  $('startupProgress').value=100;$('startupScreen').hidden=true;startupTargets.forEach(node=>node.inert=false);document.body.dataset.startup='ready';
+}
+$('startupRetry').addEventListener('click',()=>location.reload());
 function updateTransportProgress(event){
   if(event.phase==='download')downloadJobs.set(event.url,{loaded:event.loaded||0,total:event.total||0});
+  startupPhase(event.phase);
   const now=Date.now();if(now-lastProgressPaint<120 && event.phase==='download')return;lastProgressPaint=now;
   const jobs=[...downloadJobs.values()],loaded=jobs.reduce((n,v)=>n+v.loaded,0),total=jobs.reduce((n,v)=>n+v.total,0);
   if($('loadingPhase'))$('loadingPhase').textContent=t(event.phase==='download'?'downloadProgress':'downloadPhase');
   if($('loadingBytes'))$('loadingBytes').textContent=t('downloadBytes',{loaded:value(loaded/1e6,1),total:total?value(total/1e6,1):'…'});
   if($('dataLoadProgress')){if(total)$('dataLoadProgress').value=Math.min(100,loaded/total*100);else $('dataLoadProgress').removeAttribute('value');}
+  if(!$('startupScreen').hidden){$('startupBytes').textContent=$('loadingBytes').textContent;if(event.phase==='download'&&total)$('startupProgress').value=Math.min(100,loaded/total*100);else $('startupProgress').removeAttribute('value');}
 }
 function getSQLContext(){
   if(!state.ready || !state.formValid)return {ready:false,key:'unavailable',records:[],catalogs:[],evidence:null,selectionLabel:t('sqlNotReady')};
@@ -113,7 +135,7 @@ function ensureQuickPanel(){
 }
 function ensureHelpPanel(){
   if(!helpPanel && window.SeismicQuickStart)helpPanel=window.SeismicQuickStart.mountHelp($('helpWorkspace'),{
-    getLanguage:()=>I.language,version:'2026.11.11.1',onNavigate:name=>setTab(name)
+    getLanguage:()=>I.language,version:'2026.11.11.2',onNavigate:name=>setTab(name)
   });
   return helpPanel;
 }
@@ -197,7 +219,7 @@ function viewURL(view=currentView()){
 }
 function setTab(name, persist = true) {
   const previousTab=state.tab;
-  if(state.expanded && !['catalog','home','quick','sources'].includes(name))setExpanded(false);
+  if(state.expanded && !['catalog','home','quick','sources','methods'].includes(name))setExpanded(false);
   state.tab = name;
   for (const tab of ['home', 'catalog', 'sources', 'analysis', 'revisions', 'comparison', 'sql', 'methods','quick','top','recurrence','help']) {
     const active = tab === name; $(tab + 'Panel').hidden = !active;
@@ -205,13 +227,13 @@ function setTab(name, persist = true) {
   }
   document.body.dataset.view=name;
   if(name==='quick')ensureQuickPanel()?.activate();
-  const mapMount=name==='quick' ? quickPanel?.getMapMount() : name==='home' ? $('homeMapMount') : name==='sources' ? sourceMapMount() : $('catalogMapMount');
+  const mapMount=name==='quick' ? quickPanel?.getMapMount() : name==='home' ? $('homeMapMount') : name==='sources' ? sourceMapMount() : name==='methods' ? $('architectureMapMount') : $('catalogMapMount');
   const mapMoved=mapMount && $('mapCard').parentElement!==mapMount;
   if(mapMoved){
     if(mapMount.insertBefore)mapMount.insertBefore($('mapCard'),mapMount.firstChild);
     else mapMount.append($('mapCard'));
   }
-  if (['catalog','home','quick','sources'].includes(name) && state.map && (mapMoved||previousTab!==name)) requestAnimationFrame(() => {state.map.resize(); drawMap();});
+  if (['catalog','home','quick','sources','methods'].includes(name) && state.map && (mapMoved||previousTab!==name)) requestAnimationFrame(() => {state.map.resize(); drawMap();});
   if (name === 'sources' || name === 'home') renderSources();
   if (name === 'analysis'){renderAnalysis();renderCoverage();}
   if(name==='revisions')ensureRevisionStory();
@@ -991,7 +1013,7 @@ function updateDisplayEvidence(evidence){
   const sourceColors=(state.map?.getColorMode?.()||'catalogue')==='catalogue';
   $('mapPointColor').value=sourceColors?'catalogue':'depth';$('mapPointColor').disabled=heat;
   $('magnitudeToneLegend').hidden=!sourceColors;
-  $('magnitudeToneLegend').innerHTML=(en?'Reported M tones: ':'Tonos de M reportada: ')+['<3','3–<5','5–<7','≥7'].map((v,i)=>`<span><i style="background:${window.SeismicMapTools.magnitudeColor(state.activePacks.length===1?window.SeismicSourceWorkbench.identity(state.activePacks[0].catalog.id).color:'#64748b',[1,4,6,8][i])}"></i>${esc(v)}</span>`).join('');
+  $('magnitudeToneLegend').innerHTML='<strong>'+(en?'Reported magnitude · lighter → darker':'Magnitud reportada · claro → oscuro')+'</strong>'+['<3','3–<5','5–<7','≥7'].map((v,i)=>`<span><i style="background:${window.SeismicMapTools.magnitudeColor(state.activePacks.length===1?window.SeismicSourceWorkbench.identity(state.activePacks[0].catalog.id).color:'#64748b',[1,4,6,8][i])}"></i>${esc(v)}</span>`).join('');
   $('depthLegend').hidden=sourceColors||!depthKnown();$('catalogueLegend').hidden=!sourceColors;
   if(sourceColors&&window.SeismicSourceWorkbench){
     if(catalogueLegendRows!==state.filtered){catalogueLegendRows=state.filtered;catalogueLegendCounts=new Map();for(const row of state.filtered){const id=row._catalog_id||state.catalog?.id;catalogueLegendCounts.set(id,(catalogueLegendCounts.get(id)||0)+1);}}
@@ -1000,6 +1022,7 @@ function updateDisplayEvidence(evidence){
 }
 $('mapDisplay').addEventListener('change',()=>{state.map?.setDisplayMode?.($('mapDisplay').value);updateDisplayEvidence();syncURL();});
 $('mapPointColor').addEventListener('change',()=>{state.map?.setColorMode?.($('mapPointColor').value);updateDisplayEvidence();syncURL();});
+$('architectureLive').addEventListener('click',async event=>{const button=event.target.closest('[data-architecture-catalog]');if(button)await activateSourceCatalogue(button.dataset.architectureCatalog,'methods');});
 $('sourceAtlasView').addEventListener('click',()=>setSourceView('atlas'));
 $('sourceTimeView').addEventListener('click',()=>setSourceView('time'));
 $('sourceAtlasInputs').addEventListener('click',async event=>{const button=event.target.closest('[data-workbench-catalog]');if(button)await activateSourceCatalogue(button.dataset.workbenchCatalog);});
@@ -1056,9 +1079,9 @@ async function restoreArticleView(profile){
   if(profile.tectonics!==undefined){$('tectonicToggle').checked=profile.tectonics;await showTectonics();}
   if(profile.expanded)setExpanded(true);
   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-  if(!profile.quick && ['catalog','home','sources'].includes(profile.tab)){
+  if(!profile.quick && ['catalog','home','sources','methods'].includes(profile.tab)){
     state.map.resize();const center=new URL(requestedArticleView.url).searchParams.get('c');
-    if(center)state.map.setView(center.split(',').map(Number));
+    if(profile.fitRecords)state.map.fitRecords();else if(center)state.map.setView(center.split(',').map(Number));
   }
   document.body.dataset.articleFigure=profile.id;
   if(profile.focus)document.querySelector(profile.focus)?.scrollIntoView?.({block:'start',behavior:'auto'});
@@ -1067,7 +1090,8 @@ async function restoreArticleView(profile){
   syncURL();
 }
 initialize().then(async()=>{
+  startupPhase('render');
   if(!requestedArticleView)return;
   try{await restoreArticleView(requestedArticleView.profile);document.body.dataset.articleStatus='ready';}
   catch(error){document.body.dataset.articleStatus='error';$('loadStatus').hidden=false;$('loadStatus').textContent='Article view could not be reproduced: '+error.message;}
-});
+}).then(async()=>{await waitForPresentation();await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));finishStartup();}).catch(error=>{state.loadError=error.message;finishStartup();});

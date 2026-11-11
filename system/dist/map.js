@@ -89,7 +89,7 @@ window.SeismicMapHeat = (function () {
 // Local cartography and one canvas keep geographic context independent of tile APIs.
 window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = () => {}, onViewChange = () => {}, onBaseChange = () => {}, onBaseStatus = () => {}, onCountrySelect = () => {}, onAdmin1Select = () => {}, onDisplayChange = () => {}, sourceStyle = () => null, translate = key => key, formatNumber = String, getLanguage = () => document.documentElement.lang || 'es'}) {
   let region = L.latLngBounds([[14, -190], [84, -50]]), activeBase = 'local', tiles = null, tileErrors = 0, selectedId = '', baseSelect = null, baseLabel = null;
-  let selectedCountry = '', admin1Layer = null, admin1Data = null, admin1Country = '', admin1Context = false, selectedAdmin1 = '', tectonicLayer = null, tectonicData = null, overlayHover = null;
+  let selectedCountry = '', admin1Layer = null, admin1Data = null, admin1Country = '', admin1Context = false, selectedAdmin1 = '', tectonicLayer = null, tectonicData = null, tectonicDetails = null, tectonicKey = null, overlayHover = null;
   let displayMode='points',colorMode='depth',displayEvidence={mode:'points',color_encoding:'depth',selected_rows:0,visible_rows:0};
   const heat=window.SeismicMapHeat;
   const baseSpecs=window.SeismicBasemaps;
@@ -119,7 +119,8 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
   L.control.scale({imperial: false, maxWidth: 120}).addTo(map);
   const tectonicPane = map.createPane('seismicTectonics');tectonicPane.style.zIndex = 350;tectonicPane.style.pointerEvents = 'none';
   const admin1Pane = map.createPane('seismicAdmin1');admin1Pane.style.zIndex = 410;
-  const contextLabelPane = map.createPane('seismicContextLabels');contextLabelPane.style.zIndex = 430;contextLabelPane.style.pointerEvents = 'none';
+  const tectonicDetailPane=map.createPane('seismicTectonicDetails');tectonicDetailPane.style.zIndex=445;tectonicDetailPane.style.pointerEvents='none';
+  const contextLabelPane = map.createPane('seismicContextLabels');contextLabelPane.style.zIndex = 460;contextLabelPane.style.pointerEvents = 'none';
   const heatPane = map.createPane('seismicHeat');heatPane.style.zIndex = 405;heatPane.style.pointerEvents = 'none';
   const eventPane = map.createPane('seismicEvents');eventPane.style.zIndex = 450;eventPane.style.pointerEvents = 'none';
   const contextLabels = L.layerGroup().addTo(map);
@@ -158,12 +159,12 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
   // These positions are presentation anchors for regional plate names, not event
   // membership or model geometry. All outlines come from the supplied PB2002 data.
   const plateLabels = {
-    PA:{point:[19,-150],es:'Pacífica',en:'Pacific'},NA:{point:[51,-105],es:'Norteamericana',en:'North America'},
+    PA:{point:[35,-157],es:'Pacífica',en:'Pacific'},NA:{point:[51,-105],es:'Norteamericana',en:'North America'},
     CO:{point:[10,-98],es:'Cocos',en:'Cocos'},RI:{point:[20,-108],es:'Rivera',en:'Rivera'},
     CA:{point:[17,-75],es:'Caribe',en:'Caribbean'},JF:{point:[44,-129],es:'Juan de Fuca',en:'Juan de Fuca'},NZ:{point:[-3,-85],es:'Nazca',en:'Nazca'}
   };
   function labelIcon(text,accent=false) {
-    return L.divIcon({className:'seismic-context-label',iconSize:[150,24],iconAnchor:[75,12],html:`<span style="display:inline-block;padding:3px 7px;border:1px solid ${safe(color('--map-boundary','#889e97'))};border-radius:5px;background:${safe(color('--paper','#fff'))};color:${safe(color(accent?'--green':'--ink','#183c39'))};font:600 10px/1.4 Arial,sans-serif;white-space:nowrap;box-shadow:0 1px 4px #0002">${safe(text)}</span>`});
+    return L.divIcon({className:'seismic-context-label',iconSize:[150,24],iconAnchor:[75,12],html:`<span style="display:inline-block;padding:3px 7px;border:1px solid ${safe(color('--map-boundary','#889e97'))};border-radius:5px;background:${safe(color('--paper','#fff'))};color:${accent?'#183451':safe(color('--ink','#183c39'))};font:700 ${accent?'13':'10'}px/1.4 Arial,sans-serif;white-space:nowrap;box-shadow:0 1px 4px #0002">${safe(text)}</span>`});
   }
   function coordinatePoints(geometry, onlyDisplayed=false) {
     const points=[];
@@ -201,11 +202,24 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
     if(p.kind==='boundary')return {pane:'seismicTectonics',interactive:false,color:color('--chart-alt','#b57132'),weight:1.6,opacity:.9,dashArray:'5 5',fill:false};
     return {pane:'seismicTectonics',interactive:false,color:platePalette[p.plate_code]||color('--map-boundary','#889e97'),weight:1.1,opacity:.75,fillColor:platePalette[p.plate_code]||'#7e919e',fillOpacity:.2};
   }
+  function tectonicLegendHTML(){return '<strong>PB2002 · '+(spanish()?'Placas tectónicas':'Tectonic plates')+'</strong><div>'+Object.entries(plateLabels).filter(([code])=>new Set(tectonicData.features.map(f=>f.properties.plate_code)).has(code)).map(([code,p])=>'<span><i style="--plate:'+platePalette[code]+'"></i>'+code+' · '+p[spanish()?'es':'en']+'</span>').join('')+'</div><small>'+(spanish()?'Límites oscuros con halo blanco. El calor muestra registros; no riesgo.':'Dark boundaries + white halo. Heat shows records, not hazard.')+'</small>';}
   const tectonicAttribution='PB2002: <a href="https://doi.org/10.1029/2001GC000252">Bird (2003)</a> · GeoJSON: Hugo Ahlenius / Nordpil / csterling · ODC-BY 1.0';
   function setTectonics(geometry) {
     if(geometry&&(geometry.type!=='FeatureCollection'||!Array.isArray(geometry.features)))throw new Error('Invalid tectonic geometry');
+    if(tectonicDetails)map.removeLayer(tectonicDetails);tectonicDetails=null;if(tectonicKey)map.removeControl(tectonicKey);tectonicKey=null;
     if(tectonicLayer)map.removeLayer(tectonicLayer);tectonicLayer=null;tectonicData=null;map.attributionControl.removeAttribution(tectonicAttribution);
     if(geometry){tectonicData={...geometry,features:geometry.features.map(visualFeature)};tectonicLayer=L.geoJSON(tectonicData,{pane:'seismicTectonics',interactive:false,renderer:L.canvas({pane:'seismicTectonics',padding:.25}),style:tectonicStyle}).addTo(map);map.attributionControl.addAttribution(tectonicAttribution);}
+    if(tectonicData){
+      const boundaries={...tectonicData,features:tectonicData.features.filter(f=>f.properties.kind==='boundary')};
+      const outlines={...tectonicData,features:tectonicData.features.filter(f=>f.properties.kind==='plate')};
+      const layer= (data,style)=>L.geoJSON(data,{pane:'seismicTectonicDetails',interactive:false,renderer:L.canvas({pane:'seismicTectonicDetails',padding:.25}),style});
+      tectonicDetails=L.layerGroup([
+        layer(outlines,f=>({color:platePalette[f.properties.plate_code]||'#64748b',weight:2,opacity:.95,fill:false})),
+        layer(boundaries,{color:'#ffffff',weight:6,opacity:.97,fill:false}),
+        layer(boundaries,{color:'#203854',weight:2.4,opacity:1,fill:false})
+      ]).addTo(map);
+      tectonicKey=L.control({position:'bottomright'});tectonicKey.onAdd=()=>{const box=L.DomUtil.create('div','tectonic-key');box.setAttribute('aria-label',spanish()?'Leyenda de placas tectónicas PB2002':'PB2002 tectonic plate legend');const codes=new Set(tectonicData.features.map(f=>f.properties.plate_code));box.innerHTML=tectonicLegendHTML();L.DomEvent.disableClickPropagation(box);return box;};tectonicKey.addTo(map);
+    }
     countries.setStyle(countryStyle);contextualLabels();
   }
   function fitGeometry(feature) {
@@ -285,6 +299,7 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
       c.width = Math.round(size.x * ratio);c.height = Math.round(size.y * ratio);
       c.style.width = size.x + 'px';c.style.height = size.y + 'px';
       L.DomUtil.setPosition(c, this._map.containerPointToLayerPoint([0, 0]));
+      const drawingPane=displayMode==='heat'?heatPane:eventPane;if(c.parentElement!==drawingPane)drawingPane.appendChild(c);
       const ctx = c.getContext('2d');ctx.setTransform(ratio, 0, 0, ratio, 0, 0);this.points = [];
       let selectedPoint,visible;
       if(displayMode==='heat'){
@@ -394,7 +409,7 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
   reset();
   map.on('moveend', onViewChange);
   function languageChanged() {
-    map.closePopup();labels();basePickerLabels();events.redraw();
+    map.closePopup();labels();basePickerLabels();events.redraw();if(tectonicKey)tectonicKey.getContainer().innerHTML=tectonicLegendHTML();
     for (const [selector, key] of [['.leaflet-control-zoom-in', 'zoomIn'], ['.leaflet-control-zoom-out', 'zoomOut']]) {
       const button = element.querySelector(selector);if (button) {button.title = translate(key);button.setAttribute('aria-label', translate(key));}
     }

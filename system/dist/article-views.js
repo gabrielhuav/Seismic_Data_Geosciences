@@ -10,6 +10,8 @@
     "theme": "blue",
     "appearance": "light",
     "expectedRows": 7107,
+    "fitRecords": true,
+    "tectonics": true,
     "focus": ".architecture-panel"
   },
   "2": {

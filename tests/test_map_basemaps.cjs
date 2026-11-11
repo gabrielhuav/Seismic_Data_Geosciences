@@ -18,7 +18,7 @@ const map={options:{},controls,layers,
   attributionControl:{setPrefix(){},addAttribution(value){attributions.add(value);},removeAttribution(value){attributions.delete(value);}},
   on(){},off(){},createPane(name){return panes[name]=new Element();},getPanes(){return {overlayPane:new Element()};},getSize(){return {x:800,y:500};},containerPointToLayerPoint(){return {x:0,y:0};},
   latLngToContainerPoint(){return {x:400,y:250};},getZoom(){return 3;},getCenter(){return {lat:50,lng:-120};},
-  hasLayer(layer){return layers.has(layer);},removeLayer(layer){if(layers.delete(layer)){layer.onRemove?.(this);layer.fire?.('remove');}return this;},closePopup(){},fitBounds(bounds,options){this.lastFit={bounds,options};},setView(){},invalidateSize(){}};
+  removeControl(control){const i=controls.indexOf(control);if(i>=0)controls.splice(i,1);},hasLayer(layer){return layers.has(layer);},removeLayer(layer){if(layers.delete(layer)){layer.onRemove?.(this);layer.fire?.('remove');}return this;},closePopup(){},fitBounds(bounds,options){this.lastFit={bounds,options};},setView(){},invalidateSize(){}};
 class Layer {
   addTo(m){
     layers.add(this);this.onAdd?.(m);
@@ -37,7 +37,7 @@ class Layer {
 }
 const L={map:(_,options)=>{map.options=options;return map;},latLngBounds:values=>values,
   canvas:options=>({options}),geoJSON(data,options={}){const group=new Layer();group.data=data;group.options=options;group.features=(data.features||[]).map(feature=>{const layer=new Layer();layer.feature=feature;options.onEachFeature?.(feature,layer);return layer;});group.setStyle(options.style);geoLayers.push(group);return group;},layerGroup:()=>new Layer(),marker:()=>new Layer(),divIcon:()=>({}),
-  control:options=>({options,addTo(m){this.element=this.onAdd?.(m);controls.push(this);return this;}}),
+  control:options=>({options,getContainer(){return this.element;},addTo(m){this.element=this.onAdd?.(m);controls.push(this);return this;}}),
   DomUtil:{create:(tag,cls)=>{const element=new Element(tag);element.className=cls;return element;},setPosition(){}},
   DomEvent:{disableClickPropagation(){},disableScrollPropagation(){}},
   Layer:{extend(proto){class Custom extends Layer{}Object.assign(Custom.prototype,proto);return Custom;}},
@@ -131,7 +131,7 @@ test('administrative overlays expose only the chosen country and keep input geom
 });
 test('tectonic geometry is an optional attributed context layer with continuous antimeridian display and generic boundaries',()=>{
   const geometry={type:'FeatureCollection',features:[polygon({kind:'plate',plate_code:'PA',plate_name:'Pacific'},[[170,10],[-175,10],[-170,20],[170,10]]),{type:'Feature',properties:{kind:'boundary',boundary_type:'subduction',plate_a:'PA',plate_b:'NA'},geometry:{type:'LineString',coordinates:[[170,10],[-175,10],[-170,20]]}}]},before=JSON.stringify(geometry);
-  api.setTectonics(geometry);const overlay=geoLayers.at(-1);assert.equal(api.getOverlays().tectonics,true);assert.equal(overlay.options.interactive,false);
+  api.setTectonics(geometry);const overlay=geoLayers.findLast(g=>g.options.pane==='seismicTectonics');assert.equal(api.getOverlays().tectonics,true);assert.equal(overlay.options.interactive,false);
   assert([...attributions].some(s=>s.includes('Bird (2003)')&&s.includes('ODC-BY')));
   const coordinates=overlay.data.features[1].geometry.coordinates;assert(coordinates.every((p,i)=>i===0||Math.abs(p[0]-coordinates[i-1][0])<=180));
   assert.equal(overlay.features[1].lastStyle.dashArray,'5 5');assert.equal(overlay.features[1].lastStyle.fill,false);
@@ -163,7 +163,7 @@ test('heat is a presentation-only mode with explicit evidence and geographic cli
     assert.equal(api.getDisplayMode(),'points');api.setDisplayMode('heat');
     const e=api.getDisplayEvidence();assert.equal(e.mode,'heat');assert.equal(e.selected_rows,3);assert.equal(e.visible_rows,2);assert.equal(e.occupied_cells,1);
     assert.equal(e.weight_per_source_row,1);assert.equal(e.normalization,'log1p_relative_to_viewport_max');assert.equal(e.palette.length,4);assert(e.limits.some(s=>s.includes('not a density per square kilometre')));
-    assert.equal(panes.seismicHeat.style.zIndex,405);assert.equal(panes.seismicHeat.style.pointerEvents,'none');assert.equal(panes.seismicAdmin1.style.zIndex,410);
+    assert.equal(panes.seismicHeat.children.find(c=>c.className.includes('epicenter-canvas')).parentElement,panes.seismicHeat);assert(panes.seismicTectonicDetails.style.zIndex>panes.seismicHeat.style.zIndex);assert(panes.seismicContextLabels.style.zIndex>panes.seismicTectonicDetails.style.zIndex);assert.equal(panes.seismicHeat.style.zIndex,405);assert.equal(panes.seismicHeat.style.pointerEvents,'none');assert.equal(panes.seismicAdmin1.style.zIndex,410);
     const prepared=projections;api.setRecords(fixtures);assert.equal(projections,prepared,'Same-view redraws reuse the heat grid');
     assert.equal(displayChanges.at(-1).mode,'heat');e.palette[0].color='mutated';assert.notEqual(api.getDisplayEvidence().palette[0].color,'mutated');
     const n=countryRequests.length;geoLayers[0].features[0].fire('click',{containerPoint:{x:20,y:20}});assert.equal(countryRequests.length,n+1);assert.equal(countryRequests.at(-1),'MEX');
