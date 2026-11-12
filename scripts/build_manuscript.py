@@ -227,6 +227,39 @@ def main(include_highlights=True):
         parts[f"word/media/audit_figure_{i}.png"]=image_bytes
         E.SubElement(rel,"{"+relns+"}Relationship",Id=f"rIdAuditFigure{i}",Type=R+"/image",Target=f"media/audit_figure_{i}.png")
         figure_nodes[i]=(fp,paragraph(caption,"caption"))
+        if spec.get("panels"):
+            # Individual genuine screenshots preserve a clickable link directly
+            # below each panel, instead of burying all links in one caption.
+            if len(spec["panels"]) != 4:
+                raise ValueError("A panel figure requires exactly four panels")
+            layout=node("tbl"); prop=node("tblPr");prop.append(node("tblCaption",val=f"Figure panels {i}"));prop.append(node("tblW",w=9360,type="dxa"));prop.append(node("tblLayout",type="fixed"));borders=node("tblBorders")
+            for edge in ("top","bottom","left","right","insideH","insideV"):borders.append(node(edge,val="nil"))
+            prop.append(borders);layout.append(prop);grid=node("tblGrid")
+            for _ in range(2):grid.append(node("gridCol",w=4680))
+            layout.append(grid)
+            for row_index in range(2):
+                row=node("tr");row_pr=node("trPr");row_pr.append(node("cantSplit"));row.append(row_pr)
+                for column in range(2):
+                    j=row_index*2+column;panel=spec["panels"][j];panel_path=(ROOT/panel["path"]).resolve()
+                    if not panel_path.is_relative_to((ROOT/"paper/figures").resolve()):raise ValueError("Panel path escapes figure directory")
+                    payload=panel_path.read_bytes()
+                    if sha(payload)!=panel["sha256"]:raise ValueError("Panel capture hash differs")
+                    if not re.fullmatch(r"https://gabrielhuav\.github\.io/Seismic_Data_Geosciences/\?figure=[a-z0-9-]+&lang=en",panel["url"]):raise ValueError("Panel link must restore an English article view")
+                    cell=node("tc");cell_pr=node("tcPr");cell_pr.append(node("tcW",w=4680,type="dxa"));cell.append(cell_pr)
+                    title=paragraph(panel["label"],"caption");image=deepcopy(fp);link=paragraph(f'[Open interactive panel {i}{chr(65+j)}]({panel["url"]})',"caption")
+                    width,height=struct.unpack(">II",payload[16:24]);panel_cx=2857500;panel_cy=round(panel_cx*height/width)
+                    ref=f"rIdAuditFigure{i}Panel{j+1}";target=f"media/audit_figure_{i}_panel_{j+1}.png"
+                    for el in image.findall(".//a:blip",pic_ns):el.set("{"+R+"}embed",ref)
+                    for el in image.findall(".//wp:extent",pic_ns)+image.findall(".//a:xfrm/a:ext",pic_ns):el.set("cx",str(panel_cx));el.set("cy",str(panel_cy))
+                    for el in image.findall(".//wp:docPr",pic_ns):el.set("id",str(1000+i*10+j));el.set("name",f"Figure {i}{chr(65+j)}");el.set("descr",panel["label"])
+                    for paragraph_node in (title,image,link):
+                        pp=paragraph_node.find(w("pPr"))
+                        for old in pp.findall(w("spacing")):pp.remove(old)
+                        pp.append(node("spacing",before=0,after=50,line=240,lineRule="auto"));pp.append(node("keepNext"));cell.append(paragraph_node)
+                    row.append(cell);parts["word/"+target]=payload
+                    E.SubElement(rel,"{"+relns+"}Relationship",Id=ref,Type=R+"/image",Target=target)
+                layout.append(row)
+            figure_nodes[i]=(layout,paragraph(caption,"caption"))
     figure_placements=[]
     section_name=None
     for block_index,(kind,text) in enumerate(content):

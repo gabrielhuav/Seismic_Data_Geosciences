@@ -5,21 +5,87 @@ Leer AGENTS.md completo. Los resultados de antecedentes no son verificaciones nu
 
 ## Estado actual
 
-- REVISIÓN LOCAL 2026.11.11.2: mapa real funcional dentro de la arquitectura,
-  selección de cuatro fuentes y progreso de carga que bloquea controles hasta
-  completar datos/render. Vista móvil comprobada sin desbordamiento.
-- Placas PB2002 sobre calor: límites con halo, contornos y leyenda independiente;
-  geometría y datos intactos. Leyenda de magnitud ampliada y UI de descriptivos
-  jerarquizada. Capturas auténticas inglesas actualizadas después del sistema.
-- Word/PDF coincidentes: 20 páginas, diez figuras, cuatro tablas, 18 enlaces;
-  texto principal 2.630 palabras frente a 3.105 (-15,3% adicional), resumen130.
-  42 controles documentales, revisión visual de20páginas y18 suitesJS correctos.
-- Gabriel autorizó UN commit humano y UN push de esta revisión, sin atribuciones
-  de IA en Git. Declaración académica veraz conservada. Aún pendientes las
-  excepciones de ESTE push (seis403 y muestra339/36872USGS,36533sinvisitar)
-  y autorización nueva para UN despliegue manual. No reutilizar autorizaciones.
-  Base publicada7fb2069/2026.11.11.1. PC encendida. Recibos privados:
-  outputs/live_architecture_2026-11-11/.
+- PUBLICACIÓN AUTORIZADA 12nov2026: UN commit humano, UN push y UN despliegue
+  manual de candidata2026.11.12.3, después de verificar Word/PDF y sistema.
+  Autor/committer Gabriel Hurtado, sin IA ni trailers; declaración académica
+  veraz conservada. Gate HTTP NUEVO en curso; excepciones por push aún NO
+  aceptadas. Plan: outputs/panel_release_2026-11-12/. PC encendida.
+
+- REVISIÓN LOCAL MÁS RECIENTE 12nov2026: candidata 2026.11.12.3; publicado
+  sigue addc17d / 2026.11.11.2. Sin nuevo commit, push ni despliegue.
+- Sistema primero: leyenda ampliada en4A-D;4D ajusta7.107/7.107registros.
+  Paleta cálida funcional en Alaska (URL pointColor=warm). Top10 muestra detalle
+  de nueve registros en área mexicana y mini mapa continental con los diez,
+  incluido Alaska; botones detalle/todos y etiquetas cercanas a puntos reales.
+- Guerrero: filtro terrestre2000-2026 da19.963filas/máximoM6,5; aviso explícito
+  de tres referencias SSN externas al polígono (2012M7,5/2014M7,2/2021M7,1).
+  NO significa ausencia de grandes sismos regionales. Catálogo intacto.
+- Word/PDF finales LOCALES outputs/paper/Seismic_CG_manuscript.{docx,pdf}:
+  20páginas/9figuras/4tablas científicas/16enlaces. Figuras4/5 con ocho imágenes
+  individuales y enlace justo debajo de cada una, comprobado en Word y PDF.
+  51controles pasan;20páginas revisadas; cero comentarios/revisiones.
+- Gate local85archivos/72referencias sin fallos; diff --check limpio. Sin gateHTTP.
+- Cinco suitesJS afectadas pasan; móvil390x844 sin desbordamiento horizontal
+  en Top10. Evidencias privadas: outputs/panel_links_2026-11-12/. PC encendida.
+
+### Revisión local anterior conservada
+
+- REVISIÓN LOCAL MÁS RECIENTE12nov2026: candidata2026.11.12.2; publicado sigue
+  addc17d / 2026.11.11.2. Sin nuevas acciones Git o Pages autorizadas/ejecutadas.
+- Sistema primero: calor USGS-MX naranja con leyenda acorde;4A zoom5.25;
+  botón funcional Large map key y perfilesregionales con leyenda ampliada;
+  Guerrero explica M reportada y etiquetado>=5.5/hasta24/sin solapamiento,
+  seis etiquetas visibles entre203 puntos. Top10 separado y Canadá nombrado
+  dentro del marco, sin inventar registros canadienses. Proximidad: nombres
+  North America/Cocos dentro de polígonos visibles. Datos científicos intactos.
+- Word/PDF finales LOCALES outputs/paper/Seismic_CG_manuscript.{docx,pdf}:
+  20páginas/9figuras/4tablas/16enlaces de pies ingleses, cero comentarios.
+  41controles aprobados y20PNG revisados. Capturas de UI genuinas después de
+  implementar; controlleyenda probado encendido/apagado. Móvil390x844: sin
+  desbordamiento horizontal, mapa260px. No equivale a estudio de usabilidad.
+- Cinco suitesJS afectadas PASS; frontend47grupos repetidos tras último ajuste. Gate
+  local85archivos/cero fallos y diff --check limpio; sin gateHTTP nuevo.
+- Evidencias privadas:outputs/map_readability_2026-11-12/. PC encendida.
+
+### Revisión local anterior conservada
+
+- REVISIÓN LOCAL 12nov2026: candidata 2026.11.12.1; publicado sigue addc17d / 2026.11.11.2.
+- Primero se implementaron mapas funcionales: acercamiento continental de figuras1/2,
+  calor con epicentros y placas contrastadas, México completo, leyendas mayores,
+  Yukon menos acercado, magnitudes visibles en Guerrero, Top10 con epicentros/líneas
+  y etiquetas separadas; proximidad con PB2002. Capturas genuinas después.
+- Word/PDF finales locales outputs/paper/Seismic_CG_manuscript.{docx,pdf}:
+  19páginas,9figuras,4tablas,16enlaces de pies iguales; cero comentarios/revisiones.
+  Se eliminan la antiguafigura6 y antigua9, conservando sus funciones web;
+  antigua10 dividida en actuales8/9. Revisadas visualmente las19páginas.
+- Pruebas:18suites JS previamente ejecutadas, cuatro afectadas repetidas PASS
+  tras últimos cambios; gate local85archivos/cero fallos. No gate HTTP nuevo.
+  Móvil390x844 sin desbordamiento horizontal, mapa260px. Datos intactos.
+- Evidencia privada: outputs/figure_revision_2026-11-12/. PC encendida.
+- No commit/push/despliegue nuevos en esta revisión; permisos anteriores consumidos.
+
+### Publicación anterior conservada
+
+- PUBLICADO Y VERIFICADO: versión 2026.11.11.2, commit humano
+  addc17d3fe25283e84f02b02437cc418abd873ae en origin/main. Autor y committer
+  Gabriel Hurtado <gabrielhurtadoaviles@gmail.com>, sin atribuciones de IA,
+  coautores, trailers ni gpgsig. Declaración académica veraz conservada.
+- Gabriel aceptó para ESTE push seis HTTP403 y muestra339/36872rutasUSGS
+  (36533sinvisitar), y autorizó UN despliegue nuevo. Commit, push y despliegue
+  consumidos. Actions43092192547: validate y deploy SUCCESS; cero reintentos.
+- 85/85assets públicos exactos por HTTPS; tres exclusiones de Pages404.
+  Word/PDF públicos en el repositorio idénticos a los revisados:20páginas,
+  diezfiguras,cuatrotablas,18enlaces; no se sirven en Pages. Texto2630palabras,
+  reducción15,3% adicional, resumen130. 42controles y20páginas revisados.
+- Las18vistas públicas inglesas coinciden en selección,temaazul/modoclaro
+  y datos con el artículo. Figura1: mapa real dentro de arquitectura, cambia a
+  NRCan6613 sin abandonar el esquema. Figura2: calor405, límites445, etiquetas460;
+  leyendaPB2002 legible. Figura3: magnitud ampliada. Figura6:7930SSN, media3.691.
+- Móvil390x844: arquitectura y estadísticos sin desbordamiento, selecciónNRCan
+  funcional. No equivale a estudio de usabilidad. Datos/geometry intactos.
+- Sitio:https://gabrielhuav.github.io/Seismic_Data_Geosciences/
+  Figuras:https://gabrielhuav.github.io/Seismic_Data_Geosciences/article-figures.html
+  Recibos privados:outputs/live_architecture_2026-11-11/. PC encendida.
 
 
 ## Estado conservado anterior (histórico; prevalece Estado actual)
@@ -800,12 +866,54 @@ fuera de muestra. No agregar ML ni modelos geotécnicos sin necesidad científic
 
 ## Siguiente paso
 
-Crear UNA VEZ el commit humano y completar el push ya autorizados tras aceptar
-las excepciones de ESTE push. Pedir sólo autorización nueva para UN despliegue
-manual. Verificar luego CI,85assetsHTTPS,Word/PDF y vistas públicas reales;
-registrar recibos y SHA sin otro commit/amend. PC encendida.
+- Candidata2026.11.12.3 lista localmente. Publicación requiere permiso NUEVO por
+  acción y gate de enlaces fresco para ese push; no heredar excepciones.
+
+- Candidata actual2026.11.12.2 lista localmente; publicación exige autorización
+  nueva para cada acción y gate fresco antes de push, con excepciones expresas.
+
+- Revisar candidata local y obtener autorización nueva por commit, push y despliegue.
+  Antes de cada push ejecutar gate de enlaces y aceptar expresamente excepciones
+  de ESE push. Después verificar HTTPS contra bytes locales y vistas de figuras.
+  Identidad humana de Gabriel, sin atribuciones de IA en Git; declaración académica conservada.
 
 ## Bitácora
+
+- 2026-11-12: revisión de pies4A-D, Guerrero, paleta5D y Top10 aplicada al
+  sistema antes de capturar. Word/PDF20p finales coincidentes; ocho enlaces
+  bajo paneles verificados por coordenadas PDF. Exportación reanudada después
+  de Escape con permiso nuevo de controlPC. Ninguna acción Git/Pages/apagado.
+
+- 2026-11-12, segunda revisión: atendidas figuras2/4A/5/6/8/9 en sistema,
+  luego capturas auténticas y regeneración Word/PDF20p. Aclarada M y selección
+  de etiquetas. No nuevos datos, pronóstico, commit, push, Pages ni apagado.
+
+- 2026-11-12: Gabriel reiteró sistema funcional primero, capturas después y enlaces
+  a cada vista inglesa. Implementación local y capturas verificadas; Word exportado
+  con Word nativo en PDF estándar sin marcas,40controles automáticos aprobados,
+  19páginas revisadas. Finales promovidos localmente; no publicación ni apagado.
+
+- PUBLICADO Y VERIFICADO: versión 2026.11.11.2, commit humano
+  addc17d3fe25283e84f02b02437cc418abd873ae en origin/main. Autor y committer
+  Gabriel Hurtado <gabrielhurtadoaviles@gmail.com>, sin atribuciones de IA,
+  coautores, trailers ni gpgsig. Declaración académica veraz conservada.
+- Gabriel aceptó para ESTE push seis HTTP403 y muestra339/36872rutasUSGS
+  (36533sinvisitar), y autorizó UN despliegue nuevo. Commit, push y despliegue
+  consumidos. Actions43092192547: validate y deploy SUCCESS; cero reintentos.
+- 85/85assets públicos exactos por HTTPS; tres exclusiones de Pages404.
+  Word/PDF públicos en el repositorio idénticos a los revisados:20páginas,
+  diezfiguras,cuatrotablas,18enlaces; no se sirven en Pages. Texto2630palabras,
+  reducción15,3% adicional, resumen130. 42controles y20páginas revisados.
+- Las18vistas públicas inglesas coinciden en selección,temaazul/modoclaro
+  y datos con el artículo. Figura1: mapa real dentro de arquitectura, cambia a
+  NRCan6613 sin abandonar el esquema. Figura2: calor405, límites445, etiquetas460;
+  leyendaPB2002 legible. Figura3: magnitud ampliada. Figura6:7930SSN, media3.691.
+- Móvil390x844: arquitectura y estadísticos sin desbordamiento, selecciónNRCan
+  funcional. No equivale a estudio de usabilidad. Datos/geometry intactos.
+- Sitio:https://gabrielhuav.github.io/Seismic_Data_Geosciences/
+  Figuras:https://gabrielhuav.github.io/Seismic_Data_Geosciences/article-figures.html
+  Recibos privados:outputs/live_architecture_2026-11-11/. PC encendida.
+
 
 - REVISIÓN LOCAL 2026.11.11.2: mapa real funcional dentro de la arquitectura,
   selección de cuatro fuentes y progreso de carga que bloquea controles hasta

@@ -90,7 +90,8 @@ async function loadRegionalData(id){
   if(!catalog)throw Error(t('invalidPackage'));
   await ensureAdmin1();
   const pack=await loadPackage(catalog);
-  return {...pack,hashes:{...pack.hashes,registry:state.registryHash},geography:state.geography,admin1:state.admin1,geometry:state.basemap,
+  if(!state.tectonics){tectonicLoading ||= Promise.all(['data/tectonic-plates.geojson','data/tectonic-plates-manifest.json'].map(fetchAsset));const [geo,manifest]=await tectonicLoading;state.tectonics=geo.data;state.tectonicManifest=manifest.data;state.tectonicHash=geo.hash;}
+  return {...pack,tectonics:state.tectonics,tectonicHash:state.tectonicHash,hashes:{...pack.hashes,registry:state.registryHash},geography:state.geography,admin1:state.admin1,geometry:state.basemap,
     admin1Geometry:state.admin1Geometry,geographyEvidence:{...geographyEvidence(),selected_country:null,
       admin1:{index_path:'data/admin1-index.json',index_sha256:state.admin1Hash,geometry_sha256:state.admin1.geometry_sha256,selected_admin1:null}}};
 }
@@ -213,7 +214,7 @@ function syncURL() {
 function viewURL(view=currentView()){
   const url=new URL(V.serialize(view,location.href));
   if(state.map?.getDisplayMode?.()==='heat')url.searchParams.set('display','heat');else url.searchParams.delete('display');
-  if(state.map?.getColorMode?.()==='depth')url.searchParams.set('pointColor','depth');else url.searchParams.delete('pointColor');
+  const pointColour=state.map?.getColorMode?.();if(['depth','warm'].includes(pointColour))url.searchParams.set('pointColor',pointColour);else url.searchParams.delete('pointColor');
   if(state.articleFigure)url.searchParams.set('figure',state.articleFigure);
   return url.href;
 }
@@ -833,7 +834,7 @@ function restoreFromURL() {
   applyFilters(false);renderRevision();describeDataset();showWarnings();actionStatus('');
   state.selectedEvent = '';if ($('detail').open) $('detail').close();
   state.map.setRegion(state.catalog.bounds);if (view.map) state.map.setView(view.map);else state.map.reset();
-  state.map.setColorMode?.(new URL(location.href).searchParams.get('pointColor')==='depth'?'depth':'catalogue');
+  state.map.setColorMode?.((['depth','warm'].includes(new URL(location.href).searchParams.get('pointColor'))?new URL(location.href).searchParams.get('pointColor'):'catalogue'));
   state.map.setDisplayMode?.(new URL(location.href).searchParams.get('display')==='heat'?'heat':'points');updateDisplayEvidence();
   $('mapBase').value = view.base;state.map.setBase(view.base, false);state.map.languageChanged();
   setTab(view.tab, false);if (view.event) detail(view.event, false);
@@ -871,6 +872,7 @@ $('theme').addEventListener('change',()=>window.SeismicPreferences?.set({theme:$
 $('appearance').addEventListener('change',()=>window.SeismicPreferences?.set({mode:$('appearance').value}));
 window.SeismicPreferences?.subscribe(appearanceChanged);appearanceChanged();
 $('expandMap').addEventListener('click',()=>setExpanded(!state.expanded));
+$('largeMapKey').addEventListener('click',()=>{const large=$('mapCard').classList.toggle('map-key-large');$('largeMapKey').setAttribute('aria-pressed',String(large));state.map?.resize();});
 document.addEventListener('keydown',event=>{
   if(!state.expanded || $('detail').open)return;
   if(event.key==='Escape'){event.preventDefault();setExpanded(false);return;}
@@ -984,7 +986,7 @@ async function initialize() {
       onHighlight:id=>{state.highlightedEvent=id;renderTable();},
       onCountrySelect:promptCountry,onAdmin1Select:id=>{if(realCountry(state.applied.country)){$('admin1').value=id;applyFilters();state.map?.fitAdmin1?.(id);}},
       onBaseChange: id => {$('mapBase').value = id;syncURL();},onBaseStatus: key => {state.baseStatus = key;$('baseStatus').textContent = t(key);}});
-    state.map.setColorMode?.(new URL(location.href).searchParams.get('pointColor')==='depth'?'depth':'catalogue');
+    state.map.setColorMode?.((['depth','warm'].includes(new URL(location.href).searchParams.get('pointColor'))?new URL(location.href).searchParams.get('pointColor'):'catalogue'));
     state.map.setDisplayMode?.(new URL(location.href).searchParams.get('display')==='heat'?'heat':'points');updateDisplayEvidence();
     if(!new URL(location.href).searchParams.has('v')){await loadCatalog('all-catalogs',false);setTab('home');requestAnimationFrame(()=>state.map.fitRecords());}
     else {if(new URL(location.href).searchParams.get('adm'))await ensureAdmin1();await restoreLocation();}
@@ -1001,23 +1003,39 @@ function syncAdminContext(){
   if(state.admin1){state.map?.setAdmin1Context?.({geometry:state.admin1Geometry,countryId:'MEX'});return;}
   ensureAdmin1().then(()=>{if(!state.applied.country && ['ssn-mx-historical','usgs-mx-historical'].includes(state.catalog?.id))state.map?.setAdmin1Context?.({geometry:state.admin1Geometry,countryId:'MEX'});}).catch(()=>{});
 }
-let catalogueLegendRows=null,catalogueLegendCounts=new Map();
+let catalogueLegendRows=null,catalogueLegendCounts=new Map(),landScopeRows=null,landScopeSummary=null;
+function updateLandScopeNote(){
+  const box=$('mapScopeNote'),f=state.applied||{},en=I.language==='en';
+  box.hidden=!f.admin1||!realCountry(f.country);if(box.hidden)return;
+  if(landScopeRows!==state.filtered){landScopeRows=state.filtered;const mags=state.filtered.map(e=>e.mag).filter(Number.isFinite);
+    const examples=state.catalog?.id==='ssn-mx-historical'&&f.admin1==='MEX-2729'?state.events.filter(e=>Number(e.time?.slice(0,4))>=Number(f.yearFrom)&&Number(e.time?.slice(0,4))<=Number(f.yearTo)&&e.mag>=7&&e.admin1_id!==f.admin1&&/\bGRO\b/.test(e.place||'')):[];
+    landScopeSummary={maximum:mags.reduce((a,b)=>Math.max(a,b),-Infinity),examples};
+  }
+  const d=landScopeSummary;box.textContent=en?'Land-polygon selection only · maximum reported M '+(Number.isFinite(d.maximum)?d.maximum.toFixed(1):'unavailable')+'. Offshore and other outside-polygon epicentres are excluded.':'Sólo polígono terrestre · M máxima reportada '+(Number.isFinite(d.maximum)?d.maximum.toFixed(1):'no disponible')+'. Se excluyen epicentros marinos y otros fuera del polígono.';
+  if(d.examples.length)box.textContent+=(en?' SSN locality references to Guerrero outside this polygon: ':' Referencias de localidad SSN a Guerrero fuera de este polígono: ')+d.examples.slice(0,3).map(e=>e.time.slice(0,4)+' M '+e.mag.toFixed(1)).join('; ')+(en?'. These records remain in SSN.':'. Estos registros permanecen en el SSN.');
+}
 function updateDisplayEvidence(evidence){
   const heat=(evidence?.mode || state.map?.getDisplayMode?.())==='heat';
   document.body.dataset.mapDisplay=heat?'heat':'points';
-  $('mapDisplay').value=heat?'heat':'points';$('heatLegend').hidden=!heat;$('mapPointLegend').hidden=heat;
+  $('mapDisplay').value=heat?'heat':'points';$('heatLegend').hidden=!heat;$('mapPointLegend').hidden=false;
   const en=I.language==='en',e=evidence||state.map?.getDisplayEvidence?.();
+  const labels=e?.magnitude_labels;
+  $('magnitudeLabelNote').hidden=heat||!labels?.shown;
+  $('magnitudeLabelNote').textContent=en?'M = reported magnitude. Labels: '+(labels?.shown||0)+' visible records with M ≥ 5.5, largest first, at most 24 without overlap. All selected epicentres remain; select a point or table row to inspect its magnitude.':'M = magnitud reportada. Se etiquetan '+(labels?.shown||0)+' registros visibles con M ≥ 5.5, mayores primero, hasta 24 sin superposición. Todos los epicentros seleccionados permanecen; consulta su magnitud en el punto o la tabla.';
   $('heatEvidence').textContent=en?'One weight per visible source row · 8 px cells · 32 px radius · scale relative to this viewport. Not energy, physical density or hazard.':'Un peso por fila visible · celdas de 8 px · radio de 32 px · escala relativa a este encuadre. No es energía, densidad física ni amenaza.';
   if(heat && e)$('heatEvidence').textContent+=' '+fmt(e.visible_rows||0)+(en?' visible of ':' visibles de ')+fmt(e.selected_rows||0)+(en?' selected.':' seleccionadas.');
-  if(heat)$('heatEvidence').textContent+=' '+t('heatNoSourceColors');
-  const sourceColors=(state.map?.getColorMode?.()||'catalogue')==='catalogue';
-  $('mapPointColor').value=sourceColors?'catalogue':'depth';$('mapPointColor').disabled=heat;
+  $('largeMapKey').textContent=en?'Large map key':'Leyenda ampliada';
+  updateLandScopeNote();
+  if(heat)$('heatEvidence').textContent+=en?' The heat ramp encodes concentration; superimposed symbols retain catalogue shape and magnitude shade; USGS Mexico is warm orange in this view.':' La escala de calor codifica concentración; los símbolos superpuestos conservan forma de catálogo y tono de magnitud; USGS México usa naranja cálido en esta vista.';
+  const pointMode=state.map?.getColorMode?.()||'catalogue',sourceColors=heat||pointMode!=='depth';
+  const warmOption=$('mapPointColor').querySelector?.('option[value=warm]');if(warmOption)warmOption.textContent=en?'Warm catalogue colours':'Colores cálidos por catálogo';
+  $('mapPointColor').value=heat?'catalogue':pointMode;$('mapPointColor').disabled=heat;
   $('magnitudeToneLegend').hidden=!sourceColors;
-  $('magnitudeToneLegend').innerHTML='<strong>'+(en?'Reported magnitude · lighter → darker':'Magnitud reportada · claro → oscuro')+'</strong>'+['<3','3–<5','5–<7','≥7'].map((v,i)=>`<span><i style="background:${window.SeismicMapTools.magnitudeColor(state.activePacks.length===1?window.SeismicSourceWorkbench.identity(state.activePacks[0].catalog.id).color:'#64748b',[1,4,6,8][i])}"></i>${esc(v)}</span>`).join('');
+  $('magnitudeToneLegend').innerHTML='<strong>'+(en?'Reported magnitude · lighter → darker':'Magnitud reportada · claro → oscuro')+'</strong>'+['<3','3–<5','5–<7','≥7'].map((v,i)=>`<span><i style="background:${window.SeismicMapTools.magnitudeColor(state.activePacks.length===1?(heat?window.SeismicMapTools.heatSourceColor(window.SeismicSourceWorkbench.identity(state.activePacks[0].catalog.id)):window.SeismicMapTools.pointIdentity(window.SeismicSourceWorkbench.identity(state.activePacks[0].catalog.id),pointMode).color):(pointMode==='warm'?'#c04b12':'#64748b'),[1,4,6,8][i])}"></i>${esc(v)}</span>`).join('');
   $('depthLegend').hidden=sourceColors||!depthKnown();$('catalogueLegend').hidden=!sourceColors;
   if(sourceColors&&window.SeismicSourceWorkbench){
     if(catalogueLegendRows!==state.filtered){catalogueLegendRows=state.filtered;catalogueLegendCounts=new Map();for(const row of state.filtered){const id=row._catalog_id||state.catalog?.id;catalogueLegendCounts.set(id,(catalogueLegendCounts.get(id)||0)+1);}}
-    $('catalogueLegend').innerHTML=state.activePacks.map(p=>{const s=window.SeismicSourceWorkbench.identity(p.catalog.id);return `<span class="catalogue-key" style="--catalogue-color:${s.color}"><i class="source-swatch shape-${s.shape}" aria-hidden="true"></i><b>${s.code}</b><span>${esc(s.label)}</span><small>${fmt(catalogueLegendCounts.get(p.catalog.id)||0)}</small></span>`;}).join('');
+    $('catalogueLegend').innerHTML=state.activePacks.map(p=>{const s=window.SeismicMapTools.pointIdentity(window.SeismicSourceWorkbench.identity(p.catalog.id),pointMode);return `<span class="catalogue-key" style="--catalogue-color:${heat?window.SeismicMapTools.heatSourceColor(s):s.color}"><i class="source-swatch shape-${s.shape}" aria-hidden="true"></i><b>${s.code}</b><span>${esc(s.label)}</span><small>${fmt(catalogueLegendCounts.get(p.catalog.id)||0)}</small></span>`;}).join('');
   }
 }
 $('mapDisplay').addEventListener('change',()=>{state.map?.setDisplayMode?.($('mapDisplay').value);updateDisplayEvidence();syncURL();});
@@ -1078,10 +1096,12 @@ async function restoreArticleView(profile){
   if(profile.expectedRows!==undefined && state.filtered.length!==profile.expectedRows)throw Error('ARTICLE_ROW_COUNT');
   if(profile.tectonics!==undefined){$('tectonicToggle').checked=profile.tectonics;await showTectonics();}
   if(profile.expanded)setExpanded(true);
+  $('mapCard').classList.toggle('map-key-large',!!profile.largeKey);$('largeMapKey').setAttribute('aria-pressed',String(!!profile.largeKey));
   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
   if(!profile.quick && ['catalog','home','sources','methods'].includes(profile.tab)){
     state.map.resize();const center=new URL(requestedArticleView.url).searchParams.get('c');
     if(profile.fitRecords)state.map.fitRecords();else if(center)state.map.setView(center.split(',').map(Number));
+    if(profile.id==='3'&&window.innerWidth<700)state.map.fitCountry('MEX');
   }
   document.body.dataset.articleFigure=profile.id;
   if(profile.focus)document.querySelector(profile.focus)?.scrollIntoView?.({block:'start',behavior:'auto'});

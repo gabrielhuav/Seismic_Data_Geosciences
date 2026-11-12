@@ -572,7 +572,7 @@ async function main() {
   vm.runInContext("setTab('home')",context);elements.get('mapDisplay').value='heat';
   for(const callback of elements.get('mapDisplay').listeners.change)callback();
   assert.equal(map.displayMode,'heat');assert.equal(new URL(location.href).searchParams.get('display'),'heat');
-  assert.equal(elements.get('heatLegend').hidden,false);assert.equal(elements.get('mapPointLegend').hidden,true);
+  assert.equal(elements.get('heatLegend').hidden,false);assert.equal(elements.get('mapPointLegend').hidden,false,'Heat retains a separate catalogue/magnitude key for the actual overlaid epicentres');
   assert.equal(vm.runInContext('JSON.stringify(state.applied)',context),workbenchFilters);assert.deepEqual(JSON.parse(vm.runInContext('JSON.stringify(state.filtered.map(e=>e.id))',context)),workbenchIds);
   for(const callback of elements.get('workbenchJson').listeners.click)callback();
   const heatQuery=JSON.parse(await context.savedDownload.blob.text());assert.equal(heatQuery.cartography.mode,'heat');assert.equal(heatQuery.cartography.selected_rows,659);assert.equal(new URL(heatQuery.view_url).searchParams.get('display'),'heat');assert.deepEqual(heatQuery.result.ordered_event_ids,workbenchIds);
@@ -639,6 +639,11 @@ async function main() {
   assert.equal(new URL(location.href).searchParams.get('pointColor'),'depth');assert.equal(elements.get('depthLegend').hidden,false);assert.equal(elements.get('catalogueLegend').hidden,true);
   assert.equal(vm.runInContext('state.filtered.map(e=>e.id).join()',context),combinedKeys);
   await vm.runInContext('restoreLocation()',context);assert.equal(map.colorMode,'depth');
+  elements.get('mapPointColor').value='warm';for(const fn of elements.get('mapPointColor').listeners.change)fn();
+  assert.equal(new URL(location.href).searchParams.get('pointColor'),'warm');
+  assert.equal(vm.runInContext('state.filtered.map(e=>e.id).join()',context),combinedKeys);
+  assert(elements.get('catalogueLegend').innerHTML.includes('#c04b12'));
+  await vm.runInContext('restoreLocation()',context);assert.equal(map.colorMode,'warm');
   elements.get('mapPointColor').value='catalogue';for(const fn of elements.get('mapPointColor').listeners.change)fn();
   assert.equal(new URL(location.href).searchParams.has('pointColor'),false);assert.equal(elements.get('depthLegend').hidden,true);
   for(const fn of elements.get('sourceStageAnalysis').listeners.click)fn();assert.equal(vm.runInContext('state.tab',context),'analysis');assert.equal(vm.runInContext('state.filtered.map(e=>e.id).join()',context),combinedKeys);

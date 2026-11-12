@@ -196,11 +196,11 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
       layer.on('mouseout',()=>{overlayHover=null;layer.setStyle(admin1Style(feature));});
     }}).addTo(map);contextualLabels();
   }
-  const platePalette={PA:'#6f77b8',NA:'#40938d',CO:'#d29a43',RI:'#bf6e63',CA:'#a482b5',JF:'#6f8fa9',NZ:'#a99b58'};
+  const platePalette={PA:'#7651c8',NA:'#d18a24',CO:'#cc4778',RI:'#9d3b2e',CA:'#5d739e',JF:'#477da6',NZ:'#8a7052'};
   function tectonicStyle(feature) {
     const p=feature.properties||{};
     if(p.kind==='boundary')return {pane:'seismicTectonics',interactive:false,color:color('--chart-alt','#b57132'),weight:1.6,opacity:.9,dashArray:'5 5',fill:false};
-    return {pane:'seismicTectonics',interactive:false,color:platePalette[p.plate_code]||color('--map-boundary','#889e97'),weight:1.1,opacity:.75,fillColor:platePalette[p.plate_code]||'#7e919e',fillOpacity:.2};
+    return {pane:'seismicTectonics',interactive:false,color:platePalette[p.plate_code]||color('--map-boundary','#889e97'),weight:1.1,opacity:.75,fillColor:platePalette[p.plate_code]||'#7e919e',fillOpacity:.24};
   }
   function tectonicLegendHTML(){return '<strong>PB2002 · '+(spanish()?'Placas tectónicas':'Tectonic plates')+'</strong><div>'+Object.entries(plateLabels).filter(([code])=>new Set(tectonicData.features.map(f=>f.properties.plate_code)).has(code)).map(([code,p])=>'<span><i style="--plate:'+platePalette[code]+'"></i>'+code+' · '+p[spanish()?'es':'en']+'</span>').join('')+'</div><small>'+(spanish()?'Límites oscuros con halo blanco. El calor muestra registros; no riesgo.':'Dark boundaries + white halo. Heat shows records, not hazard.')+'</small>';}
   const tectonicAttribution='PB2002: <a href="https://doi.org/10.1029/2001GC000252">Bird (2003)</a> · GeoJSON: Hugo Ahlenius / Nordpil / csterling · ODC-BY 1.0';
@@ -274,10 +274,10 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
   const EventsLayer = L.Layer.extend({
     onAdd(m) {
       this._map = m; this._canvas = L.DomUtil.create('canvas', 'epicenter-canvas leaflet-zoom-hide');
-      this._canvas.setAttribute('aria-hidden', 'true');eventPane.appendChild(this._canvas);
+      this._canvas.setAttribute('aria-hidden', 'true');eventPane.appendChild(this._canvas);this._overlay=L.DomUtil.create('canvas','heat-epicenter-overlay leaflet-zoom-hide');this._overlay.setAttribute('aria-hidden','true');eventPane.appendChild(this._overlay);
       m.on('moveend zoomend resize viewreset', this.redraw, this);this.redraw();
     },
-    onRemove(m) {m.off('moveend zoomend resize viewreset', this.redraw, this);this._canvas.remove();},
+    onRemove(m) {m.off('moveend zoomend resize viewreset', this.redraw, this);this._canvas.remove();this._overlay.remove();},
     redraw() {
       if (!this._map || !this._canvas) return;
       const started=window.performance?.now?.();
@@ -301,6 +301,7 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
       L.DomUtil.setPosition(c, this._map.containerPointToLayerPoint([0, 0]));
       const drawingPane=displayMode==='heat'?heatPane:eventPane;if(c.parentElement!==drawingPane)drawingPane.appendChild(c);
       const ctx = c.getContext('2d');ctx.setTransform(ratio, 0, 0, ratio, 0, 0);this.points = [];
+      const overlay=this._overlay;overlay.width=c.width;overlay.height=c.height;overlay.style.width=c.style.width;overlay.style.height=c.style.height;L.DomUtil.setPosition(overlay,this._map.containerPointToLayerPoint([0,0]));overlay.hidden=displayMode!=='heat';
       let selectedPoint,visible;
       if(displayMode==='heat'){
         // A zoom can emit viewreset/zoomend/moveend for the same pixel bounds.
@@ -308,17 +309,18 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
         const topLeft=this._map.getPixelBounds?.().min,center=topLeft?null:this._map.getCenter();
         const key=[this._map.getZoom(),size.x,size.y,topLeft?.x??center.lat,topLeft?.y??center.lng].join('|');
         if(!this._heatCache||this._heatCache.records!==this.records||this._heatCache.key!==key){
-          const grid=heat.create(size.x,size.y);
-          for(const e of this.records||[]){const p=this._map.latLngToContainerPoint(eventLatLng(e));heat.add(grid,p.x,p.y);}
+          const grid=heat.create(size.x,size.y),projected=[];
+          for(const e of this.records||[]){const p=this._map.latLngToContainerPoint(eventLatLng(e));heat.add(grid,p.x,p.y);if(p.x>=0&&p.y>=0&&p.x<size.x&&p.y<size.y)projected.push({event:e,point:p});}
           const smoothed=heat.smooth(grid);
           this._heatCanvas ||= document.createElement('canvas');this._heatCanvas.width=grid.columns;this._heatCanvas.height=grid.rows;
           const hc=this._heatCanvas.getContext('2d'),pixels=hc.createImageData(grid.columns,grid.rows);pixels.data.set(heat.rgba(smoothed));hc.putImageData(pixels,0,0);
-          this._heatCache={key,records:this.records,visible:grid.visible_rows,occupied:grid.occupied_cells,max:smoothed.max,columns:grid.columns,rows:grid.rows};
+          this._heatCache={key,records:this.records,projected,visible:grid.visible_rows,occupied:grid.occupied_cells,max:smoothed.max,columns:grid.columns,rows:grid.rows};
         }
         const cached=this._heatCache;ctx.imageSmoothingEnabled=true;ctx.drawImage(this._heatCanvas,0,0,cached.columns*heat.spec.grid_css_pixels,cached.rows*heat.spec.grid_css_pixels);
         if(selectedId){const selected=(this.records||[]).find(e=>e.id===selectedId);if(selected){const p=this._map.latLngToContainerPoint(eventLatLng(selected));if(p.x>=0&&p.y>=0&&p.x<size.x&&p.y<size.y)selectedPoint={x:p.x,y:p.y,radius:4};}}
         visible=cached.visible;
-        displayEvidence={mode:'heat',color_encoding:'relative_source_row_concentration',...heat.spec,selected_rows:(this.records||[]).length,visible_rows:visible,occupied_cells:cached.occupied,
+        const dots=overlay.getContext('2d');dots.setTransform(ratio,0,0,ratio,0,0);const paths=window.SeismicSourceWorkbench?.markerPath;let overlayRows=0;for(const {event:e,point:p} of cached.projected){overlayRows++;const identity=sourceStyle(e),radius=Math.max(.8,(e.mag-2.5)*.65);dots.beginPath();dots.globalAlpha=.52;dots.fillStyle=window.SeismicMapTools?.magnitudeColor(window.SeismicMapTools?.heatSourceColor(identity)||identity?.color||'#334155',e.mag)||identity?.color||'#334155';if(paths&&identity)paths(dots,p.x,p.y,radius,identity.shape);else dots.arc(p.x,p.y,radius,0,Math.PI*2);dots.fill();if(e.mag>=6){dots.strokeStyle='#fff';dots.lineWidth=.8;dots.stroke();}}
+        displayEvidence={mode:'heat',epicentre_overlay:{visible_rows:overlayRows,encoding:'Catalogue hue/shape and reported-magnitude shade; USGS Mexico uses warm orange in heat view. Every visible selected source row, no sampling.'},color_encoding:'relative_source_row_concentration',...heat.spec,selected_rows:(this.records||[]).length,visible_rows:visible,occupied_cells:cached.occupied,
           max_smoothed_cell_weight:cached.max,viewport_css_pixels:[size.x,size.y],palette:heat.palette.map(p=>({...p})),
           limits:['One equal weight per selected row whose epicentre center is inside the viewport; no sampling.',
             'Screen-space binned counts, Gaussian smoothing and log1p colors relative to the current viewport maximum; not a density per square kilometre.',
@@ -335,9 +337,9 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
         const radius = Math.max(2, (e.mag - 2.5) * 1.25);
         if (p.x < -radius || p.x > size.x + radius || p.y < -radius || p.y > size.y + radius) continue;
         this.points.push({x: p.x, y: p.y, radius, event: e});
-        const styleKey=e._catalog_id||'';
-        if(colorMode==='catalogue'&&!this.sourceStyles.has(styleKey))this.sourceStyles.set(styleKey,sourceStyle(e));
-        const identity=colorMode==='catalogue'?this.sourceStyles.get(styleKey):null;
+        const styleKey=colorMode+'|'+(e._catalog_id||'');
+        if(colorMode!=='depth'&&!this.sourceStyles.has(styleKey))this.sourceStyles.set(styleKey,window.SeismicMapTools?.pointIdentity(sourceStyle(e),colorMode)||sourceStyle(e));
+        const identity=colorMode!=='depth'?this.sourceStyles.get(styleKey):null;
         if(identity?.catalogue_id&&!visibleCatalogues.has(identity.catalogue_id))visibleCatalogues.set(identity.catalogue_id,{...identity});
         ctx.beginPath();ctx.globalAlpha = identity?.color?.length ? .88 : .7;
         ctx.fillStyle = (identity ? window.SeismicMapTools?.magnitudeColor(identity.color,e.mag) || identity.color : null) || (e.depth === null ? colors.unknown : e.depth > 70 ? colors.deep : colors.shallow);
@@ -347,7 +349,8 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
         if (e.id === selectedId) selectedPoint = {x:p.x,y:p.y,radius};
       }
       visible=this.points.length;
-      displayEvidence={mode:'points',color_encoding:colorMode,magnitude_tones:colorMode==='catalogue'?[{range:'M < 3',lightness:78},{range:'3 ≤ M < 5',lightness:59},{range:'5 ≤ M < 7',lightness:42},{range:'M ≥ 7',lightness:27}]:null,catalogue_palette:[...visibleCatalogues.values()],symbol_size:'Radius max(2, (reported M - 2.5) * 1.25) CSS pixels; magnitude types are not converted.',selected_rows:(this.records||[]).length,visible_rows:visible,viewport_css_pixels:[size.x,size.y]};
+      let labelledRows=0;if(ctx.fillText&&this._map.getZoom()>=6){const placed=[];for(const p of [...this.points].sort((a,b)=>b.event.mag-a.event.mag)){if(p.event.mag<5.5||placed.length>=24)break;const x=p.x+8,y=p.y-8;if(x<2||y<17||x+52>size.x||y>size.y-3||placed.some(q=>Math.abs(q.x-x)<57&&Math.abs(q.y-y)<22))continue;ctx.font='bold 16px Arial';ctx.lineWidth=4;ctx.strokeStyle='#fff';ctx.fillStyle='#172c46';ctx.globalAlpha=1;ctx.strokeText?.('M '+p.event.mag.toFixed(1),x,y);ctx.fillText('M '+p.event.mag.toFixed(1),x,y);placed.push({x,y});labelledRows++;}}
+      displayEvidence={mode:'points',magnitude_labels:{shown:labelledRows,minimum_reported_magnitude:5.5,maximum_labels:24,minimum_zoom:6,rule:'Largest visible records first; skip overlapping labels only. All selected points remain.'},color_encoding:colorMode,magnitude_tones:colorMode!=='depth'?[{range:'M < 3',lightness:78},{range:'3 ≤ M < 5',lightness:59},{range:'5 ≤ M < 7',lightness:42},{range:'M ≥ 7',lightness:27}]:null,catalogue_palette:[...visibleCatalogues.values()],symbol_size:'Radius max(2, (reported M - 2.5) * 1.25) CSS pixels; magnitude types are not converted.',selected_rows:(this.records||[]).length,visible_rows:visible,viewport_css_pixels:[size.x,size.y]};
       }
       if (selectedPoint) {
         ctx.globalAlpha = 1;ctx.beginPath();ctx.arc(selectedPoint.x,selectedPoint.y,Math.max(8,selectedPoint.radius+4),0,Math.PI*2);
@@ -432,7 +435,7 @@ window.createSeismicMap = function ({element, basemap, onSelect, onHighlight = (
     setAdmin1Context({geometry,countryId}={}) {setAdmin1({geometry,countryId,contextOnly:true});},
     setDisplayMode(mode) {if(!['points','heat'].includes(mode))throw new Error('Unknown seismic map display mode');if(mode!==displayMode){displayMode=mode;map.closePopup();if(hoverTip){map.closeTooltip(hoverTip);hoverTip=null;}events.redraw();}return displayMode;},
     getDisplayMode() {return displayMode;},
-    setColorMode(mode) {if(!['catalogue','depth'].includes(mode))throw new Error('Unknown seismic point color mode');if(mode!==colorMode){colorMode=mode;events.redraw();}return colorMode;},
+    setColorMode(mode) {if(!['catalogue','warm','depth'].includes(mode))throw new Error('Unknown seismic point color mode');if(mode!==colorMode){colorMode=mode;events.redraw();}return colorMode;},
     getColorMode() {return colorMode;},
     getDisplayEvidence() {return JSON.parse(JSON.stringify(displayEvidence));},
     setCountry(id) {selectedCountry=String(id||'');if(admin1Country&&admin1Country!==selectedCountry&&(!admin1Context||selectedCountry))clearAdmin1();countries.setStyle(countryStyle);},

@@ -162,6 +162,7 @@ test('heat is a presentation-only mode with explicit evidence and geographic cli
     map.getSize=()=>({x:100,y:100});map.latLngToContainerPoint=([lat,lng])=>{projections++;return {x:lng+200,y:lat};};api.setRecords(fixtures);
     assert.equal(api.getDisplayMode(),'points');api.setDisplayMode('heat');
     const e=api.getDisplayEvidence();assert.equal(e.mode,'heat');assert.equal(e.selected_rows,3);assert.equal(e.visible_rows,2);assert.equal(e.occupied_cells,1);
+    assert.equal(e.epicentre_overlay.visible_rows,2,'Every visible row also has an epicentre symbol; the offscreen row has none');assert.equal(panes.seismicEvents.children.find(c=>c.className.includes('heat-epicenter-overlay')).painted.length,2);
     assert.equal(e.weight_per_source_row,1);assert.equal(e.normalization,'log1p_relative_to_viewport_max');assert.equal(e.palette.length,4);assert(e.limits.some(s=>s.includes('not a density per square kilometre')));
     assert.equal(panes.seismicHeat.children.find(c=>c.className.includes('epicenter-canvas')).parentElement,panes.seismicHeat);assert(panes.seismicTectonicDetails.style.zIndex>panes.seismicHeat.style.zIndex);assert(panes.seismicContextLabels.style.zIndex>panes.seismicTectonicDetails.style.zIndex);assert.equal(panes.seismicHeat.style.zIndex,405);assert.equal(panes.seismicHeat.style.pointerEvents,'none');assert.equal(panes.seismicAdmin1.style.zIndex,410);
     const prepared=projections;api.setRecords(fixtures);assert.equal(projections,prepared,'Same-view redraws reuse the heat grid');

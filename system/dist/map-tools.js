@@ -4,6 +4,8 @@
 (function(root,factory){'use strict';const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.SeismicMapTools=api;})(typeof globalThis==='object'?globalThis:this,function(){
   'use strict';
   const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function pointIdentity(identity,mode){if(mode!=='warm'||!identity)return identity;const palette={'usgs-na-2020-2025':'#c04b12','usgs-mx-historical':'#8c244d','nrcan-ca-historical':'#a72885','ssn-mx-historical':'#08775b'};return {...identity,color:palette[identity.catalogue_id]||identity.color};}
+  function heatSourceColor(identity){return identity?.catalogue_id==='usgs-mx-historical'?'#d45c16':identity?.color||'#334155';}
   function magnitudeColor(hex,magnitude){
     const rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255),hi=Math.max(...rgb),lo=Math.min(...rgb),d=hi-lo;
     let hue=0;if(d)hue=hi===rgb[0]?((rgb[1]-rgb[2])/d)%6:hi===rgb[1]?(rgb[2]-rgb[0])/d+2:(rgb[0]-rgb[1])/d+4;
@@ -54,13 +56,37 @@
     const L=window.L,leaders=L.layerGroup().addTo(map);
     function draw(){leaders.clearLayers();const placed=[];
       for(const {marker,point,html} of entries){const p=map.latLngToLayerPoint(point);let offset=[0,0];
-        const free=(dx,dy)=>placed.every(q=>Math.hypot(q[0]-p.x-dx,q[1]-p.y-dy)>=43);
-        if(!free(0,0)){outer:for(let r=48;r<=240;r+=35)for(let i=0;i<16;i++){const angle=i*Math.PI/8,dx=Math.cos(angle)*r,dy=Math.sin(angle)*r;if(free(dx,dy)){offset=[dx,dy];break outer;}}}
+        const screen=map.latLngToContainerPoint(point),size=map.getSize();const free=(dx,dy)=>screen.x+dx>=26&&screen.x+dx<=size.x-26&&screen.y+dy>=26&&screen.y+dy<=size.y-26&&placed.every(q=>Math.hypot(q[0]-p.x-dx,q[1]-p.y-dy)>=42);
+        {outer:for(let r=36;r<=90;r+=18)for(let i=0;i<16;i++){const angle=i*Math.PI/8,dx=Math.cos(angle)*r,dy=Math.sin(angle)*r;if(free(dx,dy)){offset=[dx,dy];break outer;}}}
         const [dx,dy]=offset;placed.push([p.x+dx,p.y+dy]);marker.setIcon(L.divIcon({className:'history-top-rank-marker',html,iconSize:[34,34],iconAnchor:[17-dx,17-dy]}));
-        if(dx||dy){L.polyline([point,map.layerPointToLatLng([p.x+dx,p.y+dy])],{color:'#486675',weight:1.3,opacity:.85,interactive:false}).addTo(leaders);L.circleMarker(point,{radius:2.5,color:'#486675',weight:1,fillColor:'#fff',fillOpacity:1,interactive:false}).addTo(leaders);}
+        if(dx||dy){L.polyline([point,map.layerPointToLatLng([p.x+dx,p.y+dy])],{color:'#486675',weight:1.8,opacity:.95,interactive:false}).addTo(leaders);L.circleMarker(point,{radius:6,color:'#ffffff',weight:2,fillColor:'#a32232',fillOpacity:1,interactive:false}).addTo(leaders);}
       }
     }map.on('zoomend moveend resize',draw);draw();
     return {dispose(){map.off('zoomend moveend resize',draw);map.removeLayer(leaders);}};
   }
-  return Object.freeze({magnitudeColor,contains,coordinateText,shakingLinks,install,declutterRanks});
+
+  function addCountryLabels(map,geometry,language='en'){
+    if(!geometry)return null;const L=window.L,group=L.layerGroup().addTo(map);
+    for(const f of geometry.features||[]){const p=f.properties||{};if(!['Canada','Mexico','United States of America'].includes(p.ADMIN))continue;
+      const label=language==='es'?({Canada:'Canadá',Mexico:'México','United States of America':'Estados Unidos'})[p.ADMIN]:p.ADMIN==='United States of America'?'United States':p.ADMIN;
+      if(Number.isFinite(p.LABEL_Y)&&Number.isFinite(p.LABEL_X))L.marker([p.LABEL_Y,p.LABEL_X],{interactive:false,keyboard:false,icon:L.divIcon({className:'history-country-label',iconSize:[150,28],iconAnchor:[75,14],html:'<span>'+esc(label)+'</span>'})}).addTo(group);
+    }return group;
+  }
+  function addTectonicContext(map,geometry,language='en'){
+    if(!geometry)return null;const L=window.L,palette={PA:'#7651c8',NA:'#d18a24',CO:'#cc4778',RI:'#9d3b2e',CA:'#5d739e',JF:'#477da6',NZ:'#8a7052'};
+    const plates={...geometry,features:geometry.features.filter(f=>f.properties?.kind==='plate')},boundaries={...geometry,features:geometry.features.filter(f=>f.properties?.kind==='boundary')};
+    const group=L.layerGroup().addTo(map);L.geoJSON(plates,{interactive:false,style:f=>({color:palette[f.properties.plate_code]||'#64748b',weight:2,fillColor:palette[f.properties.plate_code]||'#64748b',fillOpacity:.12})}).addTo(group);L.geoJSON(boundaries,{interactive:false,style:{color:'#fff',weight:6,opacity:.95}}).addTo(group);L.geoJSON(boundaries,{interactive:false,style:{color:'#203854',weight:2.4,opacity:1}}).addTo(group);
+    const names={PA:'Pacific',NA:'North America',CO:'Cocos',RI:'Rivera',CA:'Caribbean',JF:'Juan de Fuca',NZ:'Nazca'},labels=L.layerGroup().addTo(map);
+    // Find presentation anchors inside each visible model polygon. These labels
+    // are cartographic context; no event membership or geometry is changed.
+    function labelVisiblePlates(){labels.clearLayers();const size=map.getSize(),placed=[];
+      for(const f of plates.features){const code=f.properties.plate_code;if(!names[code])continue;const bounds=L.geoJSON(f).getBounds();let best=null;
+        for(let iy=1;iy<=8;iy++)for(let ix=1;ix<=10;ix++){const x=size.x*ix/11,y=size.y*iy/9,point=map.containerPointToLatLng([x,y]);if(!bounds.contains(point)||!contains(f,point.lng,point.lat)||placed.some(p=>Math.hypot(p.x-x,p.y-y)<150))continue;
+          const target=code==='CO'?[.27,.80]:code==='NA'?[.70,.24]:[.22,.28],score=Math.hypot(x/size.x-target[0],y/size.y-target[1]);if(!best||score<best.score)best={x,y,point,score};}
+        if(best){placed.push(best);labels.addLayer(L.marker(best.point,{interactive:false,keyboard:false,icon:L.divIcon({className:'history-plate-label',iconSize:[180,30],iconAnchor:[90,15],html:'<span>'+code+' · '+esc(names[code]||code)+'</span>'})}));}
+      }
+    }map.on('moveend zoomend resize',labelVisiblePlates);labelVisiblePlates();
+    const key=L.control({position:'bottomright'});key.onAdd=()=>{const box=L.DomUtil.create('div','tectonic-key');box.innerHTML='<strong>PB2002 · '+(language==='es'?'Placas tectónicas':'Tectonic plates')+'</strong><div>'+Object.entries(names).map(([code,name])=>'<span><i style="--plate:'+palette[code]+'"></i>'+code+' · '+name+'</span>').join('')+'</div><small>'+(language==='es'?'Contexto geológico estático; no riesgo.':'Static geological context; not risk.')+'</small>';return box;};key.addTo(map);map.attributionControl.addAttribution('PB2002 · Bird (2003) · Ahlenius / Nordpil / csterling · ODC-BY 1.0');return {group,key,labels};
+  }
+  return Object.freeze({addCountryLabels,addTectonicContext,pointIdentity,heatSourceColor,magnitudeColor,contains,coordinateText,shakingLinks,install,declutterRanks});
 });
